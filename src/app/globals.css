@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-cairo: 'Cairo', sans-serif;
+  }
+
+  body {
+    background-color: #F8F9FA;
+    color: #262626;
+    font-family: var(--font-cairo);
+    direction: rtl;
+    text-align: right;
+  }
+}
+
+.material-symbols-outlined {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1 !important;
+  box-sizing: content-box;
+  overflow: hidden;
+  white-space: nowrap;
+  direction: ltr;
+  vertical-align: middle;
+}
+
+/* Print simulation & PDF sheet styling */
+.a4-sheet {
+  width: 100%;
+  max-width: 820px;
+  min-height: 1140px;
+  background-color: #FFFFFF;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+  position: relative;
+}
+
+@media print {
+  body {
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  header, nav, .no-print {
+    display: none !important;
+  }
+  .a4-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

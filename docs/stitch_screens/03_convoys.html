@@ -1,0 +1,516 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة القوافل — أحمد البيك للاستيراد والتصدير</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config" data-stitch-original-src="012e0bd0638987d3===../../tailwind.config.js">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'primary': '#B51F2D',
+        'on-primary': '#FFFFFF',
+        'charcoal': '#262626',
+        'pale-red': '#F7E6E8',
+        'light-gray': '#F5F5F5',
+        'outline': '#D9D9D9',
+        'success': '#1F7A4D',
+        'on-success': '#FFFFFF',
+        'warning': '#C27803',
+        'on-warning': '#222222',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#262626',
+        'light-surface-variant': '#F5F5F5',
+        'light-on-surface-variant': '#4A4A4A',
+        'light-primary': '#B51F2D',
+        'light-on-primary': '#FFFFFF',
+      },
+      borderRadius: {
+        'sm': '6px',
+        'DEFAULT': '8px',
+        'md': '10px',
+        'lg': '14px',
+        'xl': '20px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section': '40px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Cairo"', 'sans-serif'],
+        'headline': ['"Cairo"', 'sans-serif'],
+        'body': ['"Cairo"', 'sans-serif'],
+        'label': ['"Cairo"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['36px', { lineHeight: '46px', letterSpacing: '0px', fontWeight: '700' }],
+        'display-lg-mobile': ['28px', { lineHeight: '36px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-lg-mobile': ['20px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-md': ['20px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '600' }],
+        'headline-sm': ['18px', { lineHeight: '26px', letterSpacing: '0px', fontWeight: '600' }],
+        'body-lg': ['16px', { lineHeight: '26px', letterSpacing: '0px', fontWeight: '500' }],
+        'body-md': ['14px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '400' }],
+        'body-sm': ['12px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '400' }],
+        'label-lg': ['15px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '600' }],
+        'label-md': ['13px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '16px', letterSpacing: '0px', fontWeight: '600' }],
+      },
+      transitionDuration: {
+        'state-change': '120ms',
+        'surface-enter': '200ms',
+        'surface-exit': '120ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-enter': '0ms',
+        'surface-exit': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-enter': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'surface-exit': 'cubic-bezier(0.7, 0, 0.84, 0)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+  <style>
+    .material-symbols-outlined { display: inline-block; width: 1em; height: 1em; line-height: 1 !important; box-sizing: content-box; overflow: hidden; white-space: nowrap; direction: ltr; vertical-align: middle; }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-charcoal font-body min-h-screen flex flex-col">
+
+  <!-- Shared Corporate Header -->
+  <header class="bg-light-surface border-b border-outline sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      
+      <div class="flex items-center gap-4">
+        <a href="../dashboard/Dashboard.html" class="flex items-center gap-3">
+          <img src="https://lh3.googleusercontent.com/aida/ALJJyrDEEBTug-Z_c13BzHLE1SkxrgUlDnIRuWYxpfkhzCZ7DyUdtbNBJsqOhPMOmIifKGDT0rqNvXNo0zGmMLHqBv523FUgXlJSv0WT0J2GtaTq7-RLr1Slhlt5ee6s0S8-gHWSNUeXuzYzQkQZB51ANhaYxDhp8rg6pLz4XaRRuCDjUPLjREInd1ogRTf8Ku666lMev0EAc5jWc41MiUfJfdA_Aw1_k1qyUdIbchnIcGeahTKY-mNHkl5iJAXCDOMrEpwkgqxk" alt="شعار أحمد البيك" class="w-12 h-12 object-contain" data-stitch-original-src="9fb9123686c4fb52===../../uploads/image-7c20fa.png">
+          <div>
+            <h1 class="font-headline text-headline-sm font-bold text-charcoal leading-tight">أحمد البيك للاستيراد والتصدير</h1>
+            <p class="font-body text-body-sm text-light-on-surface-variant">نظام إدارة وتسيير قوافل الشاحنات</p>
+          </div>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-1">
+        <a href="../dashboard/Dashboard.html" class="px-4 py-2 rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md flex items-center gap-2 transition">
+          <span class="material-symbols-outlined text-lg">dashboard</span>
+          <span>لوحة التحكم</span>
+        </a>
+        <a href="ConvoysList.html" class="px-4 py-2 rounded-DEFAULT bg-pale-red text-primary font-label text-label-md flex items-center gap-2 font-bold">
+          <span class="material-symbols-outlined text-lg">local_shipping</span>
+          <span>تحميل</span>
+        </a>
+        <a href="../archive/Archive.html" class="px-4 py-2 rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md flex items-center gap-2 transition">
+          <span class="material-symbols-outlined text-lg">inventory_2</span>
+          <span>الأرشيف والبيانات</span>
+        </a>
+        <a href="../settings/Settings.html" class="px-4 py-2 rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md flex items-center gap-2 transition">
+          <span class="material-symbols-outlined text-lg">settings</span>
+          <span>الإعدادات</span>
+        </a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-full bg-charcoal text-on-primary font-bold flex items-center justify-center font-headline text-label-lg">
+            أ
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
+
+    <!-- Breadcrumb & Header Action Row -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div>
+        <h2 class="font-headline text-headline-lg font-bold text-charcoal">سجل البوصلات والشحن والتفريغ</h2>
+        <p class="font-body text-body-md text-light-on-surface-variant">
+          استعراض ومتابعة حركة السيارات والبوصلات المحملة لميناء العوجة وميناء رفح.
+        </p>
+      </div>
+
+      <!-- Header Action Buttons -->
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Driver Coordination Button (تنسيق السائقين) -->
+        <a href="../driver-coordination/DriverCoordination.html" class="px-5 py-3 border-2 border-primary text-primary hover:bg-pale-red rounded-DEFAULT font-label text-label-md font-bold transition flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-xl">badge</span>
+          <span>تنسيق السائقين</span>
+        </a>
+
+        <!-- Renamed Create Convoy Button (إنشاء بوصلة) -->
+        <a href="../create-convoy/CreateConvoy.html" class="bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-lg px-6 py-3 rounded-DEFAULT shadow-sm flex items-center justify-center gap-2 transition">
+          <span class="material-symbols-outlined text-xl">add</span>
+          <span>إنشاء بوصلة</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Prominent Top Location Switcher Cards (اختيارين فوق: ميناء العوجة & ميناء رفح) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+      
+      <!-- Option 1: ميناء العوجة -->
+      <div role="button" tabindex="0" onclick="setActivePort(&#39;awja&#39;)" id="cardPortAwja" class="bg-light-surface border-2 border-amber-300 hover:border-amber-500 rounded-xl p-6 shadow-xs transition duration-state-change cursor-pointer relative overflow-hidden group">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-xl bg-amber-50 text-warning flex items-center justify-center shrink-0 border border-amber-200">
+              <span class="material-symbols-outlined text-3xl">anchor</span>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-light-on-surface-variant block mb-0.5">عرض السيارات المحملة إلى:</span>
+              <h3 class="font-headline text-headline-lg font-bold text-charcoal group-hover:text-warning transition">
+                ميناء العوجة
+              </h3>
+              <p class="text-body-sm text-light-on-surface-variant mt-1">
+                عرض كافة السيارات والبوصلات المتجهة أو المعتّقة بميناء العوجة
+              </p>
+            </div>
+          </div>
+          <div class="text-left bg-amber-50/80 px-4 py-2.5 rounded-lg border border-amber-300">
+            <span class="font-headline text-display-lg text-charcoal font-bold tabular-nums block leading-none">15</span>
+            <span class="text-xs text-charcoal font-bold">عربية محملة</span>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-light-gray flex items-center justify-between text-body-sm">
+          <span class="inline-flex items-center gap-1.5 text-warning font-bold">
+            <span class="w-2.5 h-2.5 rounded-full bg-warning animate-pulse"></span>
+            <span>2 بوصلة جارية قيد التعتيق</span>
+          </span>
+          <span class="text-primary font-bold inline-flex items-center gap-1">
+            <span>تصفية سيارات العوجة</span>
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Option 2: ميناء رفح -->
+      <div role="button" tabindex="0" onclick="setActivePort(&#39;rafah&#39;)" id="cardPortRafah" class="bg-light-surface border-2 border-primary rounded-xl p-6 shadow-sm transition duration-state-change cursor-pointer relative overflow-hidden group ring-2 ring-primary/20">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-xl bg-pale-red text-primary flex items-center justify-center shrink-0 border border-primary/30">
+              <span class="material-symbols-outlined text-3xl">anchor</span>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-primary block mb-0.5">عرض السيارات المحملة إلى:</span>
+              <h3 class="font-headline text-headline-lg font-bold text-charcoal group-hover:text-primary transition">
+                ميناء رفح
+              </h3>
+              <p class="text-body-sm text-light-on-surface-variant mt-1">
+                عرض كافة السيارات والبوصلات المتجهة أو المعتّقة بميناء رفح
+              </p>
+            </div>
+          </div>
+          <div class="text-left bg-pale-red px-4 py-2.5 rounded-lg border border-primary/20">
+            <span class="font-headline text-display-lg text-primary font-bold tabular-nums block leading-none">24</span>
+            <span class="text-xs text-primary font-bold">عربية محملة</span>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-light-gray flex items-center justify-between text-body-sm">
+          <span class="inline-flex items-center gap-1.5 text-primary font-bold">
+            <span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+            <span>2 بوصلة جارية قيد التعتيق</span>
+          </span>
+          <span class="text-primary font-bold inline-flex items-center gap-1">
+            <span>محدد حالياً (سيارات رفح)</span>
+            <span class="material-symbols-outlined text-base">check_circle</span>
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Filter Tabs & Quick Search -->
+    <div class="bg-light-surface border border-outline rounded-xl p-4 mb-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      
+      <!-- Status Tabs -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button class="px-5 py-2.5 rounded-DEFAULT bg-charcoal text-on-primary font-label text-label-md font-bold flex items-center gap-2 shadow-xs cursor-pointer">
+          <span class="material-symbols-outlined text-lg">all_inbox</span>
+          <span>كافة البوصلات</span>
+        </button>
+        <button class="px-5 py-2.5 rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md flex items-center gap-2 transition cursor-pointer">
+          <span class="material-symbols-outlined text-lg text-warning">local_shipping</span>
+          <span>النشطة (في انتظار التعتيق)</span>
+        </button>
+        <button class="px-5 py-2.5 rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md flex items-center gap-2 transition cursor-pointer">
+          <span class="material-symbols-outlined text-lg text-success">task_alt</span>
+          <span>المعتّقة</span>
+        </button>
+      </div>
+
+      <!-- Quick Search input -->
+      <div class="relative w-full md:w-80">
+        <input type="text" placeholder="ابحث برقم العربية أو البضاعة أو السائق..." class="w-full border border-outline rounded-DEFAULT px-4 py-2.5 pr-10 font-body text-body-md text-charcoal placeholder-light-on-surface-variant/60 focus:border-primary outline-none transition">
+        <span class="material-symbols-outlined absolute right-3 top-3 text-light-on-surface-variant text-lg">search</span>
+      </div>
+
+    </div>
+
+    <!-- Convoys Master Table -->
+    <div class="bg-light-surface border border-outline rounded-xl overflow-hidden shadow-xs">
+      <div class="overflow-x-auto">
+        <table class="w-full text-right border-collapse">
+          <thead>
+            <tr class="bg-charcoal text-on-primary border-b border-outline">
+              <th class="py-4 px-5 font-label text-label-md">البضاعة (تعريف البوصلة)</th>
+              <th class="py-4 px-4 font-label text-label-md">مكان التحميل</th>
+              <th class="py-4 px-4 font-label text-label-md">عدد العربيات</th>
+              <th class="py-4 px-4 font-label text-label-md">تاريخ التحميل</th>
+              <th class="py-4 px-4 font-label text-label-md">تاريخ التعتيق</th>
+              <th class="py-4 px-4 font-label text-label-md">أيام المبيت</th>
+              <th class="py-4 px-4 font-label text-label-md">الحالة</th>
+            <!-- Active Row 1 (ميناء رفح) -->
+            </tr><tr data-port="rafah" class="convoy-row hover:bg-pale-red/20 transition">
+              <td class="py-4 px-5">
+                <a href="../convoy-details/ConvoyDetails.html" class="font-bold text-charcoal hover:text-primary transition flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-lg">local_shipping</span>
+                  <span>برتقال صيفي فرز أول</span>
+                </a>
+                <span class="text-body-sm text-light-on-surface-variant block mt-0.5">خط السير: وادي النطرون ⟵ ميناء الإسكندرية</span>
+              </td>
+              <td class="py-4 px-4">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-label-sm font-label bg-red-50 text-primary border border-red-200">
+                  <span class="material-symbols-outlined text-sm">anchor</span>
+                  <span>ميناء رفح</span>
+                </span>
+              </td>
+              <td class="py-4 px-4 tabular-nums font-bold text-charcoal">12 عربية</td>
+              <td class="py-4 px-4 tabular-nums text-light-on-surface-variant">2026-11-04</td>
+              <td class="py-4 px-4 text-warning font-semibold">قيد الانتظار</td>
+              <td class="py-4 px-4 tabular-nums font-bold text-primary">9 أيام (حتى اليوم)</td>
+              <td class="py-4 px-5">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-label-sm font-label bg-amber-50 text-warning border border-amber-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-warning animate-ping"></span>
+                  نشطة
+                </span>
+              </td>
+              <td class="py-4 px-5 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <a href="../convoy-details/ConvoyDetails.html" class="bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-sm px-4 py-1.5 rounded-DEFAULT shadow-xs transition flex items-center gap-1 font-bold">
+                    <span class="material-symbols-outlined text-base">fact_check</span>
+                    <span>تعتيق</span>
+                  </a>
+                  <a href="../convoy-details/ConvoyDetails.html" class="p-1.5 text-charcoal hover:bg-light-surface-variant rounded-DEFAULT transition" title="عرض التفاصيل">
+                    <span class="material-symbols-outlined text-lg">visibility</span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Active Row 2 (ميناء العوجة) -->
+            <tr data-port="awja" class="convoy-row hover:bg-pale-red/20 transition">
+              <td class="py-4 px-5">
+                <a href="../convoy-details/ConvoyDetails.html" class="font-bold text-charcoal hover:text-primary transition flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-lg">local_shipping</span>
+                  <span>بطاطس تصدير مبردة (سبونتا)</span>
+                </a>
+                <span class="text-body-sm text-light-on-surface-variant block mt-0.5">خط السير: النوبارية ⟵ ميناء دمياط</span>
+              </td>
+              <td class="py-4 px-4">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-label-sm font-label bg-amber-50 text-charcoal border border-amber-300">
+                  <span class="material-symbols-outlined text-sm text-warning">anchor</span>
+                  <span class="font-bold">ميناء العوجة</span>
+                </span>
+              </td>
+              <td class="py-4 px-4 tabular-nums font-bold text-charcoal">15 شاحنة تريلا</td>
+              <td class="py-4 px-4 tabular-nums text-light-on-surface-variant">2026-11-08</td>
+              <td class="py-4 px-4 text-warning font-semibold">قيد الانتظار</td>
+              <td class="py-4 px-4 tabular-nums font-bold text-primary">5 أيام (حتى اليوم)</td>
+              <td class="py-4 px-4">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-label-sm font-label bg-amber-50 text-warning border border-amber-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-warning animate-ping"></span>
+                  نشطة — جارية
+                </span>
+              </td>
+              <td class="py-4 px-5 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <a href="../convoy-details/ConvoyDetails.html" class="bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-sm px-4 py-1.5 rounded-DEFAULT shadow-xs transition flex items-center gap-1 font-bold">
+                    <span class="material-symbols-outlined text-base">fact_check</span>
+                    <span>تعتيق</span>
+                  </a>
+                  <a href="../convoy-details/ConvoyDetails.html" class="p-1.5 text-charcoal hover:bg-light-surface-variant rounded-DEFAULT transition" title="عرض التفاصيل">
+                    <span class="material-symbols-outlined text-lg">visibility</span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Completed Row 1 (ميناء رفح) -->
+            <tr data-port="rafah" class="convoy-row hover:bg-light-surface-variant transition">
+              <td class="py-4 px-5">
+                <a href="../pdf-preview/PdfPreview.html" class="font-bold text-charcoal hover:text-primary transition flex items-center gap-2">
+                  <span class="material-symbols-outlined text-success text-lg">task_alt</span>
+                  <span>بصل أحمر درجة أولى</span>
+                </a>
+                <span class="text-body-sm text-light-on-surface-variant block mt-0.5">خط السير: كفر الدوار ⟵ ميناء الإسكندرية</span>
+              </td>
+              <td class="py-4 px-4">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-label-sm font-label bg-red-50 text-primary border border-red-200">
+                  <span class="material-symbols-outlined text-sm">anchor</span>
+                  <span>ميناء رفح</span>
+                </span>
+              </td>
+              <td class="py-4 px-4 tabular-nums font-bold text-charcoal">8 شاحنات تريلا</td>
+              <td class="py-4 px-4 tabular-nums text-light-on-surface-variant">2026-11-02</td>
+              <td class="py-4 px-4 tabular-nums text-light-on-surface-variant">2026-11-09</td>
+              <td class="py-4 px-4 tabular-nums font-semibold text-charcoal">7 ليالي مبيت</td>
+              <td class="py-4 px-4">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-label-sm font-label bg-emerald-50 text-success border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                  معتّقة ومكتملة
+                </span>
+              </td>
+              <td class="py-4 px-5 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <a href="../pdf-preview/PdfPreview.html" class="bg-pale-red text-primary hover:bg-primary hover:text-on-primary font-label text-label-sm px-3.5 py-1.5 rounded-DEFAULT transition flex items-center gap-1">
+                    <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+                    <span>عرض البيان PDF</span>
+                  </a>
+                  <a href="../cost-calculation/CostCalculation.html" class="p-1.5 text-charcoal hover:bg-light-surface-variant rounded-DEFAULT transition" title="عرض الحسابات">
+                    <span class="material-symbols-outlined text-lg">calculate</span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Completed Row 2 (ميناء العوجة) -->
+            <tr data-port="awja" class="convoy-row hover:bg-light-surface-variant transition">
+              <td class="py-4 px-5">
+                <a href="../pdf-preview/PdfPreview.html" class="font-bold text-charcoal hover:text-primary transition flex items-center gap-2">
+                  <span class="material-symbols-outlined text-success text-lg">task_alt</span>
+                  <span>رمان وندرفل مصري</span>
+                </a>
+                <span class="text-body-sm text-light-on-surface-variant block mt-0.5">خط السير: أسيوط ⟵ ميناء الدخيلة</span>
+              </td>
+              <td class="py-4 px-4">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-label-sm font-label bg-amber-50 text-charcoal border border-amber-300">
+                  <span class="material-symbols-outlined text-sm text-warning">anchor</span>
+                  <span class="font-bold">ميناء العوجة</span>
+                </span>
+              </td>
+              <td class="py-4 px-4 tabular-nums font-bold text-charcoal">6 شاحنات تريلا</td>
+              <td class="py-4 px-4 tabular-nums text-light-on-surface-variant">2026-10-27</td>
+              <td class="py-4 px-4 tabular-nums text-light-on-surface-variant">2026-11-01</td>
+              <td class="py-4 px-4 tabular-nums font-semibold text-charcoal">5 ليالي مبيت</td>
+              <td class="py-4 px-4">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-label-sm font-label bg-emerald-50 text-success border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                  معتّقة ومكتملة
+                </span>
+              </td>
+              <td class="py-4 px-5 text-center">
+                <div class="flex items-center justify-center gap-2">
+                  <a href="../pdf-preview/PdfPreview.html" class="bg-pale-red text-primary hover:bg-primary hover:text-on-primary font-label text-label-sm px-3.5 py-1.5 rounded-DEFAULT transition flex items-center gap-1">
+                    <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+                    <span>عرض البيان PDF</span>
+                  </a>
+                  <a href="../cost-calculation/CostCalculation.html" class="p-1.5 text-charcoal hover:bg-light-surface-variant rounded-DEFAULT transition" title="عرض الحسابات">
+                    <span class="material-symbols-outlined text-lg">calculate</span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+          
+        </thead></table>
+      </div>
+
+      <!-- Pagination footer -->
+      <div class="p-4 border-t border-outline flex items-center justify-between text-body-sm text-light-on-surface-variant bg-light-surface">
+        <span id="filterStatsText">عرض كافة البوصلات (4 بوصلات)</span>
+        <div class="flex items-center gap-2">
+          <button onclick="setActivePort(&#39;all&#39;)" class="px-3 py-1 border border-outline rounded-DEFAULT hover:bg-light-surface-variant text-xs font-bold text-charcoal">عرض الكل</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Client-side Switcher Script -->
+    <script>
+      let currentPort = 'all';
+
+      function setActivePort(port) {
+        currentPort = port;
+        const cardAwja = document.getElementById('cardPortAwja');
+        const cardRafah = document.getElementById('cardPortRafah');
+        const rows = document.querySelectorAll('.convoy-row');
+        const stats = document.getElementById('filterStatsText');
+        
+        if (port === 'awja') {
+          // Highlight Awja
+          cardAwja.className = 'bg-light-surface border-2 border-amber-500 rounded-xl p-6 shadow-md transition duration-state-change cursor-pointer relative overflow-hidden group ring-2 ring-amber-500 bg-amber-50/20';
+          cardRafah.className = 'bg-light-surface border-2 border-outline hover:border-primary/50 rounded-xl p-6 shadow-xs transition duration-state-change cursor-pointer relative overflow-hidden group';
+          
+          let count = 0;
+          rows.forEach(r => {
+            if (r.getAttribute('data-port') === 'awja') {
+              r.style.display = '';
+              count++;
+            } else {
+              r.style.display = 'none';
+            }
+          });
+          if (stats) stats.textContent = `تم تصفية سيارات ميناء العوجة (${count} بوصلات معروضة)`;
+        } else if (port === 'rafah') {
+          // Highlight Rafah
+          cardRafah.className = 'bg-light-surface border-2 border-primary rounded-xl p-6 shadow-md transition duration-state-change cursor-pointer relative overflow-hidden group ring-2 ring-primary/20 bg-pale-red/10';
+          cardAwja.className = 'bg-light-surface border-2 border-outline hover:border-amber-400 rounded-xl p-6 shadow-xs transition duration-state-change cursor-pointer relative overflow-hidden group';
+          
+          let count = 0;
+          rows.forEach(r => {
+            if (r.getAttribute('data-port') === 'rafah') {
+              r.style.display = '';
+              count++;
+            } else {
+              r.style.display = 'none';
+            }
+          });
+          if (stats) stats.textContent = `تم تصفية سيارات ميناء رفح (${count} بوصلات معروضة)`;
+        } else {
+          // Show all
+          cardRafah.className = 'bg-light-surface border-2 border-outline hover:border-primary rounded-xl p-6 shadow-xs transition duration-state-change cursor-pointer relative overflow-hidden group';
+          cardAwja.className = 'bg-light-surface border-2 border-outline hover:border-amber-400 rounded-xl p-6 shadow-xs transition duration-state-change cursor-pointer relative overflow-hidden group';
+          rows.forEach(r => r.style.display = '');
+          if (stats) stats.textContent = `عرض كافة البوصلات (${rows.length} بوصلات مسجلة)`;
+        }
+      }
+    </script>
+  </main>
+
+  <!-- Shared Footer -->
+  <footer class="bg-light-surface border-t border-outline mt-auto py-5 text-body-sm text-light-on-surface-variant">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-charcoal">شركة أحمد البيك للاستيراد والتصدير</span>
+        <span>— الإدارة العامة للتشغيل</span>
+      </div>
+      <div class="flex items-center gap-4 tabular-nums">
+        <span>هاتف: 01093313183</span>
+        <span>•</span>
+        <span>elbeekb2b@gmail.com</span>
+      </div>
+    </div>
+  </footer>
+
+
+
+</body></html>

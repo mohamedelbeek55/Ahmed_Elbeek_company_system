@@ -1,0 +1,324 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم (موبايل) — أحمد البيك</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config" data-stitch-original-src="012e0bd0638987d3===../../tailwind.config.js">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'primary': '#B51F2D',
+        'on-primary': '#FFFFFF',
+        'charcoal': '#262626',
+        'pale-red': '#F7E6E8',
+        'light-gray': '#F5F5F5',
+        'outline': '#D9D9D9',
+        'success': '#1F7A4D',
+        'on-success': '#FFFFFF',
+        'warning': '#C27803',
+        'on-warning': '#222222',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#262626',
+        'light-surface-variant': '#F5F5F5',
+        'light-on-surface-variant': '#4A4A4A',
+        'light-primary': '#B51F2D',
+        'light-on-primary': '#FFFFFF',
+      },
+      borderRadius: {
+        'sm': '6px',
+        'DEFAULT': '8px',
+        'md': '10px',
+        'lg': '14px',
+        'xl': '20px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section': '40px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Cairo"', 'sans-serif'],
+        'headline': ['"Cairo"', 'sans-serif'],
+        'body': ['"Cairo"', 'sans-serif'],
+        'label': ['"Cairo"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['36px', { lineHeight: '46px', letterSpacing: '0px', fontWeight: '700' }],
+        'display-lg-mobile': ['28px', { lineHeight: '36px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-lg-mobile': ['20px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-md': ['20px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '600' }],
+        'headline-sm': ['18px', { lineHeight: '26px', letterSpacing: '0px', fontWeight: '600' }],
+        'body-lg': ['16px', { lineHeight: '26px', letterSpacing: '0px', fontWeight: '500' }],
+        'body-md': ['14px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '400' }],
+        'body-sm': ['12px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '400' }],
+        'label-lg': ['15px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '600' }],
+        'label-md': ['13px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '16px', letterSpacing: '0px', fontWeight: '600' }],
+      },
+      transitionDuration: {
+        'state-change': '120ms',
+        'surface-enter': '200ms',
+        'surface-exit': '120ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-enter': '0ms',
+        'surface-exit': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-enter': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'surface-exit': 'cubic-bezier(0.7, 0, 0.84, 0)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+  <style>
+    .material-symbols-outlined { display: inline-block; width: 1em; height: 1em; line-height: 1 !important; box-sizing: content-box; overflow: hidden; white-space: nowrap; direction: ltr; vertical-align: middle; }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-charcoal font-body min-h-screen pb-24 flex flex-col">
+
+  <!-- Mobile Top Bar -->
+  <header class="bg-light-surface border-b border-outline sticky top-0 z-30 px-4 py-3 flex items-center justify-between shadow-xs">
+    <div class="flex items-center gap-2.5">
+      <img src="https://lh3.googleusercontent.com/aida/ALJJyrDEEBTug-Z_c13BzHLE1SkxrgUlDnIRuWYxpfkhzCZ7DyUdtbNBJsqOhPMOmIifKGDT0rqNvXNo0zGmMLHqBv523FUgXlJSv0WT0J2GtaTq7-RLr1Slhlt5ee6s0S8-gHWSNUeXuzYzQkQZB51ANhaYxDhp8rg6pLz4XaRRuCDjUPLjREInd1ogRTf8Ku666lMev0EAc5jWc41MiUfJfdA_Aw1_k1qyUdIbchnIcGeahTKY-mNHkl5iJAXCDOMrEpwkgqxk" alt="Logo" class="w-9 h-9 object-contain" data-stitch-original-src="9fb9123686c4fb52===../../uploads/image-7c20fa.png">
+      <div>
+        <h1 class="font-headline text-headline-sm font-bold text-charcoal leading-tight text-sm">أحمد البيك</h1>
+        <p class="text-body-sm text-light-on-surface-variant text-[11px] leading-tight">إدارة التحميل والتعتيق</p>
+      </div>
+    </div>
+
+    <!-- Quick Driver Coordination Shortcut on Mobile Header -->
+    <div class="flex items-center gap-2">
+      <a href="../driver-coordination/DriverCoordination.html" class="p-2 rounded-full bg-pale-red text-primary flex items-center justify-center shadow-xs" title="تنسيق السائقين">
+        <span class="material-symbols-outlined text-xl">badge</span>
+      </a>
+      <a href="../create-convoy/CreateConvoy.html" class="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-xs" title="إنشاء بوصلة">
+        <span class="material-symbols-outlined text-xl">add</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Mobile Main Content -->
+  <main class="flex-1 px-4 py-4 space-y-4">
+    
+    <!-- Welcome & Quick Action Card -->
+    <div class="bg-light-surface p-4 rounded-xl border border-outline shadow-xs">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-primary text-[11px] font-bold">بوابة المالك التشغيلية</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-success border border-emerald-200">النظام نشط</span>
+      </div>
+      <h2 class="font-headline text-headline-md font-bold text-charcoal">مرحباً، أ. أحمد البيك</h2>
+      <p class="text-body-sm text-light-on-surface-variant text-xs mt-0.5 mb-3.5">
+        إدارة بوصلات التحميل، وتنسيق بيانات السائقين، وإجراء التعتيق الفوري بنقرة واحدة.
+      </p>
+
+      <!-- Fast Access Dual Action Grid -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <a href="../create-convoy/CreateConvoy.html" class="bg-primary hover:bg-opacity-95 text-on-primary py-2.5 px-3 rounded-DEFAULT font-label text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition">
+          <span class="material-symbols-outlined text-base">add_circle</span>
+          <span>إنشاء بوصلة</span>
+        </a>
+        <a href="../driver-coordination/DriverCoordination.html" class="bg-light-surface-variant hover:bg-gray-200 text-charcoal border border-outline py-2.5 px-3 rounded-DEFAULT font-label text-xs font-bold flex items-center justify-center gap-1.5 transition">
+          <span class="material-symbols-outlined text-base text-primary">badge</span>
+          <span>تنسيق السائقين</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Glanceable Metrics 2x2 Grid -->
+    <div class="grid grid-cols-2 gap-2.5">
+      <div class="bg-light-surface p-3 rounded-lg border border-outline">
+        <span class="text-body-sm text-light-on-surface-variant block text-[11px]">البوصلات النشطة</span>
+        <span class="font-headline text-display-lg text-primary font-bold tabular-nums block my-0.5">4</span>
+        <span class="text-[11px] text-warning font-semibold">قيد السير والانتظار</span>
+      </div>
+
+      <div class="bg-light-surface p-3 rounded-lg border border-outline">
+        <span class="text-body-sm text-light-on-surface-variant block text-[11px]">إجمالي الشاحنات</span>
+        <span class="font-headline text-display-lg text-charcoal font-bold tabular-nums block my-0.5">39</span>
+        <span class="text-[11px] text-charcoal font-medium">شاحنة تريلا</span>
+      </div>
+    </div>
+
+    <!-- Location Operational Quick Tabs / Filter (رفح & العوجة) -->
+    <div class="bg-light-surface border border-outline p-3 rounded-xl shadow-xs">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-headline text-headline-sm font-bold text-charcoal text-xs flex items-center gap-1">
+          <span class="material-symbols-outlined text-primary text-sm">anchor</span>
+          <span>حركة الموانئ (توزيع العربيات)</span>
+        </h3>
+        <span class="text-[11px] text-light-on-surface-variant">موزعة حسب المنفذ</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-red-50/70 border border-red-200 p-2.5 rounded-lg">
+          <div class="flex items-center justify-between font-bold text-primary mb-1">
+            <span>ميناء رفح</span>
+            <span class="text-xs tabular-nums">18 شاحنة</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-charcoal">
+            <span>2 بوصلة نشطة</span>
+            <span class="text-success font-semibold">16 مكتمل</span>
+          </div>
+        </div>
+
+        <div class="bg-amber-50/70 border border-amber-200 p-2.5 rounded-lg">
+          <div class="flex items-center justify-between font-bold text-charcoal mb-1">
+            <span>ميناء العوجة</span>
+            <span class="text-xs tabular-nums">21 شاحنة</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-charcoal">
+            <span>2 بوصلة نشطة</span>
+            <span class="text-success font-semibold">12 مكتمل</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Convoys Header & List -->
+    <div>
+      <div class="flex items-center justify-between mb-2.5">
+        <h3 class="font-headline text-headline-sm font-bold text-charcoal text-sm flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-primary text-lg">local_shipping</span>
+          <span>البوصلات النشطة (تعتيق فوري)</span>
+        </h3>
+        <a href="../convoys/ConvoysList.html" class="text-primary text-xs font-bold flex items-center gap-0.5 hover:underline">
+          <span>عرض الكل</span>
+          <span class="material-symbols-outlined text-xs">arrow_back</span>
+        </a>
+      </div>
+
+      <!-- Mobile Convoy Card 1 -->
+      <div class="bg-light-surface border-2 border-primary/30 rounded-xl p-4 shadow-xs mb-3 space-y-3">
+        <div class="flex items-start justify-between border-b border-light-gray pb-3">
+          <div>
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="inline-block bg-pale-red text-primary text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                في انتظار التعتيق
+              </span>
+              <span class="inline-block bg-red-50 text-primary text-[11px] font-bold px-2 py-0.5 rounded-sm border border-red-200">
+                ميناء رفح
+              </span>
+            </div>
+            <h4 class="font-headline text-headline-sm font-bold text-charcoal">
+              برتقال صيفي فرز أول
+            </h4>
+            <p class="text-body-sm text-light-on-surface-variant text-xs">ميناء رفح ⟵ ميناء الإسكندرية</p>
+          </div>
+          <div class="text-left bg-pale-red/60 px-2.5 py-1.5 rounded-md">
+            <span class="font-headline text-headline-sm font-bold text-primary tabular-nums block leading-none">12</span>
+            <span class="text-[10px] text-charcoal">تريلا</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs bg-light-surface-variant p-2.5 rounded-md">
+          <div>
+            <span class="text-light-on-surface-variant block">التحميل:</span>
+            <span class="font-bold tabular-nums text-charcoal">2026-11-04</span>
+          </div>
+          <div>
+            <span class="text-light-on-surface-variant block">المنقضي (آلي):</span>
+            <span class="font-bold tabular-nums text-primary">9 أيام مبيت</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <a href="MobileConvoyDetails.html" class="bg-primary text-on-primary py-2.5 rounded-DEFAULT text-center font-label text-xs font-bold block shadow-xs">
+            تعتيق البوصلة
+          </a>
+          <a href="../driver-coordination/DriverCoordination.html" class="bg-light-surface-variant border border-outline text-charcoal py-2.5 rounded-DEFAULT text-center font-label text-xs font-bold block">
+            كشف السائقين
+          </a>
+        </div>
+      </div>
+
+      <!-- Mobile Convoy Card 2 -->
+      <div class="bg-light-surface border border-outline rounded-xl p-4 shadow-xs space-y-3">
+        <div class="flex items-start justify-between border-b border-light-gray pb-3">
+          <div>
+            <div class="flex items-center gap-1.5 mb-1">
+              <span class="inline-block bg-amber-50 text-warning border border-amber-200 text-[11px] font-bold px-2 py-0.5 rounded-sm">
+                في انتظار التعتيق
+              </span>
+              <span class="inline-block bg-amber-50 text-charcoal text-[11px] font-bold px-2 py-0.5 rounded-sm border border-amber-300">
+                ميناء العوجة
+              </span>
+            </div>
+            <h4 class="font-headline text-headline-sm font-bold text-charcoal">
+              بطاطس تصدير مبردة (سبونتا)
+            </h4>
+            <p class="text-body-sm text-light-on-surface-variant text-xs">ميناء العوجة ⟵ ميناء دمياط</p>
+          </div>
+          <div class="text-left bg-light-surface-variant px-2.5 py-1.5 rounded-md">
+            <span class="font-headline text-headline-sm font-bold text-charcoal tabular-nums block leading-none">15</span>
+            <span class="text-[10px] text-charcoal">تريلا</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs bg-light-surface-variant p-2.5 rounded-md">
+          <div>
+            <span class="text-light-on-surface-variant block">التحميل:</span>
+            <span class="font-bold tabular-nums text-charcoal">2026-11-08</span>
+          </div>
+          <div>
+            <span class="text-light-on-surface-variant block">المنقضي (آلي):</span>
+            <span class="font-bold tabular-nums text-primary">5 أيام مبيت</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <a href="MobileConvoyDetails.html" class="bg-charcoal text-on-primary py-2.5 rounded-DEFAULT text-center font-label text-xs font-bold block shadow-xs">
+            تعتيق البوصلة
+          </a>
+          <a href="../driver-coordination/DriverCoordination.html" class="bg-light-surface-variant border border-outline text-charcoal py-2.5 rounded-DEFAULT text-center font-label text-xs font-bold block">
+            كشف السائقين
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 inset-x-0 bg-light-surface border-t border-outline px-4 py-2.5 flex items-center justify-around z-40 shadow-lg">
+    <a href="MobileDashboard.html" class="flex flex-col items-center gap-1 text-primary">
+      <span class="material-symbols-outlined text-2xl">dashboard</span>
+      <span class="text-[11px] font-bold">الرئيسية</span>
+    </a>
+    <a href="../convoys/ConvoysList.html" class="flex flex-col items-center gap-1 text-light-on-surface-variant hover:text-charcoal">
+      <span class="material-symbols-outlined text-2xl">local_shipping</span>
+      <span class="text-[11px]">تحميل</span>
+    </a>
+    <a href="../driver-coordination/DriverCoordination.html" class="flex flex-col items-center gap-1 text-light-on-surface-variant hover:text-charcoal">
+      <span class="material-symbols-outlined text-2xl">badge</span>
+      <span class="text-[11px]">السائقين</span>
+    </a>
+    <a href="../archive/Archive.html" class="flex flex-col items-center gap-1 text-light-on-surface-variant hover:text-charcoal">
+      <span class="material-symbols-outlined text-2xl">inventory_2</span>
+      <span class="text-[11px]">الأرشيف</span>
+    </a>
+    <a href="../settings/Settings.html" class="flex flex-col items-center gap-1 text-light-on-surface-variant hover:text-charcoal">
+      <span class="material-symbols-outlined text-2xl">settings</span>
+      <span class="text-[11px]">الإعدادات</span>
+    </a>
+  </nav>
+
+
+
+</body></html>

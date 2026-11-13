@@ -1,0 +1,482 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import { ConvoyRepository } from '@/lib/store';
+import type { ConvoyWithDetails } from '@/types/database.types';
+import {
+  calculateElapsedDays,
+  calculateConvoyFinances,
+  formatCurrency,
+} from '@/lib/calculations';
+
+export default function CostCalculationPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params?.id as string;
+
+  const [convoy, setConvoy] = useState<ConvoyWithDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Form states
+  const [loadingDate, setLoadingDate] = useState('');
+  const [completionDate, setCompletionDate] = useState('');
+  const [dailyRate, setDailyRate] = useState<number>(500);
+  const [freightRate, setFreightRate] = useState<number>(8500);
+  const [clearanceCost, setClearanceCost] = useState<number>(14500);
+  const [extraExpenses, setExtraExpenses] = useState<number>(3600);
+  const [extraNotes, setExtraNotes] = useState('موازين، كروت بوابات، حراسات وتفريغ');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      loadData(id);
+    }
+  }, [id]);
+
+  const loadData = async (convoyId: string) => {
+    setLoading(true);
+    const data = await ConvoyRepository.getConvoyById(convoyId);
+    if (data) {
+      setConvoy(data);
+      setLoadingDate(data.loading_date);
+      setCompletionDate(data.completion_date || new Date().toISOString().split('T')[0]);
+
+      if (data.calculation) {
+        setDailyRate(data.calculation.daily_accommodation_rate);
+        setFreightRate(data.calculation.freight_rate_per_truck);
+        setClearanceCost(data.calculation.customs_clearance);
+        setExtraExpenses(data.calculation.additional_expenses);
+        if (data.calculation.additional_expenses_notes) {
+          setExtraNotes(data.calculation.additional_expenses_notes);
+        }
+      }
+    }
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-16 text-center text-charcoal">
+          <span className="material-symbols-outlined text-4xl animate-spin text-primary mb-3">
+            progress_activity
+          </span>
+          <p className="font-headline text-headline-md font-bold">جارٍ تجهيز شاشة الحسابات...</p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (!convoy) {
+    return (
+      <>
+        <Navbar />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-16 text-center text-charcoal">
+          <p className="font-headline text-headline-md font-bold text-primary mb-4">القافلة غير موجودة</p>
+          <Link href="/convoys" className="px-6 py-2.5 bg-primary text-on-primary rounded-DEFAULT">
+            الرجوع لسجل القوافل
+          </Link>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // Reactive financial calculations on every keystroke
+  const financialResult = calculateConvoyFinances({
+    truckCount: convoy.truck_count,
+    loadingDate,
+    completionDate,
+    dailyAccommodationRate: dailyRate,
+    freightRatePerTruck: freightRate,
+    customsClearance: clearanceCost,
+    additionalExpenses: extraExpenses,
+  });
+
+  const handleSaveAndPreview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    try {
+      await ConvoyRepository.saveCalculation({
+        convoy_id: convoy.id,
+        loading_date: loadingDate,
+        completion_date: completionDate,
+        accommodation_nights: financialResult.accommodationNights,
+        daily_accommodation_rate: dailyRate,
+        total_accommodation: financialResult.totalAccommodation,
+        freight_rate_per_truck: freightRate,
+        total_freight: financialResult.totalFreight,
+        customs_clearance: clearanceCost,
+        additional_expenses: extraExpenses,
+        additional_expenses_notes: extraNotes,
+        grand_total: financialResult.grandTotal,
+        average_cost_per_truck: financialResult.averageCostPerTruck,
+        currency: 'EGP',
+      });
+
+      router.push(`/convoys/${convoy.id}/statement`);
+    } catch (err) {
+      console.error('Error saving calculation:', err);
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <Navbar />
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+        
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2 text-primary font-label text-label-sm mb-1">
+              <span className="material-symbols-outlined text-base">calculate</span>
+              <span>المعادلات الحسابية المعتمدة رسمياً</span>
+            </div>
+            <h2 className="font-headline text-headline-lg font-bold text-charcoal">
+              احتساب تكاليف القافلة بعد التعتيق
+            </h2>
+            <p className="font-body text-body-md text-light-on-surface-variant">
+              تم ملء بيانات القافلة وتاريخ التعتيق تلقائياً. أدخل فئات النولون والمبيت والتخليص لاستخراج البيان فوراً.
+            </p>
+          </div>
+
+          <span className="px-3.5 py-1.5 bg-emerald-50 text-success border border-emerald-200 rounded-full text-label-sm font-label font-bold self-start sm:self-auto flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-success"></span>
+            <span>حالة القافلة: تم التعتيق بنجاح</span>
+          </span>
+        </div>
+
+        {/* Automatically Prefilled Convoy Overview Banner */}
+        <div className="bg-light-surface border-2 border-primary/20 rounded-xl p-6 mb-8 shadow-xs">
+          <div className="flex items-center justify-between border-b border-light-gray pb-4 mb-4">
+            <h3 className="font-headline text-headline-md font-bold text-charcoal flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">fact_check</span>
+              <span>بيانات القافلة المعتمدة (مملوءة تلقائياً)</span>
+            </h3>
+            <span className="text-body-sm text-light-on-surface-variant tabular-nums">
+              الرقم: {convoy.convoy_number}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-body-md">
+            <div>
+              <span className="text-body-sm text-light-on-surface-variant block mb-1">مكان التحميل:</span>
+              <span className="font-bold text-primary text-body-lg flex items-center gap-1">
+                <span className="material-symbols-outlined text-base">anchor</span>
+                <span>{convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</span>
+              </span>
+            </div>
+
+            <div>
+              <span className="text-body-sm text-light-on-surface-variant block mb-1">اسم البضاعة:</span>
+              <span className="font-bold text-charcoal text-body-lg">
+                {convoy.cargo_name}
+              </span>
+            </div>
+
+            <div>
+              <span className="text-body-sm text-light-on-surface-variant block mb-1">عدد الشاحنات:</span>
+              <span className="font-bold text-charcoal tabular-nums text-body-lg">
+                {convoy.truck_count} شاحنة
+              </span>
+            </div>
+
+            <div>
+              <label htmlFor="costLoadingDate" className="text-body-sm text-light-on-surface-variant block mb-1 font-medium">
+                تاريخ التحميل (قابل للتعديل):
+              </label>
+              <input
+                type="date"
+                id="costLoadingDate"
+                value={loadingDate}
+                onChange={(e) => setLoadingDate(e.target.value)}
+                className="font-bold text-charcoal tabular-nums bg-white border border-outline rounded px-2 py-1 text-body-sm w-full focus:border-primary outline-none"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="costUnloadDate" className="text-body-sm text-light-on-surface-variant block mb-1 font-medium">
+                تاريخ التعتيق (قابل للتعديل):
+              </label>
+              <input
+                type="date"
+                id="costUnloadDate"
+                value={completionDate}
+                onChange={(e) => setCompletionDate(e.target.value)}
+                className="font-bold text-charcoal tabular-nums bg-white border border-outline rounded px-2 py-1 text-body-sm w-full focus:border-primary outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-light-gray flex items-center justify-between bg-pale-red/50 p-3 rounded-lg">
+            <span className="font-label text-label-md text-primary font-bold">
+              عدد ليالي المبيت المحتسبة آلياً = (تاريخ التعتيق - تاريخ التحميل):
+            </span>
+            <span className="font-headline text-headline-sm text-primary font-bold tabular-nums">
+              {financialResult.accommodationNights} ليالي مبيت
+            </span>
+          </div>
+        </div>
+
+        {/* Calculation Inputs & Live Summary Columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Input Column (7 cols) */}
+          <div className="lg:col-span-7 bg-light-surface border border-outline rounded-xl p-6 sm:p-8 shadow-xs">
+            <h3 className="font-headline text-headline-md font-bold text-charcoal mb-6 border-b border-light-gray pb-3">
+              مدخلات صاحب العمل (المالك)
+            </h3>
+
+            <form onSubmit={handleSaveAndPreview} className="space-y-6">
+              
+              {/* Input 1: Daily Accommodation Rate */}
+              <div>
+                <label className="block font-label text-label-md text-charcoal mb-2">
+                  1. يومية المبيت للشاحنة الواحدة <span className="text-primary">*</span>
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={dailyRate}
+                    onChange={(e) => setDailyRate(Number(e.target.value) || 0)}
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3.5 pl-24 font-body text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                  />
+                  <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
+                    ج.م / يوم
+                  </span>
+                </div>
+                <p className="text-body-sm text-light-on-surface-variant mt-1.5">
+                  قاعدة المبيت: ليالي المبيت ({financialResult.accommodationNights}) × اليومية للشاحنة × عدد الشاحنات ({convoy.truck_count}).
+                </p>
+              </div>
+
+              {/* Input 2: Freight Rate per Truck */}
+              <div>
+                <label className="block font-label text-label-md text-charcoal mb-2">
+                  2. فئة النولون للشاحنة الواحدة <span className="text-primary">*</span>
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={freightRate}
+                    onChange={(e) => setFreightRate(Number(e.target.value) || 0)}
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3.5 pl-24 font-body text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                  />
+                  <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
+                    ج.م / شاحنة
+                  </span>
+                </div>
+                <p className="text-body-sm text-light-on-surface-variant mt-1.5">
+                  قاعدة النولون: فئة النولون للشاحنة × عدد الشاحنات ({convoy.truck_count}).
+                </p>
+              </div>
+
+              {/* Input 3: Customs Clearance */}
+              <div className="pt-4 border-t border-light-gray">
+                <label className="block font-label text-label-md text-charcoal mb-2">
+                  3. رسوم التخليص الجمركي (Clearance)
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={clearanceCost}
+                    onChange={(e) => setClearanceCost(Number(e.target.value) || 0)}
+                    className="w-full border border-outline rounded-DEFAULT p-3 pl-16 font-body text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                  />
+                  <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
+                    ج.م
+                  </span>
+                </div>
+                <p className="text-body-sm text-light-on-surface-variant mt-1">
+                  * تبقى الرسوم الجمركية بنداً منفصلاً مستقلاً في البيان لحين تحديد أساس توزيعها.
+                </p>
+              </div>
+
+              {/* Input 4: Additional Expenses */}
+              <div>
+                <label className="block font-label text-label-md text-charcoal mb-2">
+                  4. المصاريف الإضافية (موازين، بوابات، حراسات)
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={extraExpenses}
+                    onChange={(e) => setExtraExpenses(Number(e.target.value) || 0)}
+                    className="w-full border border-outline rounded-DEFAULT p-3 pl-16 font-body text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                  />
+                  <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
+                    ج.م
+                  </span>
+                </div>
+                <p className="text-body-sm text-light-on-surface-variant mt-1">
+                  * تظل المصاريف الإضافية منفصلة بحساب مستقل دون دمجها عشوائياً في النولون.
+                </p>
+              </div>
+
+              {/* Notes on extras */}
+              <div>
+                <label className="block font-label text-label-sm text-charcoal mb-1">
+                  بيان تفصيل المصاريف الإضافية
+                </label>
+                <input
+                  type="text"
+                  value={extraNotes}
+                  onChange={(e) => setExtraNotes(e.target.value)}
+                  className="w-full border border-outline rounded-DEFAULT p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none"
+                />
+              </div>
+
+              <div className="pt-4 flex items-center justify-between border-t border-light-gray">
+                <Link
+                  href={`/convoys/${convoy.id}`}
+                  className="px-5 py-2.5 border border-outline rounded-DEFAULT text-charcoal hover:bg-light-surface-variant transition font-label text-label-md"
+                >
+                  الرجوع للتفاصيل
+                </Link>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-7 py-3 bg-primary hover:bg-opacity-95 text-on-primary font-headline text-headline-sm font-bold rounded-DEFAULT shadow-md transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-xl">picture_as_pdf</span>
+                  <span>{isSaving ? 'جارٍ الحفظ...' : 'توليد ومعاينة بيان الـ PDF المعتمد'}</span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          {/* Real-time Live Calculation Summary Card (5 cols) */}
+          <div className="lg:col-span-5 bg-light-surface border-2 border-charcoal rounded-xl p-6 sm:p-8 shadow-md sticky top-28">
+            <div className="flex items-center justify-between border-b border-light-gray pb-4 mb-6">
+              <h3 className="font-headline text-headline-md font-bold text-charcoal flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">receipt_long</span>
+                <span>ملخص التكاليف الآلي</span>
+              </h3>
+              <span className="text-body-sm text-success font-bold flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                <span>حساب فوري مباشر</span>
+              </span>
+            </div>
+
+            <div className="space-y-4 text-body-md mb-6">
+              
+              {/* Accommodation row */}
+              <div className="flex items-center justify-between pb-3 border-b border-dashed border-outline">
+                <div>
+                  <span className="font-semibold text-charcoal block">
+                    إجمالي المبيت ({financialResult.accommodationNights} ليالي × {convoy.truck_count} شاحنة)
+                  </span>
+                  <span className="text-body-sm text-light-on-surface-variant tabular-nums">
+                    {financialResult.accommodationNights} × {dailyRate} × {convoy.truck_count}
+                  </span>
+                </div>
+                <span className="font-headline text-headline-sm font-bold text-primary tabular-nums">
+                  {formatCurrency(financialResult.totalAccommodation)}
+                </span>
+              </div>
+
+              {/* Freight row */}
+              <div className="flex items-center justify-between pb-3 border-b border-dashed border-outline">
+                <div>
+                  <span className="font-semibold text-charcoal block">
+                    إجمالي النولون ({convoy.truck_count} شاحنة)
+                  </span>
+                  <span className="text-body-sm text-light-on-surface-variant tabular-nums">
+                    {convoy.truck_count} × {formatCurrency(freightRate, false)}
+                  </span>
+                </div>
+                <span className="font-headline text-headline-sm font-bold text-charcoal tabular-nums">
+                  {formatCurrency(financialResult.totalFreight)}
+                </span>
+              </div>
+
+              {/* Clearance row */}
+              <div className="flex items-center justify-between pb-3 border-b border-dashed border-outline">
+                <div>
+                  <span className="font-semibold text-charcoal block">رسوم التخليص الجمركي</span>
+                  <span className="text-body-sm text-light-on-surface-variant">بند مالي منفصل بالمنفذ</span>
+                </div>
+                <span className="font-body text-body-lg font-bold text-charcoal tabular-nums">
+                  {formatCurrency(financialResult.customsClearance)}
+                </span>
+              </div>
+
+              {/* Extras row */}
+              <div className="flex items-center justify-between pb-3 border-b border-dashed border-outline">
+                <div>
+                  <span className="font-semibold text-charcoal block">مصاريف ونثريات إضافية</span>
+                  <span className="text-body-sm text-light-on-surface-variant">موازين، بوابات، حراسات</span>
+                </div>
+                <span className="font-body text-body-lg font-bold text-charcoal tabular-nums">
+                  {formatCurrency(financialResult.additionalExpenses)}
+                </span>
+              </div>
+
+              {/* Average per truck */}
+              <div className="flex items-center justify-between pb-3 border-b border-dashed border-outline bg-light-surface-variant p-2.5 rounded">
+                <div>
+                  <span className="font-semibold text-charcoal block text-body-sm">متوسط التكلفة للشاحنة الواحدة:</span>
+                  <span className="text-xs text-light-on-surface-variant">الإجمالي ÷ {convoy.truck_count} شاحنة</span>
+                </div>
+                <span className="font-headline text-headline-sm font-bold text-charcoal tabular-nums">
+                  {formatCurrency(financialResult.averageCostPerTruck)}
+                </span>
+              </div>
+
+              {/* Grand Total Box */}
+              <div className="bg-charcoal text-on-primary p-5 rounded-lg flex items-center justify-between mt-4">
+                <div>
+                  <span className="font-label text-label-md block text-light-gray">
+                    إجمالي مستحقات القافلة بالكامل
+                  </span>
+                  <span className="text-body-sm text-outline">
+                    شامل النولون والمبيت والتخليص والنثريات
+                  </span>
+                </div>
+                <div className="text-left">
+                  <span className="font-headline text-display-lg text-on-primary font-bold tabular-nums">
+                    {Math.round(financialResult.grandTotal).toLocaleString('en-US')}
+                  </span>
+                  <span className="text-body-sm text-outline mr-1.5 font-bold">ج.م</span>
+                </div>
+              </div>
+
+              {/* Tafqeet in Arabic */}
+              <p className="text-body-sm text-charcoal bg-pale-red/60 p-3 rounded border border-pale-red font-medium">
+                {financialResult.tafqeetAr}
+              </p>
+
+            </div>
+
+            <p className="text-body-sm text-center text-light-on-surface-variant">
+              يتم تجهيز البيان مطابقاً تماماً للترويسة الرسمية والجداول والعلامة المائية المعتمدة.
+            </p>
+
+          </div>
+
+        </div>
+
+      </main>
+
+      <Footer />
+    </>
+  );
+}

@@ -1,0 +1,287 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import { ConvoyRepository } from '@/lib/store';
+import type { ConvoyWithDetails } from '@/types/database.types';
+import { calculateElapsedDays, formatCurrency } from '@/lib/calculations';
+
+export default function ConvoysListPage() {
+  const [convoys, setConvoys] = useState<ConvoyWithDetails[]>([]);
+  const [activeTab, setActiveTab] = useState<'all' | 'rafah' | 'al_awja' | 'active' | 'completed'>('all');
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadConvoys();
+  }, [activeTab, search]);
+
+  const loadConvoys = async () => {
+    setLoading(true);
+    let locationId: string | undefined;
+    let status: string | undefined;
+
+    if (activeTab === 'rafah') locationId = 'rafah';
+    if (activeTab === 'al_awja') locationId = 'al_awja';
+    if (activeTab === 'active') status = 'active';
+    if (activeTab === 'completed') status = 'completed';
+
+    const data = await ConvoyRepository.getConvoys({
+      locationId,
+      status,
+      search,
+    });
+    setConvoys(data);
+    setLoading(false);
+  };
+
+  return (
+    <>
+      <Navbar />
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+        
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <div className="flex items-center gap-2 text-primary font-label text-label-sm mb-1">
+              <span className="material-symbols-outlined text-base">local_shipping</span>
+              <span>سجل التحميل والموانئ</span>
+            </div>
+            <h2 className="font-headline text-headline-lg font-bold text-charcoal">
+              سجل البوصلات والشحن والتفريغ
+            </h2>
+            <p className="font-body text-body-md text-light-on-surface-variant">
+              متابعة قوافل الشاحنات بكافة مواقع وموانئ التحميل (ميناء رفح وميناء العوجة).
+            </p>
+          </div>
+
+          <Link
+            href="/convoys/new"
+            className="px-6 py-3 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-lg font-bold shadow-sm transition flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-xl">add_circle</span>
+            <span>إنشاء بوصلة جديدة</span>
+          </Link>
+        </div>
+
+        {/* Filter Tabs & Search Bar */}
+        <div className="bg-light-surface border border-outline rounded-xl p-4 sm:p-5 mb-6 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+          
+          {/* Filter Tabs */}
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <button
+              type="button"
+              onClick={() => setActiveTab('all')}
+              className={`px-4 py-2 rounded-DEFAULT font-label text-label-md transition ${
+                activeTab === 'all'
+                  ? 'bg-primary text-on-primary font-bold'
+                  : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
+              }`}
+            >
+              عرض الكل
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('rafah')}
+              className={`px-4 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition ${
+                activeTab === 'rafah'
+                  ? 'bg-primary text-on-primary font-bold'
+                  : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">anchor</span>
+              <span>ميناء رفح</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('al_awja')}
+              className={`px-4 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition ${
+                activeTab === 'al_awja'
+                  ? 'bg-primary text-on-primary font-bold'
+                  : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">anchor</span>
+              <span>ميناء العوجة</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('active')}
+              className={`px-4 py-2 rounded-DEFAULT font-label text-label-md transition ${
+                activeTab === 'active'
+                  ? 'bg-primary text-on-primary font-bold'
+                  : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
+              }`}
+            >
+              قوافل جارية
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('completed')}
+              className={`px-4 py-2 rounded-DEFAULT font-label text-label-md transition ${
+                activeTab === 'completed'
+                  ? 'bg-primary text-on-primary font-bold'
+                  : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
+              }`}
+            >
+              قوافل معتّقة
+            </button>
+          </div>
+
+          {/* Search Box */}
+          <div className="relative w-full md:w-80">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="بحث باسم البضاعة أو رقم القافلة..."
+              className="w-full border border-outline rounded-DEFAULT px-4 py-2.5 pr-10 font-body text-body-md text-charcoal focus:border-primary outline-none transition"
+            />
+            <span className="material-symbols-outlined absolute right-3 top-3 text-light-on-surface-variant text-lg pointer-events-none">
+              search
+            </span>
+          </div>
+
+        </div>
+
+        {/* Convoys Table */}
+        <div className="bg-light-surface border border-outline rounded-xl overflow-hidden shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full text-right border-collapse">
+              <thead>
+                <tr className="bg-charcoal text-on-primary border-b border-outline font-label text-label-md">
+                  <th scope="col" className="py-3.5 px-4">البضاعة (تعريف البوصلة)</th>
+                  <th scope="col" className="py-3.5 px-4">مكان التحميل</th>
+                  <th scope="col" className="py-3.5 px-4">عدد العربيات</th>
+                  <th scope="col" className="py-3.5 px-4">تاريخ التحميل</th>
+                  <th scope="col" className="py-3.5 px-4">تاريخ التعتيق</th>
+                  <th scope="col" className="py-3.5 px-4">أيام المبيت</th>
+                  <th scope="col" className="py-3.5 px-4">الحالة</th>
+                  <th scope="col" className="py-3.5 px-4 text-center">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline font-body text-body-md">
+                {convoys.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-light-on-surface-variant">
+                      <span className="material-symbols-outlined text-4xl block mb-2 text-outline">
+                        inventory_2
+                      </span>
+                      <span>لا توجد قوافل مطابقة لبحثك أو للفلتر المحدد.</span>
+                    </td>
+                  </tr>
+                ) : (
+                  convoys.map((convoy, idx) => {
+                    const nights = calculateElapsedDays(convoy.loading_date, convoy.completion_date);
+                    const isCompleted = convoy.status === 'completed';
+
+                    return (
+                      <tr
+                        key={convoy.id}
+                        className={idx % 2 === 1 ? 'bg-light-surface-variant/40 hover:bg-light-surface-variant' : 'hover:bg-light-surface-variant/70'}
+                      >
+                        <td className="py-4 px-4 font-semibold text-charcoal">
+                          <Link href={`/convoys/${convoy.id}`} className="hover:text-primary transition flex flex-col">
+                            <span className="font-bold text-body-lg">{convoy.cargo_name}</span>
+                            <span className="text-xs text-light-on-surface-variant tabular-nums">{convoy.convoy_number}</span>
+                          </Link>
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-label-sm font-label font-semibold ${
+                            convoy.location_id === 'rafah'
+                              ? 'bg-red-50 text-primary border border-red-200'
+                              : 'bg-amber-50 text-warning border border-amber-200'
+                          }`}>
+                            <span className="material-symbols-outlined text-xs">anchor</span>
+                            <span>{convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</span>
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 tabular-nums font-bold text-charcoal">
+                          {convoy.truck_count} عربيات
+                        </td>
+                        <td className="py-4 px-4 tabular-nums text-light-on-surface-variant">
+                          {convoy.loading_date}
+                        </td>
+                        <td className="py-4 px-4 tabular-nums">
+                          {convoy.completion_date ? (
+                            <span className="text-light-on-surface-variant">{convoy.completion_date}</span>
+                          ) : (
+                            <span className="text-warning font-semibold">قيد التشغيل</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4 tabular-nums font-bold">
+                          <span className={isCompleted ? 'text-charcoal' : 'text-primary'}>
+                            {nights} {nights === 1 ? 'يوم' : 'أيام'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          {isCompleted ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-sm font-label bg-emerald-50 text-success border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-success"></span>
+                              <span>معتّقة ومحسوبة</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-sm font-label bg-amber-50 text-warning border border-amber-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span>
+                              <span>جارية بالطريق</span>
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            {isCompleted ? (
+                              <>
+                                <Link
+                                  href={`/convoys/${convoy.id}/statement`}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-DEFAULT bg-light-surface-variant hover:bg-pale-red text-charcoal hover:text-primary font-label text-label-sm transition border border-outline"
+                                  title="عرض بيان الحساب المعتمد"
+                                >
+                                  <span className="material-symbols-outlined text-base">picture_as_pdf</span>
+                                  <span>البيان</span>
+                                </Link>
+                                <Link
+                                  href={`/convoys/${convoy.id}/drivers`}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-DEFAULT hover:bg-light-surface-variant text-charcoal font-label text-label-sm transition border border-outline"
+                                  title="تنسيق السائقين"
+                                >
+                                  <span className="material-symbols-outlined text-base">badge</span>
+                                </Link>
+                              </>
+                            ) : (
+                              <>
+                                <Link
+                                  href={`/convoys/${convoy.id}`}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-DEFAULT bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-sm font-bold shadow-xs transition"
+                                >
+                                  <span className="material-symbols-outlined text-base">local_shipping</span>
+                                  <span>تعتيق وحساب</span>
+                                </Link>
+                                <Link
+                                  href={`/convoys/${convoy.id}/drivers`}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-DEFAULT hover:bg-light-surface-variant text-charcoal font-label text-label-sm transition border border-outline"
+                                  title="تنسيق السائقين"
+                                >
+                                  <span className="material-symbols-outlined text-base">badge</span>
+                                </Link>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+
+      <Footer />
+    </>
+  );
+}

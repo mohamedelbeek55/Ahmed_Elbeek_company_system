@@ -1,0 +1,159 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول — أحمد البيك للاستيراد والتصدير</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'primary': '#B51F2D',
+        'on-primary': '#FFFFFF',
+        'charcoal': '#262626',
+        'pale-red': '#F7E6E8',
+        'light-gray': '#F5F5F5',
+        'outline': '#D9D9D9',
+        'success': '#1F7A4D',
+        'on-success': '#FFFFFF',
+        'warning': '#C27803',
+        'on-warning': '#222222',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#262626',
+        'light-surface-variant': '#F5F5F5',
+        'light-on-surface-variant': '#4A4A4A',
+        'light-primary': '#B51F2D',
+        'light-on-primary': '#FFFFFF',
+      },
+      borderRadius: {
+        'sm': '6px',
+        'DEFAULT': '8px',
+        'md': '10px',
+        'lg': '14px',
+        'xl': '20px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section': '40px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Cairo"', 'sans-serif'],
+        'headline': ['"Cairo"', 'sans-serif'],
+        'body': ['"Cairo"', 'sans-serif'],
+        'label': ['"Cairo"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['36px', { lineHeight: '46px', letterSpacing: '0px', fontWeight: '700' }],
+        'display-lg-mobile': ['28px', { lineHeight: '36px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-lg-mobile': ['20px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-md': ['20px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '600' }],
+        'headline-sm': ['18px', { lineHeight: '26px', letterSpacing: '0px', fontWeight: '600' }],
+        'body-lg': ['16px', { lineHeight: '26px', letterSpacing: '0px', fontWeight: '500' }],
+        'body-md': ['14px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '400' }],
+        'body-sm': ['12px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '400' }],
+        'label-lg': ['15px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '600' }],
+        'label-md': ['13px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '16px', letterSpacing: '0px', fontWeight: '600' }],
+      },
+      transitionDuration: {
+        'state-change': '120ms',
+        'surface-enter': '200ms',
+        'surface-exit': '120ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-enter': '0ms',
+        'surface-exit': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-enter': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'surface-exit': 'cubic-bezier(0.7, 0, 0.84, 0)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+  <style>
+    .material-symbols-outlined { display: inline-block; width: 1em; height: 1em; line-height: 1 !important; box-sizing: content-box; overflow: hidden; white-space: nowrap; direction: ltr; vertical-align: middle; }
+  </style>
+</head>
+<body class="bg-light-gray text-charcoal font-body min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-md bg-light-surface rounded-xl border border-outline shadow-md p-8 sm:p-10">
+    <!-- Official Logo -->
+    <div class="flex flex-col items-center text-center mb-8">
+      <div class="w-28 h-28 mb-3 flex items-center justify-center">
+        <img src="/logo.png" alt="شعار شركة أحمد البيك للاستيراد والتصدير" class="w-full h-full object-contain">
+      </div>
+      <h1 class="font-headline text-headline-lg text-charcoal font-bold mt-2">أحمد البيك للاستيراد والتصدير</h1>
+      <p class="font-body text-body-md text-light-on-surface-variant mt-1">نظام إدارة وتسيير قوافل الشاحنات</p>
+      <div class="w-12 h-1 bg-primary rounded-full mt-3"></div>
+    </div>
+
+    <!-- Login Form -->
+    <form class="space-y-5">
+      <div>
+        <label class="block font-label text-label-md text-charcoal mb-2">اسم المستخدم أو البريد الإلكتروني</label>
+        <div class="relative flex items-center">
+          <input type="text" required value="ahmed.elbeek" class="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" placeholder="أدخل اسم المستخدم">
+          <span class="material-symbols-outlined absolute right-3 text-light-on-surface-variant pointer-events-none text-xl">person</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="font-label text-label-md text-charcoal">كلمة المرور</label>
+          <span class="text-body-sm text-primary font-semibold">بوابة المالك</span>
+        </div>
+        <div class="relative flex items-center">
+          <input type="password" required value="••••••••••••" class="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" placeholder="أدخل كلمة المرور">
+          <span class="material-symbols-outlined absolute right-3 text-light-on-surface-variant pointer-events-none text-xl">lock</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-1">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked class="rounded border-outline text-primary focus:ring-primary h-4 w-4">
+          <span class="font-body text-body-sm text-light-on-surface-variant">تذكر تسجيل الدخول</span>
+        </label>
+        <span class="text-body-sm text-light-on-surface-variant">النسخة الداخلية v1.2</span>
+      </div>
+
+      <button type="submit" class="w-full bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-lg py-3.5 px-4 rounded-DEFAULT transition duration-state-change shadow-sm flex items-center justify-center gap-2 cursor-pointer mt-6">
+        <span>تسجيل الدخول للنظام</span>
+        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+      </button>
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-light-gray text-center">
+      <p class="font-body text-body-sm text-light-on-surface-variant">
+        نظام مركزي مبسط ومصمم خصيصاً لإدارة عمليات التعتيق وحساب النفقات.
+      </p>
+      <div class="flex items-center justify-center gap-3 mt-3 text-body-sm text-light-on-surface-variant font-medium">
+        <span class="inline-flex items-center gap-1">
+          <span class="material-symbols-outlined text-base text-primary">call</span>
+          01093313193
+        </span>
+        <span>•</span>
+        <span class="inline-flex items-center gap-1">
+          <span class="material-symbols-outlined text-base text-primary">mail</span>
+          elbeekb2b@gmail.com
+        </span>
+      </div>
+    </div>
+  </div>
+
+</body></html>

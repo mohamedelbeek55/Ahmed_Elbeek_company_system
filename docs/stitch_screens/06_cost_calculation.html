@@ -1,0 +1,444 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>احتساب تكاليف القافلة — أحمد البيك للاستيراد والتصدير</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config" data-stitch-original-src="012e0bd0638987d3===../../tailwind.config.js">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'primary': '#B51F2D',
+        'on-primary': '#FFFFFF',
+        'charcoal': '#262626',
+        'pale-red': '#F7E6E8',
+        'light-gray': '#F5F5F5',
+        'outline': '#D9D9D9',
+        'success': '#1F7A4D',
+        'on-success': '#FFFFFF',
+        'warning': '#C27803',
+        'on-warning': '#222222',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#262626',
+        'light-surface-variant': '#F5F5F5',
+        'light-on-surface-variant': '#4A4A4A',
+        'light-primary': '#B51F2D',
+        'light-on-primary': '#FFFFFF',
+      },
+      borderRadius: {
+        'sm': '6px',
+        'DEFAULT': '8px',
+        'md': '10px',
+        'lg': '14px',
+        'xl': '20px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section': '40px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Cairo"', 'sans-serif'],
+        'headline': ['"Cairo"', 'sans-serif'],
+        'body': ['"Cairo"', 'sans-serif'],
+        'label': ['"Cairo"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['36px', { lineHeight: '46px', letterSpacing: '0px', fontWeight: '700' }],
+        'display-lg-mobile': ['28px', { lineHeight: '36px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-lg-mobile': ['20px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-md': ['20px', { lineHeight: '28px', letterSpacing: '0px', fontWeight: '600' }],
+        'headline-sm': ['18px', { lineHeight: '26px', letterSpacing: '0px', fontWeight: '600' }],
+        'body-lg': ['16px', { lineHeight: '26px', letterSpacing: '0px', fontWeight: '500' }],
+        'body-md': ['14px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '400' }],
+        'body-sm': ['12px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '400' }],
+        'label-lg': ['15px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '600' }],
+        'label-md': ['13px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '16px', letterSpacing: '0px', fontWeight: '600' }],
+      },
+      transitionDuration: {
+        'state-change': '120ms',
+        'surface-enter': '200ms',
+        'surface-exit': '120ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-enter': '0ms',
+        'surface-exit': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-enter': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'surface-exit': 'cubic-bezier(0.7, 0, 0.84, 0)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+  <style>
+    .material-symbols-outlined { display: inline-block; width: 1em; height: 1em; line-height: 1 !important; box-sizing: content-box; overflow: hidden; white-space: nowrap; direction: ltr; vertical-align: middle; }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-charcoal font-body min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-light-surface border-b border-outline sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="../dashboard/Dashboard.html" class="flex items-center gap-3">
+          <img src="https://lh3.googleusercontent.com/aida/ALJJyrDEEBTug-Z_c13BzHLE1SkxrgUlDnIRuWYxpfkhzCZ7DyUdtbNBJsqOhPMOmIifKGDT0rqNvXNo0zGmMLHqBv523FUgXlJSv0WT0J2GtaTq7-RLr1Slhlt5ee6s0S8-gHWSNUeXuzYzQkQZB51ANhaYxDhp8rg6pLz4XaRRuCDjUPLjREInd1ogRTf8Ku666lMev0EAc5jWc41MiUfJfdA_Aw1_k1qyUdIbchnIcGeahTKY-mNHkl5iJAXCDOMrEpwkgqxk" alt="شعار أحمد البيك" class="w-12 h-12 object-contain" data-stitch-original-src="9fb9123686c4fb52===../../uploads/image-7c20fa.png">
+          <div>
+            <h1 class="font-headline text-headline-sm font-bold text-charcoal leading-tight">أحمد البيك للاستيراد والتصدير</h1>
+            <p class="font-body text-body-sm text-light-on-surface-variant">نظام إدارة وتسيير قوافل الشاحنات</p>
+          </div>
+        </a>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-1">
+        <a href="../dashboard/Dashboard.html" class="px-4 py-2 rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md flex items-center gap-2 transition">
+          <span class="material-symbols-outlined text-lg">dashboard</span>
+          <span>لوحة التحكم</span>
+        </a>
+        <a href="../convoys/ConvoysList.html" class="px-4 py-2 rounded-DEFAULT bg-pale-red text-primary font-label text-label-md flex items-center gap-2 font-bold">
+          <span class="material-symbols-outlined text-lg">local_shipping</span>
+          <span>تحميل</span>
+        </a>
+        <a href="../archive/Archive.html" class="px-4 py-2 rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md flex items-center gap-2 transition">
+          <span class="material-symbols-outlined text-lg">inventory_2</span>
+          <span>الأرشيف والبيانات</span>
+        </a>
+        <a href="../settings/Settings.html" class="px-4 py-2 rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md flex items-center gap-2 transition">
+          <span class="material-symbols-outlined text-lg">settings</span>
+          <span>الإعدادات</span>
+        </a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="../convoy-details/ConvoyDetails.html" class="text-charcoal hover:text-primary font-label text-label-md flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-lg">arrow_forward</span>
+          <span>الرجوع للتفاصيل</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
+
+    <!-- Screen Title -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div>
+        <div class="flex items-center gap-2 text-primary font-label text-label-sm mb-1">
+          <span class="material-symbols-outlined text-base">calculate</span>
+          <span>المعادلات الحسابية المعتمدة رسمياً</span>
+        </div>
+        <h2 class="font-headline text-headline-lg font-bold text-charcoal">احتساب تكاليف القافلة بعد التعتيق</h2>
+        <p class="font-body text-body-md text-light-on-surface-variant">
+          تم ملء بيانات القافلة وتاريخ التعتيق تلقائياً. أدخل فئات النولون والمبيت والتخليص لاستخراج البيان فوراً.
+        </p>
+      </div>
+
+      <span class="px-3.5 py-1.5 bg-emerald-50 text-success border border-emerald-200 rounded-full text-label-sm font-label font-bold self-start sm:self-auto flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-success"></span>
+        <span>حالة القافلة: تم التعتيق بنجاح</span>
+      </span>
+    </div>
+
+    <!-- Automatically Prefilled Convoy Overview Banner -->
+    <div class="bg-light-surface border-2 border-primary/20 rounded-xl p-6 mb-8 shadow-xs">
+      <div class="flex items-center justify-between border-b border-light-gray pb-4 mb-4">
+        <h3 class="font-headline text-headline-md font-bold text-charcoal flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">fact_check</span>
+          <span>بيانات القافلة المعتمدة (مملوءة تلقائياً)</span>
+        </h3>
+        <span class="text-body-sm text-light-on-surface-variant">تم التعتيق في: 2026-11-13</span>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-body-md">
+        <div>
+          <span class="text-body-sm text-light-on-surface-variant block mb-1">مكان التحميل:</span>
+          <span class="font-bold text-primary text-body-lg flex items-center gap-1">
+            <span class="material-symbols-outlined text-base">anchor</span>
+            <span>ميناء رفح</span>
+          </span>
+        </div>
+        <div>
+          <span class="text-body-sm text-light-on-surface-variant block mb-1">اسم البضاعة:</span>
+          <span class="font-bold text-charcoal text-body-lg" id="summaryCargo">برتقال صيفي فرز أول</span>
+        </div>
+        <div>
+          <span class="text-body-sm text-light-on-surface-variant block mb-1">عدد الشاحنات:</span>
+          <span class="font-bold text-charcoal tabular-nums text-body-lg" id="summaryTrucks">12 شاحنة</span>
+        </div>
+        <div>
+          <label for="costLoadingDate" class="text-body-sm text-light-on-surface-variant block mb-1 font-medium">
+            تاريخ التحميل (قابل للتعديل):
+          </label>
+          <input type="date" id="costLoadingDate" value="2026-11-04" onchange="recalculateDateDiffAndCosts()" class="font-bold text-charcoal tabular-nums bg-white border border-outline rounded px-2 py-1 text-body-sm w-full focus:border-primary outline-none">
+        </div>
+        <div>
+          <label for="costUnloadDate" class="text-body-sm text-light-on-surface-variant block mb-1 font-medium">
+            تاريخ التعتيق (قابل للتعديل):
+          </label>
+          <input type="date" id="costUnloadDate" value="2026-11-13" onchange="recalculateDateDiffAndCosts()" class="font-bold text-charcoal tabular-nums bg-white border border-outline rounded px-2 py-1 text-body-sm w-full focus:border-primary outline-none">
+        </div>
+      </div>
+
+      <div class="mt-4 pt-4 border-t border-light-gray flex items-center justify-between bg-pale-red/50 p-3 rounded-lg">
+        <span class="font-label text-label-md text-primary font-bold">
+          عدد ليالي المبيت المحتسبة آلياً = (تاريخ التعتيق - تاريخ التحميل):
+        </span>
+        <span class="font-headline text-headline-sm text-primary font-bold tabular-nums" id="summaryNights">
+          9 ليالي مبيت
+        </span>
+      </div>
+    </div>
+
+    <!-- Interactive Cost Calculation Form & Real-time Live Summary -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Input Column (7 cols) -->
+      <div class="lg:col-span-7 bg-light-surface border border-outline rounded-xl p-6 sm:p-8 shadow-xs">
+        <h3 class="font-headline text-headline-md font-bold text-charcoal mb-6 border-b border-light-gray pb-3">
+          مدخلات صاحب العمل (المالك)
+        </h3>
+
+        <form class="space-y-6" id="costForm">
+          
+          <!-- Input 1: Daily Accommodation Rate -->
+          <div>
+            <label class="block font-label text-label-md text-charcoal mb-2">
+              1. يومية المبيت للشاحنة الواحدة <span class="text-primary">*</span>
+            </label>
+            <div class="relative flex items-center">
+              <input type="number" id="dailyRate" value="500" min="0" step="50" class="w-full border-2 border-outline rounded-DEFAULT p-3.5 pl-16 font-body text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition" oninput="recalculateCosts()">
+              <span class="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">ج.م / يوم</span>
+            </div>
+            <p class="text-body-sm text-light-on-surface-variant mt-1.5">
+              قاعدة المبيت: ليالي المبيت (9) × اليومية للشاحنة × عدد الشاحنات (12).
+            </p>
+          </div>
+
+          <!-- Input 2: Freight Rate per Truck -->
+          <div>
+            <label class="block font-label text-label-md text-charcoal mb-2">
+              2. فئة النولون للشاحنة الواحدة <span class="text-primary">*</span>
+            </label>
+            <div class="relative flex items-center">
+              <input type="number" id="freightRate" value="8500" min="0" step="100" class="w-full border-2 border-outline rounded-DEFAULT p-3.5 pl-16 font-body text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition" oninput="recalculateCosts()">
+              <span class="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">ج.م / شاحنة</span>
+            </div>
+            <p class="text-body-sm text-light-on-surface-variant mt-1.5">
+              قاعدة النولون: فئة النولون للشاحنة × عدد الشاحنات (12).
+            </p>
+          </div>
+
+          <!-- Input 3: Customs Clearance (Separate Rule) -->
+          <div class="pt-4 border-t border-light-gray">
+            <label class="block font-label text-label-md text-charcoal mb-2">
+              3. رسوم التخليص الجمركي (Clearance)
+            </label>
+            <div class="relative flex items-center">
+              <input type="number" id="clearanceCost" value="14500" min="0" step="100" class="w-full border border-outline rounded-DEFAULT p-3 pl-16 font-body text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition" oninput="recalculateCosts()">
+              <span class="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">ج.م</span>
+            </div>
+            <p class="text-body-sm text-light-on-surface-variant mt-1">
+              * تبقى الرسوم الجمركية بنداً منفصلاً مستقلاً في البيان لحين تحديد أساس توزيعها.
+            </p>
+          </div>
+
+          <!-- Input 4: Additional Expenses (Separate Rule) -->
+          <div>
+            <label class="block font-label text-label-md text-charcoal mb-2">
+              4. المصاريف الإضافية (موازين، بوابات، حراسات)
+            </label>
+            <div class="relative flex items-center">
+              <input type="number" id="extraExpenses" value="3600" min="0" step="50" class="w-full border border-outline rounded-DEFAULT p-3 pl-16 font-body text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition" oninput="recalculateCosts()">
+              <span class="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">ج.م</span>
+            </div>
+            <p class="text-body-sm text-light-on-surface-variant mt-1">
+              * تظل المصاريف الإضافية منفصلة بحساب مستقل دون دمجها عشوائياً في النولون.
+            </p>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Real-time Live Calculation Summary Card (5 cols) -->
+      <div class="lg:col-span-5 bg-light-surface border-2 border-charcoal rounded-xl p-6 sm:p-8 shadow-md sticky top-28">
+        <div class="flex items-center justify-between border-b border-light-gray pb-4 mb-6">
+          <h3 class="font-headline text-headline-md font-bold text-charcoal flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">receipt_long</span>
+            <span>ملخص التكاليف الآلي</span>
+          </h3>
+          <span class="text-body-sm text-light-on-surface-variant">حساب فوري</span>
+        </div>
+
+        <div class="space-y-4 text-body-md mb-6">
+          
+          <!-- Accommodation row -->
+          <div class="flex items-center justify-between pb-3 border-b border-dashed border-outline">
+            <div>
+              <span class="font-semibold text-charcoal block">إجمالي المبيت (9 ليالي × 12 شاحنة)</span>
+              <span class="text-body-sm text-light-on-surface-variant tabular-nums">9 × 500 × 12</span>
+            </div>
+            <span class="font-headline text-headline-sm font-bold text-primary tabular-nums" id="totalAccommodation">
+              54,000 ج.م
+            </span>
+          </div>
+
+          <!-- Freight row -->
+          <div class="flex items-center justify-between pb-3 border-b border-dashed border-outline">
+            <div>
+              <span class="font-semibold text-charcoal block">إجمالي النولون (12 شاحنة)</span>
+              <span class="text-body-sm text-light-on-surface-variant tabular-nums">12 × 8,500</span>
+            </div>
+            <span class="font-headline text-headline-sm font-bold text-charcoal tabular-nums" id="totalFreight">
+              102,000 ج.م
+            </span>
+          </div>
+
+          <!-- Clearance row -->
+          <div class="flex items-center justify-between pb-3 border-b border-dashed border-outline">
+            <div>
+              <span class="font-semibold text-charcoal block">رسوم التخليص الجمركي</span>
+              <span class="text-body-sm text-light-on-surface-variant">بند مالي منفصل</span>
+            </div>
+            <span class="font-body text-body-lg font-bold text-charcoal tabular-nums" id="totalClearance">
+              14,500 ج.م
+            </span>
+          </div>
+
+          <!-- Extras row -->
+          <div class="flex items-center justify-between pb-3 border-b border-dashed border-outline">
+            <div>
+              <span class="font-semibold text-charcoal block">مصاريف ونثريات إضافية</span>
+              <span class="text-body-sm text-light-on-surface-variant">بند مالي منفصل</span>
+            </div>
+            <span class="font-body text-body-lg font-bold text-charcoal tabular-nums" id="totalExtras">
+              3,600 ج.م
+            </span>
+          </div>
+
+          <!-- Grand Total Box -->
+          <div class="bg-charcoal text-on-primary p-4 rounded-lg flex items-center justify-between mt-4">
+            <div>
+              <span class="font-label text-label-md block text-light-gray">إجمالي مستحقات القافلة بالكامل</span>
+              <span class="text-body-sm text-outline">شامل النولون والمبيت والتخليص والنثريات</span>
+            </div>
+            <div class="text-left">
+              <span class="font-headline text-display-lg text-on-primary font-bold tabular-nums" id="grandTotal">
+                174,100
+              </span>
+              <span class="text-body-sm text-outline mr-1">ج.م</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Action to Generate & Preview Official PDF -->
+        <a href="../pdf-preview/PdfPreview.html" class="w-full bg-primary hover:bg-opacity-95 text-on-primary font-headline text-headline-sm font-bold py-4 px-6 rounded-DEFAULT shadow-md transition flex items-center justify-center gap-3 cursor-pointer text-center">
+          <span class="material-symbols-outlined text-2xl">picture_as_pdf</span>
+          <span>توليد ومعاينة بيان الـ PDF المعتمد</span>
+        </a>
+
+        <p class="text-body-sm text-center text-light-on-surface-variant mt-3">
+          يتم تجهيز البيان مطابقاً تماماً للترويسة الرسمية والجداول والعلامة المائية المعتمدة.
+        </p>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Interactive JavaScript Calculation Logic -->
+  <script>
+    let calculatedNights = 9;
+
+    function recalculateDateDiffAndCosts() {
+      const loadInput = document.getElementById('costLoadingDate');
+      const unloadInput = document.getElementById('costUnloadDate');
+      const loadVal = new Date(loadInput.value);
+      const unloadVal = new Date(unloadInput.value);
+
+      if (!isNaN(loadVal) && !isNaN(unloadVal)) {
+        const diffTime = Math.max(0, unloadVal - loadVal);
+        calculatedNights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        document.getElementById('summaryNights').innerText = `${calculatedNights} ليالي مبيت`;
+        
+        try {
+          localStorage.setItem('ahmed_elbeek_loading_date', loadInput.value);
+          localStorage.setItem('ahmed_elbeek_unload_date', unloadInput.value);
+          localStorage.setItem('ahmed_elbeek_nights', calculatedNights);
+        } catch(e){}
+      }
+      recalculateCosts();
+    }
+
+    function recalculateCosts() {
+      const trucks = 12;
+      const nights = calculatedNights;
+      
+      const dailyRate = parseFloat(document.getElementById('dailyRate').value) || 0;
+      const freightRate = parseFloat(document.getElementById('freightRate').value) || 0;
+      const clearance = parseFloat(document.getElementById('clearanceCost').value) || 0;
+      const extras = parseFloat(document.getElementById('extraExpenses').value) || 0;
+
+      // Accommodation = nights × daily rate per truck × truck count
+      const accommodationTotal = nights * dailyRate * trucks;
+      
+      // Freight = freight per truck × truck count
+      const freightTotal = freightRate * trucks;
+
+      // Grand total = Accommodation + Freight + Clearance + Extras
+      const grand = accommodationTotal + freightTotal + clearance + extras;
+
+      document.getElementById('totalAccommodation').innerText = accommodationTotal.toLocaleString('en-US') + ' ج.م';
+      document.getElementById('totalFreight').innerText = freightTotal.toLocaleString('en-US') + ' ج.م';
+      document.getElementById('totalClearance').innerText = clearance.toLocaleString('en-US') + ' ج.م';
+      document.getElementById('totalExtras').innerText = extras.toLocaleString('en-US') + ' ج.م';
+      document.getElementById('grandTotal').innerText = grand.toLocaleString('en-US');
+    }
+
+    // Auto-load values from previous steps if available
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const savedLoad = localStorage.getItem('ahmed_elbeek_loading_date');
+        const savedUnload = localStorage.getItem('ahmed_elbeek_unload_date');
+        if (savedLoad) document.getElementById('costLoadingDate').value = savedLoad;
+        if (savedUnload) document.getElementById('costUnloadDate').value = savedUnload;
+        recalculateDateDiffAndCosts();
+      } catch(e) {}
+    });
+  </script>
+
+  <!-- Footer -->
+  <footer class="bg-light-surface border-t border-outline mt-auto py-5 text-body-sm text-light-on-surface-variant">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-charcoal">شركة أحمد البيك للاستيراد والتصدير</span>
+        <span>— الإدارة العامة للتشغيل</span>
+      </div>
+      <div class="flex items-center gap-4 tabular-nums">
+        <span>هاتف: 01093313183</span>
+        <span>•</span>
+        <span>elbeekb2b@gmail.com</span>
+      </div>
+    </div>
+  </footer>
+
+
+
+</body></html>
