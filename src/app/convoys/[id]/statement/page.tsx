@@ -68,8 +68,13 @@ export default function StatementPreviewPage() {
     );
   }
 
+  // Normalize calculation in case PostgREST or cache returns array
+  const rawCalc = Array.isArray(convoy.calculation)
+    ? (convoy.calculation.length > 0 ? convoy.calculation[0] : null)
+    : convoy.calculation;
+
   // Fallback financial calculation if not yet stored
-  const calc = convoy.calculation || {
+  const calc = rawCalc || {
     id: 'c-temp',
     convoy_id: convoy.id,
     loading_date: convoy.loading_date,
@@ -113,10 +118,10 @@ export default function StatementPreviewPage() {
   };
 
   const handleCopyWhatsAppText = () => {
-    const calc = convoy.calculation;
+    const currentCalc = rawCalc || calc;
     const locationName = convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة';
-    const grandTotal = calc ? Math.round(calc.grand_total).toLocaleString('en-US') : '0';
-    const nights = calc ? calc.accommodation_nights : '0';
+    const grandTotal = currentCalc ? Math.round(currentCalc.grand_total).toLocaleString('en-US') : '0';
+    const nights = currentCalc ? currentCalc.accommodation_nights : '0';
 
     const text = [
       `*بيان حسابات رسمي — شركة أحمد البيك للاستيراد والتصدير*`,

@@ -114,11 +114,18 @@ export const ConvoyRepository = {
 
       const { data, error } = await query.order('created_at', { ascending: false });
       if (!error && Array.isArray(data)) {
-        const cleaned = (data as ConvoyWithDetails[]).filter(
+        const cleaned = (data as any[]).map((c) => ({
+          ...c,
+          calculation: Array.isArray(c.calculation)
+            ? (c.calculation.length > 0 ? c.calculation[0] : null)
+            : c.calculation,
+          trucks: Array.isArray(c.trucks) ? c.trucks : [],
+          documents: Array.isArray(c.documents) ? c.documents : [],
+        })).filter(
           (c) => !c.id.startsWith('convoy-1') && !c.id.startsWith('convoy-2') && !c.id.startsWith('convoy-3') && !c.id.startsWith('convoy-4')
         );
-        setLocalConvoys(cleaned);
-        return cleaned;
+        setLocalConvoys(cleaned as ConvoyWithDetails[]);
+        return cleaned as ConvoyWithDetails[];
       }
     } catch {
       // Fall through to local store
@@ -164,7 +171,32 @@ export const ConvoyRepository = {
         .single();
 
       if (!error && data) {
-        return data as ConvoyWithDetails;
+        const rawCalc = Array.isArray(data.calculation)
+          ? (data.calculation.length > 0 ? data.calculation[0] : null)
+          : data.calculation;
+
+        const localList = getLocalConvoys();
+        const localItem = localList.find((c) => c.id === id);
+        const resolvedCalc = rawCalc || localItem?.calculation || null;
+
+        const normalized: ConvoyWithDetails = {
+          ...data,
+          calculation: resolvedCalc,
+          trucks: Array.isArray(data.trucks) && data.trucks.length > 0 ? data.trucks : (localItem?.trucks || []),
+          documents: Array.isArray(data.documents) ? data.documents : (localItem?.documents || []),
+        };
+
+        if (localItem) {
+          localItem.calculation = resolvedCalc;
+          localItem.status = data.status || localItem.status;
+          localItem.completion_date = data.completion_date || localItem.completion_date;
+          setLocalConvoys(localList);
+        } else {
+          localList.unshift(normalized);
+          setLocalConvoys(localList);
+        }
+
+        return normalized;
       }
     } catch {
       // Fallback
@@ -353,21 +385,27 @@ export const ConvoyRepository = {
     const list = getLocalConvoys();
     const idx = list.findIndex((c) => c.id === data.convoy_id);
 
+    // Generate valid UUID if missing or invalid
+    const isUUID = data.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.id);
+    const validId = isUUID
+      ? data.id
+      : (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined);
+
     const record: Database['public']['Tables']['cost_calculations']['Row'] = {
-      id: data.id || `calc-${Date.now()}`,
+      id: validId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `calc-${Date.now()}`),
       convoy_id: data.convoy_id,
       loading_date: data.loading_date,
       completion_date: data.completion_date,
-      accommodation_nights: data.accommodation_nights,
-      daily_accommodation_rate: data.daily_accommodation_rate,
-      total_accommodation: data.total_accommodation,
-      freight_rate_per_truck: data.freight_rate_per_truck,
-      total_freight: data.total_freight,
-      customs_clearance: data.customs_clearance ?? 0,
-      additional_expenses: data.additional_expenses ?? 0,
+      accommodation_nights: Number(data.accommodation_nights),
+      daily_accommodation_rate: Number(data.daily_accommodation_rate),
+      total_accommodation: Number(data.total_accommodation),
+      freight_rate_per_truck: Number(data.freight_rate_per_truck),
+      total_freight: Number(data.total_freight),
+      customs_clearance: Number(data.customs_clearance ?? 0),
+      additional_expenses: Number(data.additional_expenses ?? 0),
       additional_expenses_notes: data.additional_expenses_notes ?? null,
-      grand_total: data.grand_total,
-      average_cost_per_truck: data.average_cost_per_truck,
+      grand_total: Number(data.grand_total),
+      average_cost_per_truck: Number(data.average_cost_per_truck),
       currency: data.currency || 'EGP',
       calculated_by: data.calculated_by || null,
       calculated_at: new Date().toISOString(),
@@ -380,16 +418,56 @@ export const ConvoyRepository = {
       list[idx].completion_date = data.completion_date;
       list[idx].loading_date = data.loading_date;
       setLocalConvoys(list);
+    } else {
+      list.unshift({
+        id: data.convoy_id,
+        convoy_number: 'ELB-TEMP',
+        cargo_name: 'بضاعة',
+        location_id: 'rafah',
+        truck_count: 1,
+        loading_date: data.loading_date,
+        completion_date: data.completion_date,
+        status: 'completed',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        calculation: record,
+      } as any);
+      setLocalConvoys(list);
     }
 
     try {
-      await (supabase as any).from('cost_calculations').upsert(record as any);
+      const payload: any = {
+        convoy_id: data.convoy_id,
+        loading_date: data.loading_date,
+        completion_date: data.completion_date,
+        accommodation_nights: Number(data.accommodation_nights),
+        daily_accommodation_rate: Number(data.daily_accommodation_rate),
+        total_accommodation: Number(data.total_accommodation),
+        freight_rate_per_truck: Number(data.freight_rate_per_truck),
+        total_freight: Number(data.total_freight),
+        customs_clearance: Number(data.customs_clearance ?? 0),
+        additional_expenses: Number(data.additional_expenses ?? 0),
+        additional_expenses_notes: data.additional_expenses_notes ?? null,
+        grand_total: Number(data.grand_total),
+        average_cost_per_truck: Number(data.average_cost_per_truck),
+        currency: data.currency || 'EGP',
+        updated_at: new Date().toISOString(),
+      };
+      if (validId) {
+        payload.id = validId;
+      }
+
+      await (supabase as any)
+        .from('cost_calculations')
+        .upsert(payload, { onConflict: 'convoy_id' });
+
       await (supabase as any).from('convoys').update({
         status: 'completed',
         completion_date: data.completion_date,
+        updated_at: new Date().toISOString(),
       }).eq('id', data.convoy_id);
-    } catch {
-      // Local fallback
+    } catch (err) {
+      console.warn('Supabase saveCalculation note:', err);
     }
 
     return record;

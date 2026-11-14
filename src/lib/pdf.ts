@@ -146,7 +146,9 @@ export const PDFService = {
    * WhatsApp sharing link generator with formatted Egyptian commercial text
    */
   getWhatsAppShareUrl(convoy: ConvoyWithDetails, phoneNumber?: string): string {
-    const calc = convoy.calculation;
+    const calc = Array.isArray(convoy.calculation)
+      ? (convoy.calculation.length > 0 ? convoy.calculation[0] : null)
+      : convoy.calculation;
     const locationName = convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة';
     const grandTotal = calc ? Math.round(calc.grand_total).toLocaleString('en-US') : '0';
     const nights = calc ? calc.accommodation_nights : '0';

@@ -45,13 +45,17 @@ export default function CostCalculationPage() {
       setLoadingDate(data.loading_date);
       setCompletionDate(data.completion_date || new Date().toISOString().split('T')[0]);
 
-      if (data.calculation) {
-        setDailyRate(String(data.calculation.daily_accommodation_rate));
-        setFreightRate(String(data.calculation.freight_rate_per_truck));
-        setClearanceCost(String(data.calculation.customs_clearance));
-        setExtraExpenses(String(data.calculation.additional_expenses));
-        if (data.calculation.additional_expenses_notes) {
-          setExtraNotes(data.calculation.additional_expenses_notes);
+      const rawCalc = Array.isArray(data.calculation)
+        ? (data.calculation.length > 0 ? data.calculation[0] : null)
+        : data.calculation;
+
+      if (rawCalc) {
+        setDailyRate(String(rawCalc.daily_accommodation_rate));
+        setFreightRate(String(rawCalc.freight_rate_per_truck));
+        setClearanceCost(String(rawCalc.customs_clearance));
+        setExtraExpenses(String(rawCalc.additional_expenses));
+        if (rawCalc.additional_expenses_notes) {
+          setExtraNotes(rawCalc.additional_expenses_notes);
         }
       }
     }
@@ -137,6 +141,7 @@ export default function CostCalculationPage() {
         currency: 'EGP',
       });
 
+      router.refresh();
       router.push(`/convoys/${convoy.id}/statement`);
     } catch (err) {
       console.error('Error saving calculation:', err);
