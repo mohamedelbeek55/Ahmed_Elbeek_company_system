@@ -37,12 +37,23 @@ export default function DriverManifestPage() {
     if (data) {
       setConvoy(data);
       if (data.trucks && data.trucks.length > 0) {
-        setTrucks(data.trucks);
+        // Normalize any old values like "ميناء العوجة ⟵ القاهرة" to "ميناء العوجة" or "ميناء رفح"
+        const cleanTrucks = data.trucks.map(t => {
+          let port = t.political_destination || '';
+          if (port.includes('رفح')) port = 'ميناء رفح';
+          else if (port.includes('العوجة')) port = 'ميناء العوجة';
+          else port = data.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة';
+          return {
+            ...t,
+            political_destination: port,
+          };
+        });
+        setTrucks(cleanTrucks);
       } else {
         // Initialize rows matching truck_count
         const initial: TruckRow[] = [];
         const count = data.truck_count || 5;
-        const defaultDest = data.location_id === 'rafah' ? 'ميناء رفح ⟵ الإسكندرية' : 'ميناء العوجة ⟵ القاهرة';
+        const defaultDest = data.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة';
         for (let i = 1; i <= count; i++) {
           initial.push({
             convoy_id: convoyId,
@@ -68,7 +79,7 @@ export default function DriverManifestPage() {
 
   const handleAddTruck = () => {
     const nextSeq = trucks.length + 1;
-    const defaultDest = convoy?.location_id === 'rafah' ? 'ميناء رفح ⟵ الإسكندرية' : 'ميناء العوجة ⟵ القاهرة';
+    const defaultDest = convoy?.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة';
     setTrucks([
       ...trucks,
       {
@@ -245,7 +256,7 @@ export default function DriverManifestPage() {
                   <span>كشف بيانات السائقين والسيارات المعتمد</span>
                 </h3>
                 <p className="font-body text-body-sm text-light-on-surface-variant">
-                  مطابق للنموذج الرسمي (السياسي، الاسم، الرقم القومي، سيارة رقم، مقطورة رقم).
+                  مطابق للنموذج الرسمي (الميناء، الاسم، الرقم القومي، سيارة رقم، مقطورة رقم).
                 </p>
               </div>
 
@@ -264,7 +275,7 @@ export default function DriverManifestPage() {
                 <thead>
                   <tr className="bg-charcoal text-on-primary border-b border-outline text-label-md font-label">
                     <th className="py-3 px-3 w-12 text-center">م</th>
-                    <th className="py-3 px-4 min-w-[160px]">السياسي (المدينة/الوجهة)</th>
+                    <th className="py-3 px-4 min-w-[140px]">الميناء</th>
                     <th className="py-3 px-4 min-w-[200px]">اسم السائق</th>
                     <th className="py-3 px-4 min-w-[170px]">الرقم القومي (14 رقم)</th>
                     <th className="py-3 px-4 min-w-[140px]">سيارة رقم</th>
@@ -279,13 +290,14 @@ export default function DriverManifestPage() {
                         {idx + 1}
                       </td>
                       <td className="py-2.5 px-3">
-                        <input
-                          type="text"
-                          value={row.political_destination || ''}
+                        <select
+                          value={row.political_destination?.includes('رفح') ? 'ميناء رفح' : 'ميناء العوجة'}
                           onChange={(e) => handleRowChange(idx, 'political_destination', e.target.value)}
-                          placeholder="مثال: ميناء الإسكندرية"
-                          className="w-full border border-outline rounded px-2.5 py-1.5 text-body-sm text-charcoal focus:border-primary outline-none"
-                        />
+                          className="w-full border border-outline rounded px-2.5 py-1.5 text-body-sm font-semibold text-charcoal bg-light-surface focus:border-primary outline-none transition cursor-pointer"
+                        >
+                          <option value="ميناء رفح">ميناء رفح</option>
+                          <option value="ميناء العوجة">ميناء العوجة</option>
+                        </select>
                       </td>
                       <td className="py-2.5 px-3">
                         <input
@@ -430,7 +442,7 @@ export default function DriverManifestPage() {
                     <thead>
                       <tr className="bg-charcoal text-white font-bold border-b border-charcoal">
                         <th className="py-3 px-3 w-12 text-center">م</th>
-                        <th className="py-3 px-4">السياسي (الوجهة)</th>
+                        <th className="py-3 px-4">الميناء</th>
                         <th className="py-3 px-4">الاسم (السائق)</th>
                         <th className="py-3 px-4">الرقم القومي</th>
                         <th className="py-3 px-4">سيارة رقم</th>
@@ -441,7 +453,9 @@ export default function DriverManifestPage() {
                       {trucks.map((row, idx) => (
                         <tr key={idx} className={idx % 2 === 1 ? 'bg-light-gray/60' : ''}>
                           <td className="py-3 px-3 text-center tabular-nums font-bold">{idx + 1}</td>
-                          <td className="py-3 px-4 text-light-on-surface-variant">{row.political_destination || 'ميناء الإسكندرية'}</td>
+                          <td className="py-3 px-4 font-bold text-charcoal">
+                            {row.political_destination?.includes('رفح') ? 'ميناء رفح' : 'ميناء العوجة'}
+                          </td>
                           <td className="py-3 px-4 font-bold text-charcoal">{row.driver_name || '—'}</td>
                           <td className="py-3 px-4 tabular-nums text-light-on-surface-variant">{row.national_id || '—'}</td>
                           <td className="py-3 px-4 tabular-nums font-bold text-charcoal">{row.truck_plate || '—'}</td>

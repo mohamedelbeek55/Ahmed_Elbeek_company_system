@@ -168,3 +168,4 @@ CREATE POLICY "Allow insert statements" ON storage.objects
 DROP POLICY IF EXISTS "Allow delete statements" ON storage.objects;
 CREATE POLICY "Allow delete statements" ON storage.objects
     FOR DELETE TO authenticated, anon USING (bucket_id = 'statements');
+

@@ -297,7 +297,7 @@ export default function ConvoyDetailsPage() {
                 <span>كشف سيارات القافلة (بيان الشاحنات الرسمي)</span>
               </h3>
               <p className="font-body text-body-sm text-light-on-surface-variant">
-                سجل الشاحنات مطابق لأعمدة البيان المعتمد: (م، السياسي، الاسم، الرقم القومي، سيارة رقم، مقطورة رقم).
+                سجل الشاحنات مطابق لأعمدة البيان المعتمد: (م، الميناء، الاسم، الرقم القومي، سيارة رقم، مقطورة رقم).
               </p>
             </div>
             <Link
@@ -314,7 +314,7 @@ export default function ConvoyDetailsPage() {
               <thead>
                 <tr className="bg-charcoal text-on-primary border-b border-outline text-label-md font-label">
                   <th className="py-3.5 px-4 w-12 text-center">م</th>
-                  <th className="py-3.5 px-4">السياسي (المدينة/الوجهة)</th>
+                  <th className="py-3.5 px-4">الميناء</th>
                   <th className="py-3.5 px-4">اسم السائق</th>
                   <th className="py-3.5 px-4">الرقم القومي</th>
                   <th className="py-3.5 px-4">سيارة رقم</th>
@@ -335,7 +335,9 @@ export default function ConvoyDetailsPage() {
                       className={idx % 2 === 1 ? 'bg-light-surface-variant/40 hover:bg-light-surface-variant' : 'hover:bg-light-surface-variant/70'}
                     >
                       <td className="py-3.5 px-4 text-center tabular-nums font-bold">{t.sequence_number}</td>
-                      <td className="py-3.5 px-4 text-light-on-surface-variant">{t.political_destination || 'ميناء الإسكندرية'}</td>
+                      <td className="py-3.5 px-4 font-bold text-charcoal">
+                        {t.political_destination?.includes('رفح') ? 'ميناء رفح' : 'ميناء العوجة'}
+                      </td>
                       <td className="py-3.5 px-4 font-semibold text-charcoal">{t.driver_name || '—'}</td>
                       <td className="py-3.5 px-4 tabular-nums text-light-on-surface-variant">{t.national_id || '—'}</td>
                       <td className="py-3.5 px-4 tabular-nums font-bold text-charcoal">{t.truck_plate || '—'}</td>
