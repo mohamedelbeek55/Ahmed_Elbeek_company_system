@@ -11,6 +11,8 @@ import { calculateElapsedDays, formatCurrency } from '@/lib/calculations';
 export default function DashboardPage() {
   const [convoys, setConvoys] = useState<ConvoyWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<ConvoyWithDetails | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -23,7 +25,21 @@ export default function DashboardPage() {
     setLoading(false);
   };
 
-  // Metrics calculation
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await ConvoyRepository.deleteConvoy(deleteTarget.id);
+      setDeleteTarget(null);
+      await loadData();
+    } catch (err) {
+      console.error('Delete error:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Metrics calculation based on real convoys
   const activeConvoys = convoys.filter((c) => c.status === 'active');
   const completedConvoys = convoys.filter((c) => c.status === 'completed');
   
@@ -55,7 +71,7 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-center gap-2 text-primary font-label text-label-sm mb-1">
               <span className="material-symbols-outlined text-base">verified</span>
-              <span>النظام الإداري المالي والتشغيلي الموحد</span>
+              <span>النظام الإداري والمالي المعتمد — بوابة المالك</span>
             </div>
             <h2 className="font-headline text-headline-lg font-bold text-charcoal">
               مرحباً بك، أ. أحمد البيك
@@ -71,7 +87,7 @@ export default function DashboardPage() {
               className="px-6 py-3 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-lg font-bold shadow-sm transition flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-xl">add_circle</span>
-              <span>إنشاء بوصلة</span>
+              <span>إنشاء بوصلة جديدة</span>
             </Link>
           </div>
         </div>
@@ -152,7 +168,7 @@ export default function DashboardPage() {
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="font-headline text-display-lg text-charcoal font-bold tabular-nums">
-                  {Math.max(totalDocuments, completedConvoys.length)}
+                  {totalDocuments}
                 </span>
                 <span className="text-body-sm text-light-on-surface-variant">بيان رسمي</span>
               </div>
@@ -294,87 +310,172 @@ export default function DashboardPage() {
                   <th scope="col" className="py-3.5 px-4">تاريخ التعتيق</th>
                   <th scope="col" className="py-3.5 px-4">مدة المبيت</th>
                   <th scope="col" className="py-3.5 px-4">إجمالي المستحق</th>
-                  <th scope="col" className="py-3.5 px-4 text-center">الإجراء</th>
+                  <th scope="col" className="py-3.5 px-4 text-center">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline font-body text-body-md">
-                {convoys.slice(0, 6).map((convoy, idx) => {
-                  const nights = calculateElapsedDays(convoy.loading_date, convoy.completion_date);
-                  const isCompleted = convoy.status === 'completed';
+                {convoys.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center text-light-on-surface-variant">
+                      <span className="material-symbols-outlined text-5xl block mb-2 text-outline">
+                        inventory_2
+                      </span>
+                      <p className="font-headline text-headline-sm font-bold text-charcoal mb-1">
+                        لا توجد بوصلات شحن مسجلة حالياً
+                      </p>
+                      <p className="text-body-sm text-light-on-surface-variant mb-4">
+                        تم تنظيف البيانات الوهمية بالكامل. اضغط على الزر أدناه لبدء تسيير أول قافلة وحفظها في قاعدة البيانات.
+                      </p>
+                      <Link
+                        href="/convoys/new"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-DEFAULT font-label text-label-md font-bold hover:bg-opacity-95 shadow-xs transition"
+                      >
+                        <span className="material-symbols-outlined text-lg">add_circle</span>
+                        <span>إنشاء أول بوصلة</span>
+                      </Link>
+                    </td>
+                  </tr>
+                ) : (
+                  convoys.slice(0, 6).map((convoy, idx) => {
+                    const nights = calculateElapsedDays(convoy.loading_date, convoy.completion_date);
+                    const isCompleted = convoy.status === 'completed';
 
-                  return (
-                    <tr
-                      key={convoy.id}
-                      className={idx % 2 === 1 ? 'bg-light-surface-variant/40 hover:bg-light-surface-variant' : 'hover:bg-light-surface-variant/70'}
-                    >
-                      <td className="py-4 px-4 font-semibold text-charcoal">
-                        <Link href={`/convoys/${convoy.id}`} className="hover:text-primary transition flex items-center gap-1.5">
-                          <span>{convoy.cargo_name}</span>
-                        </Link>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-label-sm font-label font-semibold ${
-                          convoy.location_id === 'rafah'
-                            ? 'bg-red-50 text-primary border border-red-200'
-                            : 'bg-amber-50 text-warning border border-amber-200'
-                        }`}>
-                          <span className="material-symbols-outlined text-xs">anchor</span>
-                          <span>{convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</span>
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 tabular-nums font-bold text-charcoal">
-                        {convoy.truck_count} شاحنة
-                      </td>
-                      <td className="py-4 px-4 tabular-nums text-light-on-surface-variant">
-                        {convoy.loading_date}
-                      </td>
-                      <td className="py-4 px-4 tabular-nums">
-                        {convoy.completion_date ? (
-                          <span className="text-light-on-surface-variant">{convoy.completion_date}</span>
-                        ) : (
-                          <span className="text-warning font-semibold">قيد التشغيل</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 tabular-nums font-bold">
-                        <span className={isCompleted ? 'text-charcoal' : 'text-primary'}>
-                          {nights} {nights === 1 ? 'يوم' : 'أيام'}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 tabular-nums font-bold">
-                        {convoy.calculation ? (
-                          <span className="text-charcoal">{formatCurrency(convoy.calculation.grand_total)}</span>
-                        ) : (
-                          <span className="text-light-on-surface-variant text-xs">لم تُحسب بعد</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        {isCompleted ? (
-                          <Link
-                            href={`/convoys/${convoy.id}/statement`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-DEFAULT bg-light-surface-variant hover:bg-pale-red text-charcoal hover:text-primary font-label text-label-sm transition border border-outline"
-                          >
-                            <span className="material-symbols-outlined text-base">picture_as_pdf</span>
-                            <span>البيان الرسمي</span>
+                    return (
+                      <tr
+                        key={convoy.id}
+                        className={idx % 2 === 1 ? 'bg-light-surface-variant/40 hover:bg-light-surface-variant' : 'hover:bg-light-surface-variant/70'}
+                      >
+                        <td className="py-4 px-4 font-semibold text-charcoal">
+                          <Link href={`/convoys/${convoy.id}`} className="hover:text-primary transition flex flex-col">
+                            <span className="font-bold text-body-lg text-charcoal">{convoy.cargo_name}</span>
+                            <span className="text-xs text-light-on-surface-variant tabular-nums">{convoy.convoy_number}</span>
                           </Link>
-                        ) : (
-                          <Link
-                            href={`/convoys/${convoy.id}`}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-DEFAULT bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-sm font-bold shadow-xs transition"
-                          >
-                            <span className="material-symbols-outlined text-base">local_shipping</span>
-                            <span>تعتيق وحساب</span>
-                          </Link>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-label-sm font-label font-semibold ${
+                            convoy.location_id === 'rafah'
+                              ? 'bg-red-50 text-primary border border-red-200'
+                              : 'bg-amber-50 text-warning border border-amber-200'
+                          }`}>
+                            <span className="material-symbols-outlined text-xs">anchor</span>
+                            <span>{convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</span>
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 tabular-nums font-bold text-charcoal">
+                          {convoy.truck_count} شاحنة
+                        </td>
+                        <td className="py-4 px-4 tabular-nums text-light-on-surface-variant">
+                          {convoy.loading_date}
+                        </td>
+                        <td className="py-4 px-4 tabular-nums">
+                          {convoy.completion_date ? (
+                            <span className="text-light-on-surface-variant">{convoy.completion_date}</span>
+                          ) : (
+                            <span className="text-warning font-semibold">قيد التشغيل</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4 tabular-nums font-bold">
+                          <span className={isCompleted ? 'text-charcoal' : 'text-primary'}>
+                            {nights} {nights === 1 ? 'يوم' : 'أيام'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 tabular-nums font-bold">
+                          {convoy.calculation ? (
+                            <span className="text-charcoal">{formatCurrency(convoy.calculation.grand_total)}</span>
+                          ) : (
+                            <span className="text-light-on-surface-variant text-xs">لم تُحسب بعد</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            {isCompleted ? (
+                              <Link
+                                href={`/convoys/${convoy.id}/statement`}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-DEFAULT bg-light-surface-variant hover:bg-pale-red text-charcoal hover:text-primary font-label text-label-sm transition border border-outline"
+                              >
+                                <span className="material-symbols-outlined text-base">picture_as_pdf</span>
+                                <span>البيان</span>
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/convoys/${convoy.id}`}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-DEFAULT bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-sm font-bold shadow-xs transition"
+                              >
+                                <span className="material-symbols-outlined text-base">local_shipping</span>
+                                <span>تعتيق</span>
+                              </Link>
+                            )}
+
+                            {/* Admin Delete Action */}
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(convoy)}
+                              className="p-1.5 rounded-DEFAULT text-light-on-surface-variant hover:text-primary hover:bg-pale-red transition cursor-pointer"
+                              title="حذف البوصلة من النظام"
+                            >
+                              <span className="material-symbols-outlined text-lg">delete</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-light-surface border border-outline rounded-xl p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center gap-3 mb-4 text-primary">
+              <span className="w-10 h-10 rounded-full bg-pale-red flex items-center justify-center">
+                <span className="material-symbols-outlined text-2xl">warning</span>
+              </span>
+              <div>
+                <h3 className="font-headline text-headline-sm font-bold text-charcoal">
+                  تأكيد حذف القافلة
+                </h3>
+                <p className="text-body-sm text-light-on-surface-variant">إجراء إداري دائم لا يمكن التراجع عنه</p>
+              </div>
+            </div>
+
+            <div className="bg-light-surface-variant p-3.5 rounded-DEFAULT text-body-md text-charcoal mb-6 space-y-1 border border-outline">
+              <p><strong>اسم البضاعة:</strong> {deleteTarget.cargo_name}</p>
+              <p><strong>مكان التحميل:</strong> {deleteTarget.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</p>
+              <p><strong>رقم البوصلة:</strong> {deleteTarget.convoy_number}</p>
+            </div>
+
+            <p className="text-body-sm text-light-on-surface-variant mb-6">
+              سيتم حذف هذه القافلة وسجل شاحناتها وحساباتها ومستنداتها نهائياً من قاعدة البيانات.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-light-gray">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 border border-outline rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md transition cursor-pointer"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="px-5 py-2 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-lg">delete</span>
+                <span>{isDeleting ? 'جارٍ الحذف...' : 'تأكيد الحذف نهائياً'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </>

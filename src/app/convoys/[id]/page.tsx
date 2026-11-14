@@ -17,6 +17,8 @@ export default function ConvoyDetailsPage() {
   const [convoy, setConvoy] = useState<ConvoyWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [unloadingModalOpen, setUnloadingModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [completionDate, setCompletionDate] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
@@ -47,6 +49,18 @@ export default function ConvoyDetailsPage() {
     convoy.loading_date = newDate;
     // recalculate
     setConvoy({ ...convoy });
+  };
+
+  const handleDeleteConvoy = async () => {
+    if (!convoy) return;
+    setIsDeleting(true);
+    try {
+      await ConvoyRepository.deleteConvoy(convoy.id);
+      router.push('/convoys');
+    } catch (err) {
+      console.error('Delete error:', err);
+      setIsDeleting(false);
+    }
   };
 
   const handleConfirmUnloading = async () => {
@@ -123,6 +137,16 @@ export default function ConvoyDetailsPage() {
                 <span>معاينة البيان المعتمد</span>
               </Link>
             )}
+
+            <button
+              type="button"
+              onClick={() => setDeleteModalOpen(true)}
+              className="px-3.5 py-2 border border-red-300 hover:bg-pale-red text-primary rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 font-bold transition cursor-pointer"
+              title="حذف القافلة نهائياً"
+            >
+              <span className="material-symbols-outlined text-lg">delete</span>
+              <span>حذف البوصلة</span>
+            </button>
           </div>
         </div>
 
@@ -402,7 +426,57 @@ export default function ConvoyDetailsPage() {
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && convoy && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-light-surface border border-outline rounded-xl p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center gap-3 mb-4 text-primary">
+              <span className="w-10 h-10 rounded-full bg-pale-red flex items-center justify-center">
+                <span className="material-symbols-outlined text-2xl">warning</span>
+              </span>
+              <div>
+                <h3 className="font-headline text-headline-sm font-bold text-charcoal">
+                  تأكيد حذف القافلة
+                </h3>
+                <p className="text-body-sm text-light-on-surface-variant">إجراء إداري دائم لا يمكن التراجع عنه</p>
+              </div>
+            </div>
+
+            <div className="bg-light-surface-variant p-3.5 rounded-DEFAULT text-body-md text-charcoal mb-6 space-y-1 border border-outline">
+              <p><strong>اسم البضاعة:</strong> {convoy.cargo_name}</p>
+              <p><strong>مكان التحميل:</strong> {convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</p>
+              <p><strong>رقم البوصلة:</strong> {convoy.convoy_number}</p>
+            </div>
+
+            <p className="text-body-sm text-light-on-surface-variant mb-6">
+              سيتم حذف هذه القافلة وسجل شاحناتها وحساباتها ومستنداتها نهائياً من قاعدة البيانات، وسيتم تحويلك إلى سجل البوصلات.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-light-gray">
+              <button
+                type="button"
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 border border-outline rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md transition cursor-pointer"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConvoy}
+                disabled={isDeleting}
+                className="px-5 py-2 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-lg">delete</span>
+                <span>{isDeleting ? 'جارٍ الحذف...' : 'تأكيد الحذف نهائياً'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </>
   );
 }
+

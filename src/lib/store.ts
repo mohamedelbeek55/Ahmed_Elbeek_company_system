@@ -2,192 +2,12 @@ import { supabase } from './supabase/client';
 import type { Database, ConvoyWithDetails, LoadingLocationId, ConvoyStatus } from '@/types/database.types';
 import { calculateConvoyFinances } from './calculations';
 
-// Initial preloaded approved data matching Google Stitch screens
-const INITIAL_CONVOYS: ConvoyWithDetails[] = [
-  {
-    id: 'convoy-1',
-    convoy_number: 'ELB-2026-RF-001',
-    cargo_name: 'برتقال صيفي فرز أول',
-    location_id: 'rafah',
-    truck_count: 12,
-    loading_date: '2026-11-04',
-    completion_date: '2026-11-13',
-    route_notes: 'ميناء رفح ⟵ ميناء الإسكندرية البحري (رصيف 22)',
-    status: 'completed',
-    created_by: null,
-    created_at: '2026-11-04T08:00:00Z',
-    updated_at: '2026-11-13T14:30:00Z',
-    location: {
-      id: 'rafah',
-      name_ar: 'ميناء رفح',
-      name_en: 'Rafah Port',
-      is_active: true,
-      created_at: '2026-11-01T00:00:00Z',
-    },
-    trucks: [
-      { id: 't1', convoy_id: 'convoy-1', sequence_number: 1, political_destination: 'ميناء الإسكندرية', driver_name: 'محمود إبراهيم الدسوقي', national_id: '28504121503412', truck_plate: 'د ف ج 8391', trailer_plate: 'ط ن ر 2940', notes: '', created_at: '2026-11-04T09:00:00Z' },
-      { id: 't2', convoy_id: 'convoy-1', sequence_number: 2, political_destination: 'ميناء الإسكندرية', driver_name: 'صابر عبد المنعم عيسى', national_id: '29108191204891', truck_plate: 'ق ص ب 5192', trailer_plate: 'ي هـ و 7103', notes: '', created_at: '2026-11-04T09:05:00Z' },
-      { id: 't3', convoy_id: 'convoy-1', sequence_number: 3, political_destination: 'ميناء الإسكندرية', driver_name: 'عادل مصطفى الشناوي', national_id: '27902051601235', truck_plate: 'س ر ع 4921', trailer_plate: 'م ب ج 3812', notes: '', created_at: '2026-11-04T09:10:00Z' },
-      { id: 't4', convoy_id: 'convoy-1', sequence_number: 4, political_destination: 'ميناء الإسكندرية', driver_name: 'إبراهيم حسن النجار', national_id: '28311201509871', truck_plate: 'ن ط و 6281', trailer_plate: 'ص ع ك 8194', notes: '', created_at: '2026-11-04T09:15:00Z' },
-      { id: 't5', convoy_id: 'convoy-1', sequence_number: 5, political_destination: 'ميناء الإسكندرية', driver_name: 'فرج عبد العاطي بيومي', national_id: '29506141802341', truck_plate: 'ي م د 7134', trailer_plate: 'ر هـ ط 5102', notes: '', created_at: '2026-11-04T09:20:00Z' },
-      { id: 't6', convoy_id: 'convoy-1', sequence_number: 6, political_destination: 'ميناء الإسكندرية', driver_name: 'أحمد سعيد عبد القادر', national_id: '28807251704512', truck_plate: 'ط ك ر 3951', trailer_plate: 'ف ن م 4821', notes: '', created_at: '2026-11-04T09:25:00Z' },
-      { id: 't7', convoy_id: 'convoy-1', sequence_number: 7, political_destination: 'ميناء الإسكندرية', driver_name: 'هاني مسعد الخولي', national_id: '28603181607892', truck_plate: 'س ب ل 9412', trailer_plate: 'ق ر ع 6703', notes: '', created_at: '2026-11-04T09:30:00Z' },
-      { id: 't8', convoy_id: 'convoy-1', sequence_number: 8, political_destination: 'ميناء الإسكندرية', driver_name: 'عصام مجاهد رضوان', national_id: '29209121901245', truck_plate: 'ع ف ص 1823', trailer_plate: 'د ط ي 9384', notes: '', created_at: '2026-11-04T09:35:00Z' },
-      { id: 't9', convoy_id: 'convoy-1', sequence_number: 9, political_destination: 'ميناء الإسكندرية', driver_name: 'فتحي كمال أبو المجد', national_id: '28105031405678', truck_plate: 'ب ن هـ 4820', trailer_plate: 'م ك ل 7192', notes: '', created_at: '2026-11-04T09:40:00Z' },
-      { id: 't10', convoy_id: 'convoy-1', sequence_number: 10, political_destination: 'ميناء الإسكندرية', driver_name: 'طارق صلاح بدوي', national_id: '29410291304567', truck_plate: 'ر ص ع 5719', trailer_plate: 'و ي ن 8234', notes: '', created_at: '2026-11-04T09:45:00Z' },
-      { id: 't11', convoy_id: 'convoy-1', sequence_number: 11, political_destination: 'ميناء الإسكندرية', driver_name: 'جمال توفيق عبد ربه', national_id: '28701151608923', truck_plate: 'ل هـ ط 6301', trailer_plate: 'س ف م 1948', notes: '', created_at: '2026-11-04T09:50:00Z' },
-      { id: 't12', convoy_id: 'convoy-1', sequence_number: 12, political_destination: 'ميناء الإسكندرية', driver_name: 'مدحت سامي غنيم', national_id: '29012081503489', truck_plate: 'م و ر 7294', trailer_plate: 'ط ب د 5821', notes: '', created_at: '2026-11-04T09:55:00Z' },
-    ],
-    calculation: {
-      id: 'calc-1',
-      convoy_id: 'convoy-1',
-      loading_date: '2026-11-04',
-      completion_date: '2026-11-13',
-      accommodation_nights: 9,
-      daily_accommodation_rate: 500,
-      total_accommodation: 54000,
-      freight_rate_per_truck: 8500,
-      total_freight: 102000,
-      customs_clearance: 14500,
-      additional_expenses: 3600,
-      additional_expenses_notes: 'موازين، كروت بوابات، حراسات وتفريغ',
-      grand_total: 174100,
-      average_cost_per_truck: 14508.33,
-      currency: 'EGP',
-      calculated_by: null,
-      calculated_at: '2026-11-13T14:35:00Z',
-      updated_at: '2026-11-13T14:35:00Z',
-    },
-    documents: [
-      {
-        id: 'doc-1',
-        convoy_id: 'convoy-1',
-        document_type: 'statement',
-        document_number: 'ELB-2026-RF-5TR',
-        file_name: 'بيان_قافلة_برتقال_صيفي_12_شاحنة.pdf',
-        storage_path: 'statements/convoy-1/statement.pdf',
-        file_size_bytes: 284500,
-        mime_type: 'application/pdf',
-        public_url: null,
-        metadata: { cargo: 'برتقال صيفي فرز أول', trucks: 12, total: 174100 },
-        created_by: null,
-        issued_at: '2026-11-13T15:00:00Z',
-      },
-    ],
-  },
-  {
-    id: 'convoy-2',
-    convoy_number: 'ELB-2026-AW-002',
-    cargo_name: 'بصل أحمر تصدير',
-    location_id: 'al_awja',
-    truck_count: 8,
-    loading_date: '2026-11-06',
-    completion_date: '2026-11-12',
-    route_notes: 'ميناء العوجة ⟵ سوق العبور بالقاهرة',
-    status: 'completed',
-    created_by: null,
-    created_at: '2026-11-06T07:30:00Z',
-    updated_at: '2026-11-12T16:00:00Z',
-    location: {
-      id: 'al_awja',
-      name_ar: 'ميناء العوجة',
-      name_en: 'Al-Awja Port',
-      is_active: true,
-      created_at: '2026-11-01T00:00:00Z',
-    },
-    calculation: {
-      id: 'calc-2',
-      convoy_id: 'convoy-2',
-      loading_date: '2026-11-06',
-      completion_date: '2026-11-12',
-      accommodation_nights: 6,
-      daily_accommodation_rate: 500,
-      total_accommodation: 24000,
-      freight_rate_per_truck: 8000,
-      total_freight: 64000,
-      customs_clearance: 9800,
-      additional_expenses: 2200,
-      additional_expenses_notes: 'رسوم فحص ورزن',
-      grand_total: 100000,
-      average_cost_per_truck: 12500,
-      currency: 'EGP',
-      calculated_by: null,
-      calculated_at: '2026-11-12T16:10:00Z',
-      updated_at: '2026-11-12T16:10:00Z',
-    },
-    documents: [
-      {
-        id: 'doc-2',
-        convoy_id: 'convoy-2',
-        document_type: 'statement',
-        document_number: 'ELB-2026-AW-8TR',
-        file_name: 'بيان_قافلة_بصل_أحمر_8_شاحنات.pdf',
-        storage_path: 'statements/convoy-2/statement.pdf',
-        file_size_bytes: 261200,
-        mime_type: 'application/pdf',
-        public_url: null,
-        metadata: { cargo: 'بصل أحمر تصدير', trucks: 8, total: 100000 },
-        created_by: null,
-        issued_at: '2026-11-12T16:15:00Z',
-      },
-    ],
-  },
-  {
-    id: 'convoy-3',
-    convoy_number: 'ELB-2026-RF-003',
-    cargo_name: 'بطاطس تصدير مبردة',
-    location_id: 'rafah',
-    truck_count: 10,
-    loading_date: '2026-11-08',
-    completion_date: null,
-    route_notes: 'ميناء رفح ⟵ ميناء دمياط البحري',
-    status: 'active',
-    created_by: null,
-    created_at: '2026-11-08T09:00:00Z',
-    updated_at: '2026-11-08T09:00:00Z',
-    location: {
-      id: 'rafah',
-      name_ar: 'ميناء رفح',
-      name_en: 'Rafah Port',
-      is_active: true,
-      created_at: '2026-11-01T00:00:00Z',
-    },
-    trucks: [
-      { id: 't301', convoy_id: 'convoy-3', sequence_number: 1, political_destination: 'ميناء دمياط', driver_name: 'سيد عبد الرحمن مرسي', national_id: '28409151203489', truck_plate: 'ط هـ ر 8312', trailer_plate: 'ف ق ص 2914', notes: '', created_at: '2026-11-08T09:00:00Z' },
-      { id: 't302', convoy_id: 'convoy-3', sequence_number: 2, political_destination: 'ميناء دمياط', driver_name: 'رمضان فتحي الشاذلي', national_id: '29003211508923', truck_plate: 'ع س ك 4190', trailer_plate: 'د ن م 7301', notes: '', created_at: '2026-11-08T09:05:00Z' },
-    ],
-    calculation: null,
-    documents: [],
-  },
-  {
-    id: 'convoy-4',
-    convoy_number: 'ELB-2026-AW-004',
-    cargo_name: 'رمان وندرفل مصري',
-    location_id: 'al_awja',
-    truck_count: 9,
-    loading_date: '2026-11-09',
-    completion_date: null,
-    route_notes: 'ميناء العوجة ⟵ ميناء بورسعيد',
-    status: 'active',
-    created_by: null,
-    created_at: '2026-11-09T10:15:00Z',
-    updated_at: '2026-11-09T10:15:00Z',
-    location: {
-      id: 'al_awja',
-      name_ar: 'ميناء العوجة',
-      name_en: 'Al-Awja Port',
-      is_active: true,
-      created_at: '2026-11-01T00:00:00Z',
-    },
-    trucks: [],
-    calculation: null,
-    documents: [],
-  },
-];
+// Zero fake/mock convoys - Starts empty as requested by owner
+const INITIAL_CONVOYS: ConvoyWithDetails[] = [];
 
 const INITIAL_SETTINGS: Database['public']['Tables']['company_settings']['Row'] = {
   id: 'primary',
-  company_name: 'أحمد البيك للاستيراد والتصدير',
+  company_name: 'شركة أحمد البيك للاستيراد والتصدير',
   trade_name_en: 'Ahmed Elbeek Import & Export',
   owner_name: 'أحمد البيك',
   owner_title: 'صاحب الشركة / المدير العام',
@@ -201,19 +21,29 @@ const INITIAL_SETTINGS: Database['public']['Tables']['company_settings']['Row'] 
   updated_at: new Date().toISOString(),
 };
 
-// Storage Key
-const LOCAL_STORAGE_CONVOYS = 'ahmed_elbeek_convoys_v2';
+// Storage Key for real user-created convoys only
+const LOCAL_STORAGE_CONVOYS = 'ahmed_elbeek_real_convoys_v3';
 const LOCAL_STORAGE_SETTINGS = 'ahmed_elbeek_settings_v2';
+
+function cleanLegacyMocks(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('ahmed_elbeek_convoys_v2');
+    localStorage.removeItem('ahmed_elbeek_convoys');
+  } catch {}
+}
 
 function getLocalConvoys(): ConvoyWithDetails[] {
   if (typeof window === 'undefined') return INITIAL_CONVOYS;
+  cleanLegacyMocks();
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_CONVOYS);
     if (!raw) {
-      localStorage.setItem(LOCAL_STORAGE_CONVOYS, JSON.stringify(INITIAL_CONVOYS));
       return INITIAL_CONVOYS;
     }
-    return JSON.parse(raw);
+    const parsed: ConvoyWithDetails[] = JSON.parse(raw);
+    // Filter out any mock IDs just in case
+    return parsed.filter((c) => !c.id.startsWith('convoy-1') && !c.id.startsWith('convoy-2') && !c.id.startsWith('convoy-3') && !c.id.startsWith('convoy-4'));
   } catch {
     return INITIAL_CONVOYS;
   }
@@ -222,7 +52,9 @@ function getLocalConvoys(): ConvoyWithDetails[] {
 function setLocalConvoys(convoys: ConvoyWithDetails[]): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(LOCAL_STORAGE_CONVOYS, JSON.stringify(convoys));
+    // Only store user created convoys
+    const realConvoys = convoys.filter((c) => !c.id.startsWith('convoy-1') && !c.id.startsWith('convoy-2') && !c.id.startsWith('convoy-3') && !c.id.startsWith('convoy-4'));
+    localStorage.setItem(LOCAL_STORAGE_CONVOYS, JSON.stringify(realConvoys));
   } catch (e) {
     console.error('LocalStorage write failed:', e);
   }
@@ -253,16 +85,16 @@ function setLocalSettings(settings: Database['public']['Tables']['company_settin
 
 export const ConvoyRepository = {
   /**
-   * Get all convoys with filters
+   * Get all convoys with filters (Real user-created data only)
    */
   async getConvoys(filters?: {
     locationId?: string;
     status?: string;
     search?: string;
   }): Promise<ConvoyWithDetails[]> {
-    // Try Supabase first
+    // 1. Try Supabase first
     try {
-      let query = supabase.from('convoys').select(`
+      let query = (supabase as any).from('convoys').select(`
         *,
         location:loading_locations(*),
         trucks:convoy_trucks(*),
@@ -281,14 +113,18 @@ export const ConvoyRepository = {
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
-      if (!error && data && data.length > 0) {
-        return data as unknown as ConvoyWithDetails[];
+      if (!error && Array.isArray(data)) {
+        const cleaned = (data as ConvoyWithDetails[]).filter(
+          (c) => !c.id.startsWith('convoy-1') && !c.id.startsWith('convoy-2') && !c.id.startsWith('convoy-3') && !c.id.startsWith('convoy-4')
+        );
+        setLocalConvoys(cleaned);
+        return cleaned;
       }
     } catch {
       // Fall through to local store
     }
 
-    // Local fallback
+    // 2. Local fallback for real convoys
     let items = getLocalConvoys();
 
     if (filters?.locationId && filters.locationId !== 'all') {
@@ -315,7 +151,7 @@ export const ConvoyRepository = {
    */
   async getConvoyById(id: string): Promise<ConvoyWithDetails | null> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('convoys')
         .select(`
           *,
@@ -328,7 +164,7 @@ export const ConvoyRepository = {
         .single();
 
       if (!error && data) {
-        return data as unknown as ConvoyWithDetails;
+        return data as ConvoyWithDetails;
       }
     } catch {
       // Fallback
@@ -339,7 +175,7 @@ export const ConvoyRepository = {
   },
 
   /**
-   * Create new convoy
+   * Create new convoy (Stored in Supabase database & local cache)
    */
   async createConvoy(input: {
     cargo_name: string;
@@ -348,10 +184,11 @@ export const ConvoyRepository = {
     loading_date: string;
     route_notes?: string;
   }): Promise<ConvoyWithDetails> {
+    const convoyId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `c-${Date.now()}`;
     const convoy_number = `ELB-${new Date().getFullYear()}-${input.location_id === 'rafah' ? 'RF' : 'AW'}-${Math.floor(100 + Math.random() * 900)}`;
 
     const newConvoy: ConvoyWithDetails = {
-      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `convoy-${Date.now()}`,
+      id: convoyId,
       convoy_number,
       cargo_name: input.cargo_name.trim(),
       location_id: input.location_id,
@@ -375,11 +212,11 @@ export const ConvoyRepository = {
       documents: [],
     };
 
-    // Auto generate placeholder trucks for convenience
+    // Auto generate placeholder trucks for coordination
     for (let i = 1; i <= newConvoy.truck_count; i++) {
       newConvoy.trucks?.push({
-        id: `truck-${newConvoy.id}-${i}`,
-        convoy_id: newConvoy.id,
+        id: `truck-${convoyId}-${i}`,
+        convoy_id: convoyId,
         sequence_number: i,
         political_destination: input.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة',
         driver_name: '',
@@ -391,7 +228,7 @@ export const ConvoyRepository = {
       });
     }
 
-    // Try Supabase insert
+    // Insert into Supabase table
     try {
       const { data, error } = await (supabase as any).from('convoys').insert({
         id: newConvoy.id,
@@ -407,8 +244,17 @@ export const ConvoyRepository = {
       if (!error && data) {
         newConvoy.id = data.id;
       }
-    } catch {
-      // Ignore error and rely on local storage
+    } catch (e) {
+      console.warn('Supabase insert note:', e);
+    }
+
+    // Insert truck rows into Supabase
+    if (newConvoy.trucks && newConvoy.trucks.length > 0) {
+      try {
+        await (supabase as any).from('convoy_trucks').insert(newConvoy.trucks as any);
+      } catch (e) {
+        console.warn('Supabase trucks insert note:', e);
+      }
     }
 
     const list = getLocalConvoys();
@@ -416,6 +262,28 @@ export const ConvoyRepository = {
     setLocalConvoys(list);
 
     return newConvoy;
+  },
+
+  /**
+   * Delete convoy (Admin privilege) - Deletes from Supabase and cache
+   */
+  async deleteConvoy(convoyId: string): Promise<boolean> {
+    // 1. Delete from Supabase
+    try {
+      await (supabase as any).from('convoys').delete().eq('id', convoyId);
+      await (supabase as any).from('convoy_trucks').delete().eq('convoy_id', convoyId);
+      await (supabase as any).from('cost_calculations').delete().eq('convoy_id', convoyId);
+      await (supabase as any).from('issued_documents').delete().eq('convoy_id', convoyId);
+    } catch (e) {
+      console.warn('Supabase delete error note:', e);
+    }
+
+    // 2. Delete from local cache
+    const list = getLocalConvoys();
+    const updated = list.filter((c) => c.id !== convoyId);
+    setLocalConvoys(updated);
+
+    return true;
   },
 
   /**
@@ -554,8 +422,8 @@ export const ConvoyRepository = {
     }
 
     try {
-      await supabase.from('convoy_trucks').delete().eq('convoy_id', convoyId);
-      await supabase.from('convoy_trucks').insert(formattedTrucks as any);
+      await (supabase as any).from('convoy_trucks').delete().eq('convoy_id', convoyId);
+      await (supabase as any).from('convoy_trucks').insert(formattedTrucks as any);
     } catch {
       // Local fallback
     }
@@ -590,7 +458,7 @@ export const ConvoyRepository = {
     }
 
     try {
-      await supabase.from('issued_documents').insert(record as any);
+      await (supabase as any).from('issued_documents').insert(record as any);
     } catch {
       // Local fallback
     }
@@ -602,7 +470,7 @@ export const ConvoyRepository = {
    * Get all issued documents (Archive)
    */
   async getAllDocuments(): Promise<Array<Database['public']['Tables']['issued_documents']['Row'] & { convoy?: ConvoyWithDetails }>> {
-    const convoys = getLocalConvoys();
+    const convoys = await this.getConvoys();
     const docs: Array<Database['public']['Tables']['issued_documents']['Row'] & { convoy?: ConvoyWithDetails }> = [];
 
     for (const c of convoys) {
@@ -624,7 +492,7 @@ export const ConvoyRepository = {
    */
   async getSettings(): Promise<Database['public']['Tables']['company_settings']['Row']> {
     try {
-      const { data, error } = await supabase.from('company_settings').select('*').eq('id', 'primary').single();
+      const { data, error } = await (supabase as any).from('company_settings').select('*').eq('id', 'primary').single();
       if (!error && data) {
         return data as Database['public']['Tables']['company_settings']['Row'];
       }
@@ -644,7 +512,7 @@ export const ConvoyRepository = {
     setLocalSettings(updated);
 
     try {
-      await supabase.from('company_settings').upsert(updated as any);
+      await (supabase as any).from('company_settings').upsert(updated as any);
     } catch {
       // Local fallback
     }

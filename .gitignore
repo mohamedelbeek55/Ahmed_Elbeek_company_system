@@ -40,3 +40,5 @@ next-env.d.ts
 
 # Temporary scratch & docx extracted
 docs/docx_*
+scratch/
+

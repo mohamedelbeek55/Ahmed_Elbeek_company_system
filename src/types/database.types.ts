@@ -281,3 +281,4 @@ export type ConvoyWithDetails = Database['public']['Tables']['convoys']['Row'] &
   calculation?: Database['public']['Tables']['cost_calculations']['Row'] | null;
   documents?: Database['public']['Tables']['issued_documents']['Row'][];
 };
+

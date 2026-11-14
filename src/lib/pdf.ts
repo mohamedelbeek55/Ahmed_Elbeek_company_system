@@ -173,3 +173,4 @@ export const PDFService = {
       : `https://api.whatsapp.com/send?text=${encoded}`;
   },
 };
+

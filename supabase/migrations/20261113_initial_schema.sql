@@ -198,3 +198,4 @@ INSERT INTO public.cost_calculations (
     14500.00, 3600.00, 'موازين، كروت بوابات، حراسات وتفريغ',
     174100.00, 14508.33
 ) ON CONFLICT (convoy_id) DO NOTHING;
+

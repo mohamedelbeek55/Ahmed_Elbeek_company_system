@@ -140,3 +140,4 @@ export function arabicTafqeet(amount: number): string {
   const text = parts.join(' و');
   return `فقط ${text} جنيه مصري لا غير`;
 }
+
