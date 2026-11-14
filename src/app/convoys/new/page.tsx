@@ -12,7 +12,7 @@ export default function CreateConvoyPage() {
   const router = useRouter();
   const [cargoName, setCargoName] = useState('برتقال صيفي فرز أول (تصدير)');
   const [locationId, setLocationId] = useState<LoadingLocationId>('rafah');
-  const [truckCount, setTruckCount] = useState<number>(5);
+  const [truckCount, setTruckCount] = useState<string>('5');
   // Default to today in YYYY-MM-DD (DATE ONLY)
   const [loadingDate, setLoadingDate] = useState<string>(() => {
     const today = new Date();
@@ -27,10 +27,11 @@ export default function CreateConvoyPage() {
 
     setIsSubmitting(true);
     try {
+      const parsedTruckCount = Math.max(1, parseInt(truckCount, 10) || 1);
       const convoy = await ConvoyRepository.createConvoy({
         cargo_name: cargoName,
         location_id: locationId,
-        truck_count: truckCount,
+        truck_count: parsedTruckCount,
         loading_date: loadingDate,
         route_notes: routeNotes,
       });
@@ -151,8 +152,18 @@ export default function CreateConvoyPage() {
                     required
                     min={1}
                     max={100}
+                    placeholder="1"
                     value={truckCount}
-                    onChange={(e) => setTruckCount(Math.max(1, parseInt(e.target.value) || 1))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        setTruckCount('');
+                        return;
+                      }
+                      const clean = val.replace(/^0+/, '');
+                      setTruckCount(clean);
+                    }}
                     className="w-full border-2 border-outline rounded-DEFAULT px-4 py-3.5 pl-20 font-body text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
                   />
                   <span className="absolute left-4 text-body-md text-light-on-surface-variant font-semibold pointer-events-none">
@@ -160,7 +171,7 @@ export default function CreateConvoyPage() {
                   </span>
                 </div>
                 <span className="block text-body-sm text-light-on-surface-variant mt-1.5">
-                  سيتم إنشاء كشف بيانات لـ {truckCount} عربيات لتنسيق السائقين.
+                  سيتم إنشاء كشف بيانات لـ {truckCount || 1} عربيات لتنسيق السائقين.
                 </span>
               </div>
 

@@ -220,8 +220,13 @@ export default function SettingsPage() {
                   <input
                     type="number"
                     step="50"
-                    value={settings.default_daily_rate || 500}
-                    onChange={(e) => setSettings({ ...settings, default_daily_rate: Number(e.target.value) || 0 })}
+                    placeholder="0"
+                    value={settings.default_daily_rate ?? 500}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/^0+(?=\d)/, '');
+                      setSettings({ ...settings, default_daily_rate: val === '' ? 0 : Number(val) });
+                    }}
                     className="w-full border border-outline rounded-DEFAULT p-3 pl-20 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none"
                   />
                   <span className="absolute left-4 text-body-sm text-light-on-surface-variant font-bold pointer-events-none">
@@ -238,8 +243,13 @@ export default function SettingsPage() {
                   <input
                     type="number"
                     step="100"
-                    value={settings.default_freight_rate || 8500}
-                    onChange={(e) => setSettings({ ...settings, default_freight_rate: Number(e.target.value) || 0 })}
+                    placeholder="0"
+                    value={settings.default_freight_rate ?? 8500}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/^0+(?=\d)/, '');
+                      setSettings({ ...settings, default_freight_rate: val === '' ? 0 : Number(val) });
+                    }}
                     className="w-full border border-outline rounded-DEFAULT p-3 pl-24 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none"
                   />
                   <span className="absolute left-4 text-body-sm text-light-on-surface-variant font-bold pointer-events-none">

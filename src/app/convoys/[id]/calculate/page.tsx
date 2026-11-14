@@ -21,13 +21,13 @@ export default function CostCalculationPage() {
   const [convoy, setConvoy] = useState<ConvoyWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Form states
+  // Form states (kept as string to allow seamless clearing and prevent 030000 leading zero bugs)
   const [loadingDate, setLoadingDate] = useState('');
   const [completionDate, setCompletionDate] = useState('');
-  const [dailyRate, setDailyRate] = useState<number>(500);
-  const [freightRate, setFreightRate] = useState<number>(8500);
-  const [clearanceCost, setClearanceCost] = useState<number>(14500);
-  const [extraExpenses, setExtraExpenses] = useState<number>(3600);
+  const [dailyRate, setDailyRate] = useState<string>('500');
+  const [freightRate, setFreightRate] = useState<string>('8500');
+  const [clearanceCost, setClearanceCost] = useState<string>('14500');
+  const [extraExpenses, setExtraExpenses] = useState<string>('3600');
   const [extraNotes, setExtraNotes] = useState('موازين، كروت بوابات، حراسات وتفريغ');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -46,16 +46,27 @@ export default function CostCalculationPage() {
       setCompletionDate(data.completion_date || new Date().toISOString().split('T')[0]);
 
       if (data.calculation) {
-        setDailyRate(data.calculation.daily_accommodation_rate);
-        setFreightRate(data.calculation.freight_rate_per_truck);
-        setClearanceCost(data.calculation.customs_clearance);
-        setExtraExpenses(data.calculation.additional_expenses);
+        setDailyRate(String(data.calculation.daily_accommodation_rate));
+        setFreightRate(String(data.calculation.freight_rate_per_truck));
+        setClearanceCost(String(data.calculation.customs_clearance));
+        setExtraExpenses(String(data.calculation.additional_expenses));
         if (data.calculation.additional_expenses_notes) {
           setExtraNotes(data.calculation.additional_expenses_notes);
         }
       }
     }
     setLoading(false);
+  };
+
+  const handleNumberInput = (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val === '') {
+      setter('');
+      return;
+    }
+    // Remove leading zeros if followed by non-zero digits (e.g. "030000" -> "30000", but keep "0" or "0.")
+    const clean = val.replace(/^0+(?=\d)/, '');
+    setter(clean);
   };
 
   if (loading) {
@@ -89,14 +100,19 @@ export default function CostCalculationPage() {
   }
 
   // Reactive financial calculations on every keystroke
+  const numDailyRate = parseFloat(dailyRate) || 0;
+  const numFreightRate = parseFloat(freightRate) || 0;
+  const numClearanceCost = parseFloat(clearanceCost) || 0;
+  const numExtraExpenses = parseFloat(extraExpenses) || 0;
+
   const financialResult = calculateConvoyFinances({
     truckCount: convoy.truck_count,
     loadingDate,
     completionDate,
-    dailyAccommodationRate: dailyRate,
-    freightRatePerTruck: freightRate,
-    customsClearance: clearanceCost,
-    additionalExpenses: extraExpenses,
+    dailyAccommodationRate: numDailyRate,
+    freightRatePerTruck: numFreightRate,
+    customsClearance: numClearanceCost,
+    additionalExpenses: numExtraExpenses,
   });
 
   const handleSaveAndPreview = async (e: React.FormEvent) => {
@@ -109,12 +125,12 @@ export default function CostCalculationPage() {
         loading_date: loadingDate,
         completion_date: completionDate,
         accommodation_nights: financialResult.accommodationNights,
-        daily_accommodation_rate: dailyRate,
+        daily_accommodation_rate: numDailyRate,
         total_accommodation: financialResult.totalAccommodation,
-        freight_rate_per_truck: freightRate,
+        freight_rate_per_truck: numFreightRate,
         total_freight: financialResult.totalFreight,
-        customs_clearance: clearanceCost,
-        additional_expenses: extraExpenses,
+        customs_clearance: numClearanceCost,
+        additional_expenses: numExtraExpenses,
         additional_expenses_notes: extraNotes,
         grand_total: financialResult.grandTotal,
         average_cost_per_truck: financialResult.averageCostPerTruck,
@@ -248,8 +264,10 @@ export default function CostCalculationPage() {
                     type="number"
                     min="0"
                     step="50"
+                    placeholder="0"
                     value={dailyRate}
-                    onChange={(e) => setDailyRate(Number(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    onChange={handleNumberInput(setDailyRate)}
                     className="w-full border-2 border-outline rounded-DEFAULT p-3.5 pl-24 font-body text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
                   />
                   <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
@@ -271,8 +289,10 @@ export default function CostCalculationPage() {
                     type="number"
                     min="0"
                     step="100"
+                    placeholder="0"
                     value={freightRate}
-                    onChange={(e) => setFreightRate(Number(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    onChange={handleNumberInput(setFreightRate)}
                     className="w-full border-2 border-outline rounded-DEFAULT p-3.5 pl-24 font-body text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
                   />
                   <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
@@ -294,8 +314,10 @@ export default function CostCalculationPage() {
                     type="number"
                     min="0"
                     step="100"
+                    placeholder="0"
                     value={clearanceCost}
-                    onChange={(e) => setClearanceCost(Number(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    onChange={handleNumberInput(setClearanceCost)}
                     className="w-full border border-outline rounded-DEFAULT p-3 pl-16 font-body text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
                   />
                   <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
@@ -317,8 +339,10 @@ export default function CostCalculationPage() {
                     type="number"
                     min="0"
                     step="50"
+                    placeholder="0"
                     value={extraExpenses}
-                    onChange={(e) => setExtraExpenses(Number(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
+                    onChange={handleNumberInput(setExtraExpenses)}
                     className="w-full border border-outline rounded-DEFAULT p-3 pl-16 font-body text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
                   />
                   <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
@@ -385,7 +409,7 @@ export default function CostCalculationPage() {
                     إجمالي المبيت ({financialResult.accommodationNights} ليالي × {convoy.truck_count} شاحنة)
                   </span>
                   <span className="text-body-sm text-light-on-surface-variant tabular-nums">
-                    {financialResult.accommodationNights} × {dailyRate} × {convoy.truck_count}
+                    {financialResult.accommodationNights} × {numDailyRate} × {convoy.truck_count}
                   </span>
                 </div>
                 <span className="font-headline text-headline-sm font-bold text-primary tabular-nums">
@@ -400,7 +424,7 @@ export default function CostCalculationPage() {
                     إجمالي النولون ({convoy.truck_count} شاحنة)
                   </span>
                   <span className="text-body-sm text-light-on-surface-variant tabular-nums">
-                    {convoy.truck_count} × {formatCurrency(freightRate, false)}
+                    {convoy.truck_count} × {formatCurrency(numFreightRate, false)}
                   </span>
                 </div>
                 <span className="font-headline text-headline-sm font-bold text-charcoal tabular-nums">
