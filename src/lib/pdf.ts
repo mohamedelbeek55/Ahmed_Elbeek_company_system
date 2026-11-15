@@ -27,19 +27,47 @@ export const PDFService = {
     }
 
     try {
-      // Capture canvas with 2x scale for crisp print quality
+      // 1. Wait for document fonts to load completely
+      if (typeof document !== 'undefined' && (document as any).fonts) {
+        await (document as any).fonts.ready;
+      }
+
+      // 2. Ensure all images inside element are fully loaded
+      const images = Array.from(element.querySelectorAll('img'));
+      await Promise.all(
+        images.map((img) => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        })
+      );
+
+      // 3. Render element to high-res canvas (PNG)
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#FFFFFF',
         logging: false,
-        imageTimeout: 15000,
+        imageTimeout: 0,
+        windowWidth: 1200,
+        onclone: (clonedDoc) => {
+          const clonedEl = clonedDoc.getElementById(options.elementId);
+          if (clonedEl) {
+            clonedEl.style.width = '794px';
+            clonedEl.style.maxWidth = '794px';
+            clonedEl.style.margin = '0 auto';
+            clonedEl.style.boxShadow = 'none';
+            clonedEl.style.border = 'none';
+          }
+        },
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const imgData = canvas.toDataURL('image/png');
 
-      // Create A4 PDF (210 x 297 mm)
+      // 4. Create standard A4 PDF (210 x 297 mm)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -52,24 +80,30 @@ export const PDFService = {
       const imgWidth = pdfWidth;
       const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      // Handle multi-page if content exceeds one page
-      let heightLeft = imgHeight;
-      let position = 0;
+      // Single-page fit check: if content fits comfortably within ~1 A4 page (up to 8% margin)
+      if (imgHeight <= pdfHeight * 1.08) {
+        const finalHeight = Math.min(pdfHeight, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, finalHeight, undefined, 'FAST');
+      } else {
+        // Multi-page document
+        let heightLeft = imgHeight;
+        let position = 0;
 
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-      heightLeft -= pdfHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
         heightLeft -= pdfHeight;
+
+        while (heightLeft > 5) {
+          position -= pdfHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+          heightLeft -= pdfHeight;
+        }
       }
 
-      // Trigger user download
+      // 5. Trigger user download
       pdf.save(options.fileName);
 
-      // Generate blob for Supabase Storage archive
+      // 6. Generate blob for Supabase Storage archive
       const blob = pdf.output('blob');
 
       // Async upload to Supabase Storage & save document record

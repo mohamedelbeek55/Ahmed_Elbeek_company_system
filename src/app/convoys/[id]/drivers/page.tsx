@@ -8,6 +8,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { ConvoyRepository } from '@/lib/store';
 import { PDFService } from '@/lib/pdf';
+import { COMPANY_LOGO_BASE64 } from '@/lib/logoBase64';
 import type { ConvoyWithDetails, Database } from '@/types/database.types';
 
 type TruckRow = Database['public']['Tables']['convoy_trucks']['Insert'];
@@ -389,13 +390,14 @@ export default function DriverManifestPage() {
               className="a4-sheet p-8 sm:p-14 border border-outline/50 flex flex-col justify-between overflow-hidden relative bg-white my-4 shadow-xl"
             >
               {/* Watermark */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.035] z-0 select-none">
-                <Image
-                  src="/logo.png"
+              <div
+                className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 select-none"
+                style={{ opacity: 0.04 }}
+              >
+                <img
+                  src={COMPANY_LOGO_BASE64}
                   alt="Watermark"
-                  width={450}
-                  height={450}
-                  className="object-contain"
+                  className="w-[450px] h-[450px] object-contain"
                 />
               </div>
 
@@ -403,13 +405,10 @@ export default function DriverManifestPage() {
                 
                 {/* Official Centered Header */}
                 <div className="flex flex-col items-center justify-center mb-5">
-                  <div className="w-28 h-28 relative flex items-center justify-center">
-                    <Image
-                      src="/logo.png"
+                  <div className="w-28 h-28 flex items-center justify-center">
+                    <img
+                      src={COMPANY_LOGO_BASE64}
                       alt="Logo"
-                      width={112}
-                      height={112}
-                      priority
                       className="w-full h-full object-contain"
                     />
                   </div>
@@ -469,7 +468,9 @@ export default function DriverManifestPage() {
                 {/* Verification Notice */}
                 <div className="border border-outline/70 bg-light-surface-variant/40 p-4 rounded-md flex items-center justify-between text-body-sm mb-6">
                   <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-primary text-2xl">verified_user</span>
+                    <svg className="w-6 h-6 text-primary fill-current shrink-0" viewBox="0 0 24 24">
+                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                    </svg>
                     <div>
                       <span className="font-bold text-charcoal block">كشف سائقين وشاحنات معتمد إلكترونياً</span>
                       <span className="text-xs text-light-on-surface-variant">
@@ -490,12 +491,16 @@ export default function DriverManifestPage() {
                 <div className="w-full h-[1px] bg-primary mb-3"></div>
                 <div className="flex items-center justify-center gap-6 text-body-sm text-charcoal font-medium tabular-nums">
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-primary text-base">call</span>
+                    <svg className="w-4 h-4 text-primary fill-current" viewBox="0 0 24 24">
+                      <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                    </svg>
                     <span>01093313193</span>
                   </span>
                   <span className="text-primary font-bold">|</span>
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-primary text-base">mail</span>
+                    <svg className="w-4 h-4 text-primary fill-current" viewBox="0 0 24 24">
+                      <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                    </svg>
                     <span>elbeekb2b@gmail.com</span>
                   </span>
                 </div>
