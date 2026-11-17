@@ -4,7 +4,7 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { supabase } from './supabase/client';
-import { ConvoyRepository } from './store';
+import { ConvoyRepository, parseCalculationMeta } from './store';
 import type { ConvoyWithDetails } from '@/types/database.types';
 
 export interface PDFExportOptions {
@@ -180,14 +180,28 @@ export const PDFService = {
    * WhatsApp sharing link generator with formatted Egyptian commercial text
    */
   getWhatsAppShareUrl(convoy: ConvoyWithDetails, phoneNumber?: string): string {
-    const calc = Array.isArray(convoy.calculation)
+    const rawCalc = Array.isArray(convoy.calculation)
       ? (convoy.calculation.length > 0 ? convoy.calculation[0] : null)
       : convoy.calculation;
+    const calc = parseCalculationMeta(rawCalc);
     const locationName = convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة';
-    const grandTotal = calc ? Math.round(calc.grand_total).toLocaleString('en-US') : '0';
     const nights = calc ? calc.accommodation_nights : '0';
     const demurrage = Number(calc?.port_demurrage) || 0;
     const customItemsList = Array.isArray((calc as any)?.custom_items) ? (calc as any).custom_items : [];
+
+    const customItemsTotal = customItemsList.reduce(
+      (acc: number, it: any) => acc + (Number(it?.amount) || 0),
+      0
+    );
+    const grandTotalNum = Math.max(
+      Number(calc?.grand_total) || 0,
+      (Number(calc?.total_freight) || 0) +
+        (Number(calc?.total_accommodation) || 0) +
+        (Number(calc?.customs_clearance) || 0) +
+        demurrage +
+        customItemsTotal
+    );
+    const grandTotal = Math.round(grandTotalNum).toLocaleString('en-US');
 
     const lines = [
       `*بيان حسابات رسمي — شركة أحمد البيك للاستيراد والتصدير*`,

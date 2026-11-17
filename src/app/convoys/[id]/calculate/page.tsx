@@ -187,8 +187,13 @@ export default function CostCalculationPage() {
         currency: 'EGP',
       });
 
-      router.refresh();
-      router.push(`/convoys/${convoy.id}/statement`);
+      // Immediate reliable navigation to preview
+      if (typeof window !== 'undefined') {
+        window.location.href = `/convoys/${convoy.id}/statement`;
+      } else {
+        router.refresh();
+        router.push(`/convoys/${convoy.id}/statement`);
+      }
     } catch (err) {
       console.error('Error saving calculation:', err);
       setIsSaving(false);

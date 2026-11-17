@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { ConvoyRepository } from '@/lib/store';
+import { ConvoyRepository, parseCalculationMeta } from '@/lib/store';
 import { PDFService } from '@/lib/pdf';
 import { COMPANY_LOGO_BASE64 } from '@/lib/logoBase64';
 import type { ConvoyWithDetails } from '@/types/database.types';
@@ -74,8 +74,10 @@ export default function StatementPreviewPage() {
     ? (convoy.calculation.length > 0 ? convoy.calculation[0] : null)
     : convoy.calculation;
 
+  const parsedCalc = parseCalculationMeta(rawCalc);
+
   // Fallback financial calculation if not yet stored
-  const calc = rawCalc || {
+  const calc = parsedCalc || {
     id: 'c-temp',
     convoy_id: convoy.id,
     loading_date: convoy.loading_date,
@@ -101,6 +103,24 @@ export default function StatementPreviewPage() {
     updated_at: new Date().toISOString(),
   };
 
+  const customItemsList = Array.isArray((calc as any).custom_items)
+    ? (calc as any).custom_items.filter((it: any) => it && (it.name || Number(it.amount) > 0))
+    : [];
+
+  const customItemsTotal = customItemsList.reduce(
+    (acc: number, it: any) => acc + (Number(it.amount) || 0),
+    0
+  );
+
+  const grandTotal = Math.max(
+    Number(calc.grand_total) || 0,
+    (Number(calc.total_freight) || 0) +
+      (Number(calc.total_accommodation) || 0) +
+      (Number(calc.customs_clearance) || 0) +
+      (Number(calc.port_demurrage) || 0) +
+      customItemsTotal
+  );
+
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
     const fileName = `بيان_معتمد_${convoy.cargo_name.replace(/\s+/g, '_')}_${convoy.convoy_number}.pdf`;
@@ -120,12 +140,10 @@ export default function StatementPreviewPage() {
   };
 
   const handleCopyWhatsAppText = () => {
-    const currentCalc = rawCalc || calc;
     const locationName = convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة';
-    const grandTotal = currentCalc ? Math.round(currentCalc.grand_total).toLocaleString('en-US') : '0';
-    const nights = currentCalc ? currentCalc.accommodation_nights : '0';
-    const demurrage = Number(currentCalc?.port_demurrage) || 0;
-    const customItemsList = Array.isArray((currentCalc as any)?.custom_items) ? (currentCalc as any).custom_items : [];
+    const grandTotalStr = Math.round(grandTotal).toLocaleString('en-US');
+    const nights = calc ? calc.accommodation_nights : '0';
+    const demurrage = Number(calc?.port_demurrage) || 0;
 
     const lines = [
       `*بيان حسابات رسمي — شركة أحمد البيك للاستيراد والتصدير*`,
@@ -142,13 +160,11 @@ export default function StatementPreviewPage() {
 
     if (customItemsList.length > 0) {
       customItemsList.forEach((ci: any) => {
-        if (ci.name || ci.amount > 0) {
-          lines.push(`➕ ${ci.name || 'بند إضافي'}: ${Math.round(Number(ci.amount) || 0).toLocaleString('en-US')} ج.م`);
-        }
+        lines.push(`➕ ${ci.name || 'بند إضافي'}: ${Math.round(Number(ci.amount) || 0).toLocaleString('en-US')} ج.م`);
       });
     }
 
-    lines.push(`💰 إجمالي المستحق: ${grandTotal} ج.م`);
+    lines.push(`💰 إجمالي المستحق: ${grandTotalStr} ج.م`);
     lines.push(`📄 مستند معتمد رقم: ${convoy.convoy_number}`);
     lines.push(`📞 01093313193 | elbeekb2b@gmail.com`);
 
@@ -446,12 +462,12 @@ export default function StatementPreviewPage() {
                 <div>
                   <span className="text-xs text-light-gray block">إجمالي صافي مستحقات التحميلة (البوصلة):</span>
                   <span className="text-body-md font-bold text-outline">
-                    {arabicTafqeet(calc.grand_total)}
+                    {arabicTafqeet(grandTotal)}
                   </span>
                 </div>
                 <div className="text-left">
                   <span className="font-headline text-display-lg text-white font-bold tabular-nums leading-none">
-                    {Math.round(calc.grand_total).toLocaleString('en-US')}
+                    {Math.round(grandTotal).toLocaleString('en-US')}
                   </span>
                   <span className="text-body-sm text-light-gray mr-1">جنيه مصري</span>
                 </div>

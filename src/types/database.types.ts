@@ -294,3 +294,4 @@ export type ConvoyWithDetails = Database['public']['Tables']['convoys']['Row'] &
   documents?: Database['public']['Tables']['issued_documents']['Row'][];
 };
 
+ 

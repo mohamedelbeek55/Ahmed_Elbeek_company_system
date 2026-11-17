@@ -83,6 +83,48 @@ function setLocalSettings(settings: Database['public']['Tables']['company_settin
   }
 }
 
+/**
+ * Robust parser for calculation metadata.
+ * Unpacks custom_items and port_demurrage from JSON in additional_expenses_notes if needed.
+ */
+export function parseCalculationMeta(calc: any): any {
+  if (!calc) return null;
+  let customItems: any[] = Array.isArray(calc.custom_items) ? [...calc.custom_items] : [];
+  let portDemurrage: number = Number(calc.port_demurrage ?? 0);
+
+  if (calc.additional_expenses_notes && typeof calc.additional_expenses_notes === 'string') {
+    try {
+      const parsed = JSON.parse(calc.additional_expenses_notes);
+      if (parsed && typeof parsed === 'object') {
+        if (Array.isArray(parsed.custom_items) && customItems.length === 0) {
+          customItems = parsed.custom_items;
+        }
+        if (parsed.port_demurrage !== undefined && !portDemurrage) {
+          portDemurrage = Number(parsed.port_demurrage) || 0;
+        }
+      }
+    } catch {
+      // not JSON
+    }
+  }
+
+  // Ensure grand_total always includes custom items and port demurrage
+  const customSum = customItems.reduce((acc: number, it: any) => acc + (Number(it?.amount) || 0), 0);
+  const baseSum =
+    (Number(calc.total_freight) || 0) +
+    (Number(calc.total_accommodation) || 0) +
+    (Number(calc.customs_clearance) || 0) +
+    portDemurrage;
+  const grandTotal = Math.max(Number(calc.grand_total) || 0, baseSum + customSum);
+
+  return {
+    ...calc,
+    custom_items: customItems,
+    port_demurrage: portDemurrage,
+    grand_total: grandTotal,
+  };
+}
+
 export const ConvoyRepository = {
   /**
    * Get all convoys with filters (Real user-created data only)
@@ -114,16 +156,45 @@ export const ConvoyRepository = {
 
       const { data, error } = await query.order('created_at', { ascending: false });
       if (!error && Array.isArray(data)) {
-        const cleaned = (data as any[]).map((c) => ({
-          ...c,
-          calculation: Array.isArray(c.calculation)
-            ? (c.calculation.length > 0 ? c.calculation[0] : null)
-            : c.calculation,
-          trucks: Array.isArray(c.trucks) ? c.trucks : [],
-          documents: Array.isArray(c.documents) ? c.documents : [],
-        })).filter(
-          (c) => !c.id.startsWith('convoy-1') && !c.id.startsWith('convoy-2') && !c.id.startsWith('convoy-3') && !c.id.startsWith('convoy-4')
-        );
+        const localMap = new Map(getLocalConvoys().map((item) => [item.id, item]));
+        const cleaned = (data as any[])
+          .map((c) => {
+            const rawCalc = Array.isArray(c.calculation)
+              ? c.calculation.length > 0
+                ? c.calculation[0]
+                : null
+              : c.calculation;
+            const localItem = localMap.get(c.id);
+            const parsedRemote = parseCalculationMeta(rawCalc);
+            const parsedLocal = parseCalculationMeta(localItem?.calculation);
+
+            let resolvedCalc: any = null;
+            if (parsedLocal && parsedRemote) {
+              const localHasItems = (parsedLocal.custom_items?.length || 0) > 0;
+              const remoteHasItems = (parsedRemote.custom_items?.length || 0) > 0;
+              if (localHasItems && !remoteHasItems) {
+                resolvedCalc = { ...parsedRemote, ...parsedLocal };
+              } else {
+                resolvedCalc = { ...parsedLocal, ...parsedRemote };
+              }
+            } else {
+              resolvedCalc = parsedLocal || parsedRemote || null;
+            }
+
+            return {
+              ...c,
+              calculation: resolvedCalc,
+              trucks: Array.isArray(c.trucks) ? c.trucks : [],
+              documents: Array.isArray(c.documents) ? c.documents : [],
+            };
+          })
+          .filter(
+            (c) =>
+              !c.id.startsWith('convoy-1') &&
+              !c.id.startsWith('convoy-2') &&
+              !c.id.startsWith('convoy-3') &&
+              !c.id.startsWith('convoy-4')
+          );
         setLocalConvoys(cleaned as ConvoyWithDetails[]);
         return cleaned as ConvoyWithDetails[];
       }
@@ -172,12 +243,43 @@ export const ConvoyRepository = {
 
       if (!error && data) {
         const rawCalc = Array.isArray(data.calculation)
-          ? (data.calculation.length > 0 ? data.calculation[0] : null)
+          ? data.calculation.length > 0
+            ? data.calculation[0]
+            : null
           : data.calculation;
 
         const localList = getLocalConvoys();
         const localItem = localList.find((c) => c.id === id);
-        const resolvedCalc = rawCalc || localItem?.calculation || null;
+
+        const parsedRemote = parseCalculationMeta(rawCalc);
+        const parsedLocal = parseCalculationMeta(localItem?.calculation);
+
+        // Never let an older remote calculation wipe out custom items from local state!
+        let resolvedCalc: any = null;
+        if (parsedLocal && parsedRemote) {
+          const localHasItems = (parsedLocal.custom_items?.length || 0) > 0;
+          const remoteHasItems = (parsedRemote.custom_items?.length || 0) > 0;
+
+          if (localHasItems && !remoteHasItems) {
+            resolvedCalc = {
+              ...parsedRemote,
+              ...parsedLocal,
+              custom_items: parsedLocal.custom_items,
+              port_demurrage: parsedLocal.port_demurrage ?? parsedRemote.port_demurrage ?? 0,
+              grand_total: parsedLocal.grand_total || parsedRemote.grand_total,
+            };
+          } else {
+            resolvedCalc = {
+              ...parsedLocal,
+              ...parsedRemote,
+              custom_items: remoteHasItems ? parsedRemote.custom_items : (parsedLocal.custom_items || []),
+              port_demurrage: parsedRemote.port_demurrage ?? parsedLocal.port_demurrage ?? 0,
+              grand_total: parsedRemote.grand_total || parsedLocal.grand_total,
+            };
+          }
+        } else {
+          resolvedCalc = parsedLocal || parsedRemote || null;
+        }
 
         const normalized: ConvoyWithDetails = {
           ...data,
@@ -393,6 +495,15 @@ export const ConvoyRepository = {
       ? data.id
       : (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined);
 
+    const customItems = Array.isArray(data.custom_items) ? data.custom_items : [];
+    const portDemurrage = Number(data.port_demurrage ?? 0);
+
+    const metaString = JSON.stringify({
+      custom_items: customItems,
+      port_demurrage: portDemurrage,
+      saved_at: new Date().toISOString(),
+    });
+
     const record: Database['public']['Tables']['cost_calculations']['Row'] = {
       id: validId || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `calc-${Date.now()}`),
       convoy_id: data.convoy_id,
@@ -404,10 +515,10 @@ export const ConvoyRepository = {
       freight_rate_per_truck: Number(data.freight_rate_per_truck),
       total_freight: Number(data.total_freight),
       customs_clearance: Number(data.customs_clearance ?? 0),
-      port_demurrage: Number(data.port_demurrage ?? 0),
+      port_demurrage: portDemurrage,
       additional_expenses: Number(data.additional_expenses ?? 0),
-      additional_expenses_notes: data.additional_expenses_notes ?? null,
-      custom_items: Array.isArray(data.custom_items) ? data.custom_items : [],
+      additional_expenses_notes: metaString,
+      custom_items: customItems,
       grand_total: Number(data.grand_total),
       average_cost_per_truck: Number(data.average_cost_per_truck),
       currency: data.currency || 'EGP',
@@ -440,7 +551,7 @@ export const ConvoyRepository = {
     }
 
     try {
-      const payload: any = {
+      const fullPayload: any = {
         convoy_id: data.convoy_id,
         loading_date: data.loading_date,
         completion_date: data.completion_date,
@@ -450,22 +561,47 @@ export const ConvoyRepository = {
         freight_rate_per_truck: Number(data.freight_rate_per_truck),
         total_freight: Number(data.total_freight),
         customs_clearance: Number(data.customs_clearance ?? 0),
-        port_demurrage: Number(data.port_demurrage ?? 0),
+        port_demurrage: portDemurrage,
         additional_expenses: Number(data.additional_expenses ?? 0),
-        additional_expenses_notes: data.additional_expenses_notes ?? null,
-        custom_items: Array.isArray(data.custom_items) ? data.custom_items : [],
+        additional_expenses_notes: metaString,
+        custom_items: customItems,
         grand_total: Number(data.grand_total),
         average_cost_per_truck: Number(data.average_cost_per_truck),
         currency: data.currency || 'EGP',
         updated_at: new Date().toISOString(),
       };
-      if (validId) {
-        payload.id = validId;
-      }
+      if (validId) fullPayload.id = validId;
 
-      await (supabase as any)
+      const { error: upsertErr } = await (supabase as any)
         .from('cost_calculations')
-        .upsert(payload, { onConflict: 'convoy_id' });
+        .upsert(fullPayload, { onConflict: 'convoy_id' });
+
+      if (upsertErr) {
+        // Fallback: If custom_items or port_demurrage column does not exist yet on remote table,
+        // retry with core standard columns; metaString preserves custom_items in additional_expenses_notes.
+        const safePayload: any = {
+          convoy_id: data.convoy_id,
+          loading_date: data.loading_date,
+          completion_date: data.completion_date,
+          accommodation_nights: Number(data.accommodation_nights),
+          daily_accommodation_rate: Number(data.daily_accommodation_rate),
+          total_accommodation: Number(data.total_accommodation),
+          freight_rate_per_truck: Number(data.freight_rate_per_truck),
+          total_freight: Number(data.total_freight),
+          customs_clearance: Number(data.customs_clearance ?? 0),
+          additional_expenses: Number(data.additional_expenses ?? 0),
+          additional_expenses_notes: metaString,
+          grand_total: Number(data.grand_total),
+          average_cost_per_truck: Number(data.average_cost_per_truck),
+          currency: data.currency || 'EGP',
+          updated_at: new Date().toISOString(),
+        };
+        if (validId) safePayload.id = validId;
+
+        await (supabase as any)
+          .from('cost_calculations')
+          .upsert(safePayload, { onConflict: 'convoy_id' });
+      }
 
       await (supabase as any).from('convoys').update({
         status: 'completed',
