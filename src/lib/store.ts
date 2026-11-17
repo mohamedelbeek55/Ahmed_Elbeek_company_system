@@ -339,7 +339,7 @@ export const ConvoyRepository = {
         dailyAccommodationRate: 500,
         freightRatePerTruck: 8500,
         customsClearance: 14500,
-        additionalExpenses: 3600,
+        additionalExpenses: 0,
       });
 
       list[idx].calculation = {
@@ -354,8 +354,8 @@ export const ConvoyRepository = {
         total_freight: fin.totalFreight,
         customs_clearance: fin.customsClearance,
         port_demurrage: 0,
-        additional_expenses: fin.additionalExpenses,
-        additional_expenses_notes: 'موازين، كروت بوابات، حراسات وتفريغ',
+        additional_expenses: 0,
+        additional_expenses_notes: null,
         custom_items: [],
         grand_total: fin.grandTotal,
         average_cost_per_truck: fin.averageCostPerTruck,

@@ -14,9 +14,9 @@ export interface CalculationInput {
   completionDate: string; // YYYY-MM-DD
   dailyAccommodationRate: number; // ج.م / يوم
   freightRatePerTruck: number; // ج.م / شاحنة
-  customsClearance: number; // ج.م
+  customsClearance?: number; // ج.م
   portDemurrage?: number; // أرضيات مبيت داخل المنفذ ج.م
-  additionalExpenses: number; // ج.م
+  additionalExpenses?: number; // ج.م (اختياري)
   customItems?: CustomCostItem[]; // بنود تكاليف إضافية مخصصة
 }
 

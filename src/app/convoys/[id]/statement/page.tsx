@@ -87,14 +87,13 @@ export default function StatementPreviewPage() {
     total_freight: 8500 * convoy.truck_count,
     customs_clearance: 14500,
     port_demurrage: 0,
-    additional_expenses: 3600,
-    additional_expenses_notes: 'موازين، كروت بوابات، حراسات وتفريغ',
+    additional_expenses: 0,
+    additional_expenses_notes: null,
     custom_items: [],
     grand_total:
       calculateElapsedDays(convoy.loading_date, convoy.completion_date) * 500 * convoy.truck_count +
       8500 * convoy.truck_count +
-      14500 +
-      3600,
+      14500,
     average_cost_per_truck: 14508.33,
     currency: 'EGP',
     calculated_by: null,
@@ -395,44 +394,31 @@ export default function StatementPreviewPage() {
                     </td>
                   </tr>
 
-                  <tr className="bg-gray-50/50">
-                    <td className="py-3.5 px-4 text-center tabular-nums font-bold">4</td>
-                    <td className="py-3.5 px-4">
-                      <span className="font-bold block">أرضيات مبيت داخل المنفذ</span>
-                      <span className="text-xs text-light-on-surface-variant">
-                        مبيت وحراسة الشاحنات المبردة داخل ساحات المنفذ
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center text-xs text-light-on-surface-variant">
-                      رسوم ساحات وأرضيات
-                    </td>
-                    <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md">
-                      {formatCurrency(calc.port_demurrage || 0)}
-                    </td>
-                  </tr>
+                  {Number(calc.port_demurrage) > 0 && (
+                    <tr className="bg-gray-50/50">
+                      <td className="py-3.5 px-4 text-center tabular-nums font-bold">4</td>
+                      <td className="py-3.5 px-4">
+                        <span className="font-bold block">أرضيات مبيت داخل المنفذ</span>
+                        <span className="text-xs text-light-on-surface-variant">
+                          مبيت وحراسة الشاحنات المبردة داخل ساحات المنفذ
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-center text-xs text-light-on-surface-variant">
+                        رسوم ساحات وأرضيات
+                      </td>
+                      <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md">
+                        {formatCurrency(calc.port_demurrage)}
+                      </td>
+                    </tr>
+                  )}
 
-                  <tr>
-                    <td className="py-3.5 px-4 text-center tabular-nums font-bold">5</td>
-                    <td className="py-3.5 px-4">
-                      <span className="font-bold block">المصاريف الإضافية والنثريات</span>
-                      <span className="text-xs text-light-on-surface-variant">
-                        {calc.additional_expenses_notes || 'موازين، كروت بوابات، حراسات وتفريغ'}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center text-xs text-light-on-surface-variant">
-                      إيصالات ونثريات
-                    </td>
-                    <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md">
-                      {formatCurrency(calc.additional_expenses)}
-                    </td>
-                  </tr>
-
-                  {/* Dynamic Custom Cost Items */}
+                  {/* Dynamic Custom Cost Items added by the owner */}
                   {Array.isArray((calc as any).custom_items) &&
                     (calc as any).custom_items
                       .filter((it: any) => it && (it.name || Number(it.amount) > 0))
                       .map((item: any, idx: number) => {
-                        const rowNumber = 6 + idx;
+                        const startSeq = Number(calc.port_demurrage) > 0 ? 5 : 4;
+                        const rowNumber = startSeq + idx;
                         const isEven = rowNumber % 2 === 0;
                         return (
                           <tr key={item.id || idx} className={isEven ? 'bg-gray-50/50' : ''}>
@@ -441,10 +427,10 @@ export default function StatementPreviewPage() {
                               <span className="font-bold block text-charcoal">
                                 {item.name || `بند تكلفة مخصص ${idx + 1}`}
                               </span>
-                              <span className="text-xs text-light-on-surface-variant">بند مالي إضافي معتمد</span>
+                              <span className="text-xs text-light-on-surface-variant">بند مالي مخصص بالبيان</span>
                             </td>
                             <td className="py-3.5 px-4 text-center text-xs text-light-on-surface-variant">
-                              بند مالي مخصص
+                              بند مالي إضافي
                             </td>
                             <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md text-charcoal">
                               {formatCurrency(Number(item.amount) || 0)}

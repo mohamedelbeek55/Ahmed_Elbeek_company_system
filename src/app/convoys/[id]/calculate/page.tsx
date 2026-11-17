@@ -28,8 +28,6 @@ export default function CostCalculationPage() {
   const [freightRate, setFreightRate] = useState<string>('8500');
   const [clearanceCost, setClearanceCost] = useState<string>('14500');
   const [portDemurrage, setPortDemurrage] = useState<string>('0');
-  const [extraExpenses, setExtraExpenses] = useState<string>('3600');
-  const [extraNotes, setExtraNotes] = useState('موازين، كروت بوابات، حراسات وتفريغ');
   const [customItems, setCustomItems] = useState<Array<{ id: string; name: string; amount: string }>>([]);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -56,10 +54,6 @@ export default function CostCalculationPage() {
         setFreightRate(String(rawCalc.freight_rate_per_truck));
         setClearanceCost(String(rawCalc.customs_clearance));
         setPortDemurrage(String(rawCalc.port_demurrage ?? '0'));
-        setExtraExpenses(String(rawCalc.additional_expenses));
-        if (rawCalc.additional_expenses_notes) {
-          setExtraNotes(rawCalc.additional_expenses_notes);
-        }
         if (Array.isArray(rawCalc.custom_items) && rawCalc.custom_items.length > 0) {
           setCustomItems(
             rawCalc.custom_items.map((item: any, idx: number) => ({
@@ -150,7 +144,6 @@ export default function CostCalculationPage() {
   const numFreightRate = parseFloat(freightRate) || 0;
   const numClearanceCost = parseFloat(clearanceCost) || 0;
   const numPortDemurrage = parseFloat(portDemurrage) || 0;
-  const numExtraExpenses = parseFloat(extraExpenses) || 0;
 
   const formattedCustomItems = customItems.map((item) => ({
     id: item.id,
@@ -166,7 +159,7 @@ export default function CostCalculationPage() {
     freightRatePerTruck: numFreightRate,
     customsClearance: numClearanceCost,
     portDemurrage: numPortDemurrage,
-    additionalExpenses: numExtraExpenses,
+    additionalExpenses: 0,
     customItems: formattedCustomItems,
   });
 
@@ -186,8 +179,8 @@ export default function CostCalculationPage() {
         total_freight: financialResult.totalFreight,
         customs_clearance: numClearanceCost,
         port_demurrage: numPortDemurrage,
-        additional_expenses: numExtraExpenses,
-        additional_expenses_notes: extraNotes,
+        additional_expenses: 0,
+        additional_expenses_notes: null,
         custom_items: formattedCustomItems.filter((it) => it.name || it.amount > 0),
         grand_total: financialResult.grandTotal,
         average_cost_per_truck: financialResult.averageCostPerTruck,
@@ -412,78 +405,43 @@ export default function CostCalculationPage() {
                 </p>
               </div>
 
-              {/* Input 5: Additional Expenses */}
-              <div>
-                <label className="block font-label text-label-md text-charcoal mb-2">
-                  5. المصاريف الإضافية (موازين، بوابات، حراسات)
-                </label>
-                <div className="relative flex items-center">
-                  <input
-                    type="number"
-                    min="0"
-                    step="50"
-                    placeholder="0"
-                    value={extraExpenses}
-                    onFocus={(e) => e.target.select()}
-                    onChange={handleNumberInput(setExtraExpenses)}
-                    className="w-full border border-outline rounded-DEFAULT p-3 pl-16 font-body text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
-                  />
-                  <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
-                    ج.م
-                  </span>
-                </div>
-                <p className="text-body-sm text-light-on-surface-variant mt-1">
-                  * تظل المصاريف الإضافية منفصلة بحساب مستقل دون دمجها عشوائياً في النولون.
-                </p>
-              </div>
-
-              {/* Notes on extras */}
-              <div>
-                <label className="block font-label text-label-sm text-charcoal mb-1">
-                  بيان تفصيل المصاريف الإضافية
-                </label>
-                <input
-                  type="text"
-                  value={extraNotes}
-                  onChange={(e) => setExtraNotes(e.target.value)}
-                  className="w-full border border-outline rounded-DEFAULT p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none"
-                />
-              </div>
-
-              {/* Dynamic Custom Cost Items Section */}
+              {/* Dynamic Custom Invoice Items Section (بنود الفاتورة المخصصة بالاسم والسعر) */}
               <div className="pt-6 border-t border-light-gray space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-light-surface-variant/40 p-4 rounded-xl border border-outline/70">
                   <div>
                     <h4 className="font-headline text-headline-sm font-bold text-charcoal flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary text-xl">playlist_add</span>
-                      <span>بنود تكاليف إضافية مخصصة (اختياري)</span>
+                      <span className="material-symbols-outlined text-primary text-2xl">post_add</span>
+                      <span>بنود الفاتورة المخصصة (بالاسم والسعر)</span>
                     </h4>
                     <p className="text-body-sm text-light-on-surface-variant">
-                      يمكن للمالك إضافة بنود مالية إضافية بالاسم والمبلغ المطلوب لإدراجها بالبيان المعتمد.
+                      أضف أي بند تريده بالاسم والسعر المحدد ليظهر مرتباً ومنظماً داخل فاتورة الـ PDF المعتمدة.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={handleAddCustomItem}
-                    className="px-4 py-2 bg-pale-red hover:bg-pale-red/80 text-primary border border-primary/30 rounded-DEFAULT font-label text-label-md font-bold flex items-center gap-1.5 transition self-start sm:self-auto cursor-pointer"
+                    className="px-4 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold flex items-center gap-2 transition self-start sm:self-auto cursor-pointer shadow-xs shrink-0"
                   >
                     <span className="material-symbols-outlined text-lg">add_circle</span>
-                    <span>إضافة بند تكلفة جديد</span>
+                    <span>+ إضافة بند جديد للفاتورة</span>
                   </button>
                 </div>
 
                 {customItems.length === 0 ? (
-                  <div className="bg-light-surface-variant/40 border border-dashed border-outline rounded-lg p-4 text-center text-body-sm text-light-on-surface-variant">
-                    لا توجد بنود تكاليف إضافية مخصصة حالياً. اضغط على زر &quot;إضافة بند تكلفة جديد&quot; لإضافة أي بند آخر.
+                  <div className="bg-white border-2 border-dashed border-outline/80 rounded-lg p-6 text-center text-body-sm text-light-on-surface-variant">
+                    <span className="material-symbols-outlined text-3xl text-light-on-surface-variant/60 block mb-1">
+                      playlist_add
+                    </span>
+                    لا توجد بنود مخصصة حالياً. الفاتورة ستعتمد بنود النولون والمبيت والتخليص، أو اضغط <strong className="text-primary font-bold">&quot;+ إضافة بند جديد للفاتورة&quot;</strong> لإضافة أي بند آخر.
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {customItems.map((item, idx) => (
                       <div
                         key={item.id}
-                        className="bg-white border border-outline rounded-lg p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center gap-3 transition hover:border-primary/50"
+                        className="bg-white border-2 border-outline/80 rounded-lg p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center gap-3 transition hover:border-primary/60"
                       >
-                        <span className="w-7 h-7 bg-light-surface-variant text-charcoal font-bold rounded-full flex items-center justify-center text-body-sm shrink-0">
+                        <span className="w-8 h-8 bg-charcoal text-white font-bold rounded-full flex items-center justify-center text-body-sm shrink-0">
                           {idx + 1}
                         </span>
 
@@ -493,10 +451,10 @@ export default function CostCalculationPage() {
                           </label>
                           <input
                             type="text"
-                            placeholder="مثال: عمال تعتيق إضافية، حراسة خاصة، نثريات منفذ..."
+                            placeholder="اكتب اسم البند (مثال: عمال تعتيق إضافية، حراسة خاصة، موازين، كروت بوابات...)"
                             value={item.name}
                             onChange={(e) => handleUpdateCustomItem(item.id, 'name', e.target.value)}
-                            className="w-full border border-outline rounded p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none"
+                            className="w-full border border-outline rounded p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none font-medium"
                           />
                         </div>
 
@@ -519,8 +477,8 @@ export default function CostCalculationPage() {
                         <button
                           type="button"
                           onClick={() => handleRemoveCustomItem(item.id)}
-                          className="p-2 text-primary hover:bg-pale-red rounded transition shrink-0 cursor-pointer flex items-center justify-center self-end sm:self-center"
-                          title="حذف هذا البند"
+                          className="p-2 text-primary hover:bg-pale-red rounded-md transition shrink-0 cursor-pointer flex items-center justify-center self-end sm:self-center"
+                          title="حذف هذا البند من الفاتورة"
                         >
                           <span className="material-symbols-outlined text-xl">delete</span>
                         </button>
@@ -617,22 +575,11 @@ export default function CostCalculationPage() {
                 </span>
               </div>
 
-              {/* Extras row */}
-              <div className="flex items-center justify-between pb-3 border-b border-dashed border-outline">
-                <div>
-                  <span className="font-semibold text-charcoal block">مصاريف ونثريات إضافية</span>
-                  <span className="text-body-sm text-light-on-surface-variant">موازين، بوابات، حراسات</span>
-                </div>
-                <span className="font-body text-body-lg font-bold text-charcoal tabular-nums">
-                  {formatCurrency(financialResult.additionalExpenses)}
-                </span>
-              </div>
-
               {/* Dynamic Custom Cost Items in Summary */}
               {financialResult.customItems.length > 0 && (
                 <div className="pt-2 border-b border-dashed border-outline pb-3 space-y-2 bg-light-surface-variant/40 p-2.5 rounded">
                   <span className="text-xs font-bold text-charcoal block">
-                    بنود التكاليف الإضافية المخصصة ({financialResult.customItems.length}):
+                    بنود الفاتورة المخصصة ({financialResult.customItems.length}):
                   </span>
                   {financialResult.customItems.map((item, idx) => (
                     <div key={item.id || idx} className="flex items-center justify-between text-body-sm">
