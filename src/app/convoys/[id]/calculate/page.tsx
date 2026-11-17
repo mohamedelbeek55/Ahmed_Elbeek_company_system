@@ -291,10 +291,10 @@ export default function CostCalculationPage() {
 
           <div className="mt-4 pt-4 border-t border-light-gray flex items-center justify-between bg-pale-red/50 p-3 rounded-lg">
             <span className="font-label text-label-md text-primary font-bold">
-              عدد ليالي المبيت المحتسبة آلياً = (تاريخ التعتيق - تاريخ التحميل):
+              عدد ليالي المبيت المحتسبة آلياً (باستثناء يوم التحميل ويوم التعتيق):
             </span>
             <span className="font-headline text-headline-sm text-primary font-bold tabular-nums">
-              {financialResult.accommodationNights} ليالي مبيت
+              {financialResult.accommodationNights} {financialResult.accommodationNights === 1 ? 'ليلة مبيت' : 'ليالي مبيت'}
             </span>
           </div>
         </div>

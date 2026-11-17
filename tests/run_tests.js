@@ -1,14 +1,17 @@
 const assert = require('assert');
 
-// Test Date Elapsed Calculations
+// Test Date Accommodation Nights Calculations
+// Rule: Exclude loading day and completion/unloading day
 function calculateElapsedDays(startDateStr, endDateStr) {
   if (!startDateStr) return 0;
   const start = new Date(startDateStr + 'T00:00:00');
   const end = endDateStr ? new Date(endDateStr + 'T00:00:00') : new Date();
   if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
-  const diffMs = end.getTime() - start.getTime();
-  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  return Math.max(0, days);
+  const normalizedStart = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const normalizedEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  const diffMs = normalizedEnd.getTime() - normalizedStart.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  return Math.max(0, diffDays - 1);
 }
 
 // Test Financial Calculations
@@ -54,28 +57,31 @@ function calculateConvoyFinances(input) {
 
 console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
 
-// Test 1: Date-only elapsed calculation (2026-11-04 to 2026-11-13 = 9 days)
+// Test 1: Date-only accommodation nights (excluding loading day and completion day)
 {
-  const days = calculateElapsedDays('2026-11-04', '2026-11-13');
-  assert.strictEqual(days, 9, 'Elapsed days between Nov 4 and Nov 13 must be 9');
-  console.log('✓ Test 1 Passed: Calendar date-only difference calculation (9 nights)');
+  assert.strictEqual(calculateElapsedDays('2026-11-15', '2026-11-15'), 0, 'Same day must return 0 nights');
+  assert.strictEqual(calculateElapsedDays('2026-11-15', '2026-11-16'), 0, 'Next day (15 to 16) must return 0 nights');
+  assert.strictEqual(calculateElapsedDays('2026-11-15', '2026-11-17'), 1, '15 to 17 must return 1 night (day 16)');
+  assert.strictEqual(calculateElapsedDays('2026-11-15', '2026-11-20'), 4, '15 to 20 must return 4 nights (days 16,17,18,19)');
+  assert.strictEqual(calculateElapsedDays('2026-11-04', '2026-11-13'), 8, 'Nov 4 to Nov 13 must return 8 nights');
+  console.log('✓ Test 1 Passed: Accommodation nights rule (exclude loading day & completion day)');
 }
 
-// Test 2: Same-day loading & completion (2026-11-04 to 2026-11-04 = 0 days)
+// Test 2: Past/invalid end date returns 0 nights
 {
-  const days = calculateElapsedDays('2026-11-04', '2026-11-04');
-  assert.strictEqual(days, 0, 'Same day must return 0 nights');
-  console.log('✓ Test 2 Passed: Same-day loading & unloading equals 0 nights');
+  const days = calculateElapsedDays('2026-11-20', '2026-11-15');
+  assert.strictEqual(days, 0, 'Earlier completion date must return 0 nights');
+  console.log('✓ Test 2 Passed: Safety floor at 0 nights for reversed dates');
 }
 
-// Test 3: Approved Convoy 1 Business Calculation
-// 12 trucks, 9 nights, 500 daily rate, 8500 freight rate, 14500 clearance, 3600 extras
-// Accommodation: 9 * 500 * 12 = 54,000
+// Test 3: Approved Convoy Business Calculation (Nov 4 to Nov 13 = 8 nights)
+// 12 trucks, 8 nights, 500 daily rate, 8500 freight rate, 14500 clearance, 3600 extras
+// Accommodation: 8 * 500 * 12 = 48,000
 // Freight: 12 * 8500 = 102,000
 // Clearance: 14,500
 // Extras: 3,600
-// Grand Total: 54000 + 102000 + 14500 + 3600 = 174,100
-// Avg per truck: 174100 / 12 = 14508.33
+// Grand Total: 48000 + 102000 + 14500 + 3600 = 168,100
+// Avg per truck: 168100 / 12 = 14008.33
 {
   const result = calculateConvoyFinances({
     truckCount: 12,
@@ -87,14 +93,14 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
     additionalExpenses: 3600,
   });
 
-  assert.strictEqual(result.accommodationNights, 9);
-  assert.strictEqual(result.totalAccommodation, 54000);
+  assert.strictEqual(result.accommodationNights, 8);
+  assert.strictEqual(result.totalAccommodation, 48000);
   assert.strictEqual(result.totalFreight, 102000);
   assert.strictEqual(result.customsClearance, 14500);
   assert.strictEqual(result.additionalExpenses, 3600);
-  assert.strictEqual(result.grandTotal, 174100);
-  assert.strictEqual(Number(result.averageCostPerTruck.toFixed(2)), 14508.33);
-  console.log('✓ Test 3 Passed: Approved Stitch Convoy #1 financial formulas (Total: 174,100 EGP)');
+  assert.strictEqual(result.grandTotal, 168100);
+  assert.strictEqual(Number(result.averageCostPerTruck.toFixed(2)), 14008.33);
+  console.log('✓ Test 3 Passed: Convoy financial formulas with updated nights rule (Total: 168,100 EGP)');
 }
 
 // Test 4: Location filtering rules
@@ -119,21 +125,22 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
   const testClearance = calculateConvoyFinances({
     truckCount: 10,
     loadingDate: '2026-11-01',
-    completionDate: '2026-11-05',
+    completionDate: '2026-11-05', // 3 nights (days 2, 3, 4)
     dailyAccommodationRate: 400,
     freightRatePerTruck: 6000,
     customsClearance: 5000,
     additionalExpenses: 1500,
   });
 
-  // Accommodation: 4 * 400 * 10 = 16000
+  // Accommodation: 3 * 400 * 10 = 12000
   // Freight: 10 * 6000 = 60000
   // Clearance = 5000 (not multiplied by 10!)
   // Extras = 1500 (not multiplied by 10!)
-  // Total: 16000 + 60000 + 5000 + 1500 = 82500
+  // Total: 12000 + 60000 + 5000 + 1500 = 78500
+  assert.strictEqual(testClearance.accommodationNights, 3);
   assert.strictEqual(testClearance.customsClearance, 5000);
   assert.strictEqual(testClearance.additionalExpenses, 1500);
-  assert.strictEqual(testClearance.grandTotal, 82500);
+  assert.strictEqual(testClearance.grandTotal, 78500);
   console.log('✓ Test 5 Passed: Lump-sum clearance & expenses separation rule');
 }
 
@@ -142,8 +149,8 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
   const testNewItems = calculateConvoyFinances({
     truckCount: 5,
     loadingDate: '2026-11-10',
-    completionDate: '2026-11-14', // 4 nights
-    dailyAccommodationRate: 500, // 4 * 500 * 5 = 10,000
+    completionDate: '2026-11-14', // 3 nights (days 11, 12, 13)
+    dailyAccommodationRate: 500, // 3 * 500 * 5 = 7,500
     freightRatePerTruck: 8000, // 5 * 8000 = 40,000
     customsClearance: 12000,
     portDemurrage: 6500, // أرضيات مبيت داخل المنفذ
@@ -155,15 +162,15 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
   });
 
   // Expected Grand Total:
-  // 10000 + 40000 + 12000 + 6500 + 2500 + 3000 + 1500 = 75,500
-  // Average per truck = 75500 / 5 = 15,100
-  assert.strictEqual(testNewItems.accommodationNights, 4);
-  assert.strictEqual(testNewItems.totalAccommodation, 10000);
+  // 7500 + 40000 + 12000 + 6500 + 2500 + 3000 + 1500 = 73,000
+  // Average per truck = 73000 / 5 = 14,600
+  assert.strictEqual(testNewItems.accommodationNights, 3);
+  assert.strictEqual(testNewItems.totalAccommodation, 7500);
   assert.strictEqual(testNewItems.totalFreight, 40000);
   assert.strictEqual(testNewItems.portDemurrage, 6500);
   assert.strictEqual(testNewItems.customItemsTotal, 4500);
-  assert.strictEqual(testNewItems.grandTotal, 75500);
-  assert.strictEqual(testNewItems.averageCostPerTruck, 15100);
+  assert.strictEqual(testNewItems.grandTotal, 73000);
+  assert.strictEqual(testNewItems.averageCostPerTruck, 14600);
   console.log('✓ Test 6 Passed: Port Demurrage and dynamic custom cost items calculation');
 }
 

@@ -272,15 +272,15 @@ export default function ConvoyDetailsPage() {
 
             {/* Highlighted Automatic Calculation */}
             <div className="bg-pale-red p-4 rounded-lg border border-primary/20">
-              <span className="text-body-sm text-primary font-bold block mb-1">الأيام المنقضية (تلقائي)</span>
+              <span className="text-body-sm text-primary font-bold block mb-1">ليالي المبيت المحتسبة (تلقائي)</span>
               <div className="flex items-baseline gap-2">
                 <span className="font-headline text-display-lg text-primary font-bold tabular-nums">
                   {elapsedDays}
                 </span>
-                <span className="text-body-md text-primary font-bold">أيام مبيت</span>
+                <span className="text-body-md text-primary font-bold">{elapsedDays === 1 ? 'ليلة مبيت' : 'ليالي مبيت'}</span>
               </div>
               <span className="text-body-sm text-charcoal font-semibold block mt-1">
-                {isCompleted ? 'حتى تاريخ التعتيق المسجل' : 'محسوبة حتى اليوم الحالي'}
+                {isCompleted ? 'باستثناء يوم التحميل ويوم التعتيق' : 'باستثناء يوم التحميل واليوم الحالي'}
               </span>
             </div>
 
@@ -397,7 +397,7 @@ export default function ConvoyDetailsPage() {
                   className="w-full border-2 border-outline rounded-DEFAULT p-3 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
                 />
                 <span className="text-body-sm text-light-on-surface-variant mt-1 block">
-                  سيتم احتساب {calculateElapsedDays(convoy.loading_date, completionDate)} ليالي مبيت تلقائياً.
+                  سيتم احتساب {calculateElapsedDays(editableLoadingDate || convoy.loading_date, completionDate)} ليالي مبيت تلقائياً (باستثناء يوم التحميل ويوم التعتيق).
                 </span>
               </div>
 

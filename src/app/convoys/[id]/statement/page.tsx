@@ -385,7 +385,7 @@ export default function StatementPreviewPage() {
                     <td className="py-3.5 px-4">
                       <span className="font-bold block text-primary">إجمالي المبيت وأيام الانتظار</span>
                       <span className="text-xs text-light-on-surface-variant">
-                        فترة التحميل حتى التعتيق ({calc.accommodation_nights} ليالي)
+                        فترة المبيت الفعلية باستثناء يوم التحميل ويوم التعتيق ({calc.accommodation_nights} {calc.accommodation_nights === 1 ? 'ليلة' : 'ليالي'})
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-center tabular-nums font-medium text-light-on-surface-variant">

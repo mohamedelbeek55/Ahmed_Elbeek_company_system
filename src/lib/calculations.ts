@@ -35,7 +35,13 @@ export interface CalculationResult {
 }
 
 /**
- * Calculate difference in calendar days between two date strings (YYYY-MM-DD).
+ * Calculate accommodation nights between two date strings (YYYY-MM-DD).
+ * Rule: Exclude loading day and completion/unloading day — count only waiting nights strictly in between.
+ * Examples:
+ * - 15th to 15th = 0 nights
+ * - 15th to 16th = 0 nights
+ * - 15th to 17th = 1 night (day 16)
+ * - 15th to 20th = 4 nights (days 16, 17, 18, 19)
  * Dates are strictly DATE-ONLY.
  */
 export function calculateElapsedDays(startDateStr: string, endDateStr?: string | null): number {
@@ -45,9 +51,14 @@ export function calculateElapsedDays(startDateStr: string, endDateStr?: string |
   
   if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
   
-  const diffMs = end.getTime() - start.getTime();
-  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  return Math.max(0, days);
+  const normalizedStart = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const normalizedEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  
+  const diffMs = normalizedEnd.getTime() - normalizedStart.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  
+  // Exclude loading day and unloading/completion day
+  return Math.max(0, diffDays - 1);
 }
 
 /**
