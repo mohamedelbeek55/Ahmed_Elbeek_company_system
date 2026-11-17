@@ -8,6 +8,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { ConvoyRepository } from '@/lib/store';
 import { PDFService } from '@/lib/pdf';
+import { PDF_ICONS } from '@/lib/pdf-icons';
 import { COMPANY_LOGO_BASE64 } from '@/lib/logoBase64';
 import type { ConvoyWithDetails, Database } from '@/types/database.types';
 
@@ -122,6 +123,13 @@ export default function DriverManifestPage() {
     if (!convoy) return;
     setIsGeneratingPdf(true);
     await handleSave();
+
+    // Ensure the A4 sheet is mounted in DOM if triggered from Editable Form tab
+    if (!previewPdfMode) {
+      setPreviewPdfMode(true);
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+
     const fileName = `كشف_سائقين_${convoy.cargo_name.replace(/\s+/g, '_')}_${convoy.convoy_number}.pdf`;
     await PDFService.generateAndDownloadPDF({
       elementId: 'official-drivers-manifest-sheet',
@@ -165,13 +173,15 @@ export default function DriverManifestPage() {
 
   return (
     <>
-      <Navbar />
+      <div className="no-print">
+        <Navbar />
+      </div>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 sm:py-8">
         
         {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 text-body-sm text-light-on-surface-variant">
+        <div className="no-print flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div className="flex flex-wrap items-center gap-2 text-body-sm text-light-on-surface-variant">
             <Link href="/" className="hover:text-primary transition">الرئيسية</Link>
             <span>/</span>
             <Link href="/convoys" className="hover:text-primary transition">سجل البوصلات</Link>
@@ -185,7 +195,7 @@ export default function DriverManifestPage() {
             <button
               type="button"
               onClick={() => setPreviewPdfMode(!previewPdfMode)}
-              className="px-4 py-2 border border-outline hover:bg-light-surface-variant text-charcoal rounded-DEFAULT font-label text-label-md flex items-center gap-2 font-bold transition"
+              className="px-4 py-2 border border-outline hover:bg-light-surface-variant text-charcoal rounded-DEFAULT font-label text-label-md flex items-center gap-2 font-bold transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-lg">
                 {previewPdfMode ? 'edit_note' : 'preview'}
@@ -196,7 +206,7 @@ export default function DriverManifestPage() {
         </div>
 
         {/* Convoy Summary Bar */}
-        <div className="bg-light-surface border-2 border-primary/20 rounded-xl p-5 mb-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div className="no-print bg-light-surface border-2 border-primary/20 rounded-xl p-4 sm:p-5 mb-6 shadow-xs flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3 sm:gap-6">
             <div>
               <span className="text-xs text-light-on-surface-variant block">البضاعة المحملة:</span>
@@ -382,12 +392,12 @@ export default function DriverManifestPage() {
             </div>
           </div>
         ) : (
-          /* Tab 2: PDF Sheet Preview Mode */
-          <div className="flex flex-col items-center">
+          /* Tab 2: PDF Sheet Preview Mode (Responsive on all screens + Canonical A4 on Export/Print) */
+          <div className="flex flex-col items-center w-full">
             
             <article
               id="official-drivers-manifest-sheet"
-              className="a4-sheet p-8 sm:p-14 border border-outline/50 flex flex-col justify-between overflow-hidden relative bg-white my-4 shadow-xl"
+              className="a4-sheet p-4 sm:p-8 md:p-12 border border-outline/50 flex flex-col justify-between overflow-hidden relative bg-white my-2 sm:my-4 shadow-xl rounded-md sm:rounded-none"
             >
               {/* Watermark */}
               <div
@@ -397,15 +407,15 @@ export default function DriverManifestPage() {
                 <img
                   src={COMPANY_LOGO_BASE64}
                   alt="Watermark"
-                  className="w-[450px] h-[450px] object-contain"
+                  className="pdf-watermark-img w-[220px] h-[220px] sm:w-[420px] sm:h-[420px] max-w-[80%] object-contain"
                 />
               </div>
 
               <div className="relative z-10">
                 
                 {/* Official Centered Header */}
-                <div className="flex flex-col items-center justify-center mb-5">
-                  <div className="w-28 h-28 flex items-center justify-center">
+                <div className="flex flex-col items-center justify-center mb-4 sm:mb-5">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center">
                     <img
                       src={COMPANY_LOGO_BASE64}
                       alt="Logo"
@@ -415,12 +425,12 @@ export default function DriverManifestPage() {
                 </div>
 
                 {/* Corporate Red Divider Line */}
-                <div className="w-full h-[2.5px] bg-primary mb-6"></div>
+                <div className="w-full h-[2.5px] bg-primary mb-5 sm:mb-6"></div>
 
                 {/* Sheet Metadata */}
-                <div className="flex items-end justify-between mb-6 pb-2 text-body-sm text-charcoal">
+                <div className="pdf-header-row flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-5 sm:mb-6 pb-2 text-body-sm text-charcoal">
                   <div>
-                    <h2 className="font-headline text-headline-md font-bold text-charcoal mb-1">
+                    <h2 className="font-headline text-headline-sm sm:text-headline-md font-bold text-charcoal mb-1">
                       كشف سيارات وسائقي القافلة المعتمد
                     </h2>
                     <p className="text-body-sm text-light-on-surface-variant font-medium">
@@ -428,49 +438,57 @@ export default function DriverManifestPage() {
                       <strong className="text-charcoal">{convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</strong>
                     </p>
                   </div>
-                  <div className="text-left font-body tabular-nums space-y-0.5">
+                  <div className="pdf-header-dates text-right sm:text-left font-body tabular-nums space-y-0.5 bg-light-surface-variant/60 sm:bg-transparent p-2.5 sm:p-0 rounded sm:rounded-none">
                     <div><span className="text-light-on-surface-variant">رقم البوصلة:</span> <strong>{convoy.convoy_number}</strong></div>
                     <div><span className="text-light-on-surface-variant">تاريخ التحميل:</span> <strong>{convoy.loading_date}</strong></div>
                     <div><span className="text-light-on-surface-variant">إجمالي الشاحنات:</span> <strong>{trucks.length} تريلا</strong></div>
                   </div>
                 </div>
 
-                {/* Exact Table Matching docx_table_v2 */}
-                <div className="border border-charcoal rounded-md overflow-hidden mb-8">
-                  <table className="w-full text-right border-collapse text-body-sm">
-                    <thead>
-                      <tr className="bg-charcoal text-white font-bold border-b border-charcoal">
-                        <th className="py-3 px-3 w-12 text-center">م</th>
-                        <th className="py-3 px-4">الميناء</th>
-                        <th className="py-3 px-4">الاسم (السائق)</th>
-                        <th className="py-3 px-4">الرقم القومي</th>
-                        <th className="py-3 px-4">سيارة رقم</th>
-                        <th className="py-3 px-4">مقطورة رقم</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-charcoal/20 text-charcoal">
-                      {trucks.map((row, idx) => (
-                        <tr key={idx} className={idx % 2 === 1 ? 'bg-light-gray/60' : ''}>
-                          <td className="py-3 px-3 text-center tabular-nums font-bold">{idx + 1}</td>
-                          <td className="py-3 px-4 font-bold text-charcoal">
-                            {row.political_destination?.includes('رفح') ? 'ميناء رفح' : 'ميناء العوجة'}
-                          </td>
-                          <td className="py-3 px-4 font-bold text-charcoal">{row.driver_name || '—'}</td>
-                          <td className="py-3 px-4 tabular-nums text-light-on-surface-variant">{row.national_id || '—'}</td>
-                          <td className="py-3 px-4 tabular-nums font-bold text-charcoal">{row.truck_plate || '—'}</td>
-                          <td className="py-3 px-4 tabular-nums font-bold text-charcoal">{row.trailer_plate || '—'}</td>
+                {/* Exact Table Matching docx_table_v2 (Scrollable on mobile, full-width on A4 export/print) */}
+                <div className="border border-charcoal rounded-md overflow-hidden mb-6 sm:mb-8">
+                  <div className="pdf-table-scroll overflow-x-auto w-full">
+                    <table className="w-full min-w-[560px] sm:min-w-0 text-right border-collapse text-body-sm">
+                      <thead>
+                        <tr className="bg-charcoal text-white font-bold border-b border-charcoal">
+                          <th className="py-3 px-2.5 sm:px-3 w-10 sm:w-12 text-center">م</th>
+                          <th className="py-3 px-3 sm:px-4">الميناء</th>
+                          <th className="py-3 px-3 sm:px-4">الاسم (السائق)</th>
+                          <th className="py-3 px-3 sm:px-4">الرقم القومي</th>
+                          <th className="py-3 px-3 sm:px-4">سيارة رقم</th>
+                          <th className="py-3 px-3 sm:px-4">مقطورة رقم</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-charcoal/20 text-charcoal">
+                        {trucks.map((row, idx) => (
+                          <tr key={idx} className={idx % 2 === 1 ? 'bg-light-gray/60' : ''}>
+                            <td className="py-3 px-2.5 sm:px-3 text-center tabular-nums font-bold">{idx + 1}</td>
+                            <td className="py-3 px-3 sm:px-4 font-bold text-charcoal whitespace-nowrap">
+                              {row.political_destination?.includes('رفح') ? 'ميناء رفح' : 'ميناء العوجة'}
+                            </td>
+                            <td className="py-3 px-3 sm:px-4 font-bold text-charcoal">{row.driver_name || '—'}</td>
+                            <td className="py-3 px-3 sm:px-4 tabular-nums text-light-on-surface-variant whitespace-nowrap">{row.national_id || '—'}</td>
+                            <td className="py-3 px-3 sm:px-4 tabular-nums font-bold text-charcoal whitespace-nowrap">{row.truck_plate || '—'}</td>
+                            <td className="py-3 px-3 sm:px-4 tabular-nums font-bold text-charcoal whitespace-nowrap">{row.trailer_plate || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Verification Notice */}
-                <div className="border border-outline/70 bg-light-surface-variant/40 p-4 rounded-md flex items-center justify-between text-body-sm mb-6">
-                  <div className="flex items-center gap-3">
-                    <svg className="w-6 h-6 text-primary fill-current shrink-0" viewBox="0 0 24 24">
-                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
-                    </svg>
+                <div className="pdf-badge-row border border-outline/70 bg-light-surface-variant/40 p-3.5 sm:p-4 rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-body-sm mb-6">
+                  <div className="flex items-center">
+                    <img
+                      data-pdf-icon="verifiedShield"
+                      src={PDF_ICONS.verifiedShield}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="pdf-icon-img ml-3"
+                      style={{ width: '24px', height: '24px', minWidth: '24px' }}
+                    />
                     <div>
                       <span className="font-bold text-charcoal block">كشف سائقين وشاحنات معتمد إلكترونياً</span>
                       <span className="text-xs text-light-on-surface-variant">
@@ -478,7 +496,7 @@ export default function DriverManifestPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="text-left font-mono text-xs text-light-on-surface-variant shrink-0">
+                  <div className="pdf-badge-ref text-right sm:text-left font-mono text-xs text-light-on-surface-variant shrink-0">
                     <div>REF: {convoy.convoy_number}-DRV</div>
                     <div>TOTAL: {trucks.length} TRUCKS</div>
                   </div>
@@ -487,20 +505,32 @@ export default function DriverManifestPage() {
               </div>
 
               {/* Bottom Footer */}
-              <div className="relative z-10 pt-6">
+              <div className="relative z-10 pt-4 sm:pt-6">
                 <div className="w-full h-[1px] bg-primary mb-3"></div>
-                <div className="flex items-center justify-center gap-6 text-body-sm text-charcoal font-medium tabular-nums">
-                  <span className="inline-flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-primary fill-current" viewBox="0 0 24 24">
-                      <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
-                    </svg>
+                <div className="pdf-footer-row flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-2 text-body-sm text-charcoal font-medium tabular-nums">
+                  <span className="inline-flex items-center">
+                    <img
+                      data-pdf-icon="phone"
+                      src={PDF_ICONS.phone}
+                      alt=""
+                      width={16}
+                      height={16}
+                      className="pdf-icon-img ml-1.5"
+                      style={{ width: '16px', height: '16px', minWidth: '16px' }}
+                    />
                     <span>01093313193</span>
                   </span>
-                  <span className="text-primary font-bold">|</span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-primary fill-current" viewBox="0 0 24 24">
-                      <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                    </svg>
+                  <span className="pdf-footer-sep text-primary font-bold hidden sm:inline">|</span>
+                  <span className="inline-flex items-center">
+                    <img
+                      data-pdf-icon="mail"
+                      src={PDF_ICONS.mail}
+                      alt=""
+                      width={16}
+                      height={16}
+                      className="pdf-icon-img ml-1.5"
+                      style={{ width: '16px', height: '16px', minWidth: '16px' }}
+                    />
                     <span>elbeekb2b@gmail.com</span>
                   </span>
                 </div>
@@ -508,7 +538,7 @@ export default function DriverManifestPage() {
 
             </article>
 
-            <div className="flex items-center gap-4 my-6">
+            <div className="no-print flex flex-wrap items-center justify-center gap-3 sm:gap-4 my-6">
               <button
                 type="button"
                 onClick={() => window.print()}
@@ -534,7 +564,9 @@ export default function DriverManifestPage() {
 
       </main>
 
-      <Footer />
+      <div className="no-print">
+        <Footer />
+      </div>
     </>
   );
 }

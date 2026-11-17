@@ -8,6 +8,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { ConvoyRepository, parseCalculationMeta } from '@/lib/store';
 import { PDFService } from '@/lib/pdf';
+import { PDF_ICONS } from '@/lib/pdf-icons';
 import { COMPANY_LOGO_BASE64 } from '@/lib/logoBase64';
 import type { ConvoyWithDetails } from '@/types/database.types';
 import {
@@ -243,12 +244,12 @@ export default function StatementPreviewPage() {
       </header>
 
       {/* Main Viewport Area */}
-      <main className="flex-1 flex justify-center py-8 sm:py-12 px-3 sm:px-6 bg-[#4A4E54]">
+      <main className="flex-1 flex justify-center py-4 sm:py-8 md:py-12 px-2 sm:px-6 bg-[#4A4E54] overflow-x-hidden">
         
-        {/* The A4 Corporate Sheet (Strict Reference Compliance) */}
+        {/* The A4 Corporate Sheet (Responsive on all screens + Canonical A4 on Export/Print) */}
         <article
           id="official-statement-sheet"
-          className="a4-sheet p-8 sm:p-14 border border-outline/50 flex flex-col justify-between overflow-hidden relative bg-white"
+          className="a4-sheet p-4 sm:p-8 md:p-12 border border-outline/50 flex flex-col justify-between overflow-hidden relative bg-white rounded-md sm:rounded-none"
         >
           {/* Faint Red Logo Watermark */}
           <div
@@ -258,7 +259,7 @@ export default function StatementPreviewPage() {
             <img
               src={COMPANY_LOGO_BASE64}
               alt="Watermark"
-              className="w-[480px] h-[480px] object-contain"
+              className="pdf-watermark-img w-[240px] h-[240px] sm:w-[420px] sm:h-[420px] max-w-[80%] object-contain"
             />
           </div>
 
@@ -266,8 +267,8 @@ export default function StatementPreviewPage() {
           <div className="relative z-10">
             
             {/* Official Logo Centered */}
-            <div className="flex flex-col items-center justify-center mb-6">
-              <div className="w-32 h-32 flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center mb-4 sm:mb-6">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center">
                 <img
                   src={COMPANY_LOGO_BASE64}
                   alt="Ahmed Elbeek Import & Export"
@@ -277,16 +278,16 @@ export default function StatementPreviewPage() {
             </div>
 
             {/* Corporate Red Divider Line */}
-            <div className="w-full h-[2.5px] bg-primary mb-6"></div>
+            <div className="w-full h-[2.5px] bg-primary mb-5 sm:mb-6"></div>
 
             {/* Document Metadata Header */}
-            <div className="flex items-end justify-between mb-5 text-body-sm text-charcoal">
+            <div className="pdf-header-row flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-5 text-body-sm text-charcoal">
               <div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
                   <span className="text-body-sm text-light-on-surface-variant font-medium">
                     بيان تشغيل وتفريغ شاحنات:
                   </span>
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label-sm font-label font-bold ${
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label font-bold ${
                     convoy.location_id === 'rafah'
                       ? 'bg-red-50 text-primary border border-primary'
                       : 'bg-amber-50 text-warning border border-amber-400'
@@ -294,11 +295,11 @@ export default function StatementPreviewPage() {
                     <span>مكان التحميل: {convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</span>
                   </span>
                 </div>
-                <h2 className="font-headline text-headline-md font-bold text-primary">
+                <h2 className="font-headline text-headline-sm sm:text-headline-md font-bold text-primary">
                   بضاعة: {convoy.cargo_name} ({convoy.truck_count} شاحنة تريلا)
                 </h2>
               </div>
-              <div className="text-left font-body tabular-nums space-y-0.5">
+              <div className="pdf-header-dates text-right sm:text-left font-body tabular-nums space-y-0.5 bg-light-surface-variant/60 sm:bg-transparent p-2.5 sm:p-0 rounded sm:rounded-none">
                 <div>
                   <span className="text-light-on-surface-variant">تاريخ التحميل:</span>{' '}
                   <strong className="font-bold">{calc.loading_date}</strong>
@@ -306,180 +307,195 @@ export default function StatementPreviewPage() {
                 <div>
                   <span className="text-light-on-surface-variant">تاريخ التعتيق:</span>{' '}
                   <strong className="font-bold">{calc.completion_date}</strong> (
-                  <span className="text-primary font-bold">{calc.accommodation_nights}</span> ليالي مبيت)
+                  <span className="text-primary font-bold">{calc.accommodation_nights}</span>{' '}
+                  {calc.accommodation_nights === 1 ? 'ليلة مبيت' : 'ليالي مبيت'})
                 </div>
               </div>
             </div>
 
             {/* Electronic Load & Cost Summary (Matching Stitch and Word Reference) */}
-            <div className="border border-charcoal rounded-md overflow-hidden mb-8 shadow-xs">
-              <div className="bg-charcoal text-white px-5 py-3 flex items-center justify-between font-bold">
-                <span className="text-body-md flex items-center gap-2">
-                  <svg className="w-5 h-5 text-primary fill-current" viewBox="0 0 24 24">
-                    <path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2v20l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5V2l-1.5 1.5zM16 17H8v-2h8v2zm0-4H8v-2h8v2zm0-4H8V7h8v2z" />
-                  </svg>
+            <div className="border border-charcoal rounded-md overflow-hidden mb-6 sm:mb-8 shadow-xs">
+              <div className="pdf-bar-row bg-charcoal text-white px-4 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-bold">
+                <div className="text-body-sm sm:text-body-md flex items-center">
+                  <img
+                    data-pdf-icon="receipt"
+                    src={PDF_ICONS.receipt}
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="pdf-icon-img ml-2"
+                    style={{ width: '20px', height: '20px', minWidth: '20px' }}
+                  />
                   <span>كشف تفريغ وحساب التحميلة الإلكتروني (بوصلة واحدة)</span>
-                </span>
-                <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-light-gray font-normal">
+                </div>
+                <span className="text-xs bg-white/10 px-3 py-1 rounded-full text-light-gray font-normal self-start sm:self-auto">
                   مستند إلكتروني معتمد — لا يتطلب توقيعاً يدوياً
                 </span>
               </div>
 
               {/* Convoy Parameters Row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 bg-light-surface-variant border-b border-charcoal/20 text-body-sm">
+              <div className="pdf-params-grid grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-5 bg-light-surface-variant border-b border-charcoal/20 text-body-sm">
                 <div>
                   <span className="block text-light-on-surface-variant font-medium">عدد العربيات بالبوصلة:</span>
-                  <span className="text-charcoal font-bold text-body-lg tabular-nums">
+                  <span className="text-charcoal font-bold text-body-md sm:text-body-lg tabular-nums">
                     {convoy.truck_count} عربيات
                   </span>
                 </div>
                 <div>
                   <span className="block text-light-on-surface-variant font-medium">مكان التحميل المعتمد:</span>
-                  <span className="text-primary font-bold text-body-lg">
+                  <span className="text-primary font-bold text-body-md sm:text-body-lg">
                     {convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}
                   </span>
                 </div>
                 <div>
                   <span className="block text-light-on-surface-variant font-medium">يومية المبيت للعربية:</span>
-                  <span className="text-charcoal font-bold text-body-lg tabular-nums">
+                  <span className="text-charcoal font-bold text-body-md sm:text-body-lg tabular-nums">
                     {formatCurrency(calc.daily_accommodation_rate, false)} ج.م / يوم
                   </span>
                 </div>
                 <div>
                   <span className="block text-light-on-surface-variant font-medium">فئة نولون العربية:</span>
-                  <span className="text-charcoal font-bold text-body-lg tabular-nums">
+                  <span className="text-charcoal font-bold text-body-md sm:text-body-lg tabular-nums">
                     {formatCurrency(calc.freight_rate_per_truck, false)} ج.م
                   </span>
                 </div>
               </div>
 
-              {/* Itemized Calculation Table */}
-              <table className="w-full text-right border-collapse text-body-sm">
-                <thead>
-                  <tr className="bg-light-gray text-charcoal border-b border-charcoal/20 font-bold">
-                    <th className="py-3 px-4 w-12 text-center">م</th>
-                    <th className="py-3 px-4">بيان البند المالي للتحميلة</th>
-                    <th className="py-3 px-4 text-center">أساس الاحتساب الآلي</th>
-                    <th className="py-3 px-4 text-left">المبلغ الإجمالي</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-charcoal/10 text-charcoal">
-                  <tr>
-                    <td className="py-3.5 px-4 text-center tabular-nums font-bold">1</td>
-                    <td className="py-3.5 px-4">
-                      <span className="font-bold block">إجمالي نولون الشحن والتوصيل</span>
-                      <span className="text-xs text-light-on-surface-variant">
-                        شحن {convoy.truck_count} عربيات تريلا للبوصلة
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center tabular-nums font-medium text-light-on-surface-variant">
-                      {convoy.truck_count} عربيات × {formatCurrency(calc.freight_rate_per_truck, false)} ج.م
-                    </td>
-                    <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md">
-                      {formatCurrency(calc.total_freight)}
-                    </td>
-                  </tr>
-
-                  <tr className="bg-gray-50/50">
-                    <td className="py-3.5 px-4 text-center tabular-nums font-bold">2</td>
-                    <td className="py-3.5 px-4">
-                      <span className="font-bold block text-primary">إجمالي المبيت وأيام الانتظار</span>
-                      <span className="text-xs text-light-on-surface-variant">
-                        فترة المبيت الفعلية باستثناء يوم التحميل ويوم التعتيق ({calc.accommodation_nights} {calc.accommodation_nights === 1 ? 'ليلة' : 'ليالي'})
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center tabular-nums font-medium text-light-on-surface-variant">
-                      {calc.accommodation_nights} ليالي × {formatCurrency(calc.daily_accommodation_rate, false)} ج.م × {convoy.truck_count} عربيات
-                    </td>
-                    <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md text-primary">
-                      {formatCurrency(calc.total_accommodation)}
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td className="py-3.5 px-4 text-center tabular-nums font-bold">3</td>
-                    <td className="py-3.5 px-4">
-                      <span className="font-bold block">رسوم التخليص الجمركي (Clearance)</span>
-                      <span className="text-xs text-light-on-surface-variant">بند مالي منفصل بالمنفذ</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center text-xs text-light-on-surface-variant">
-                      بند جمركي مستقل
-                    </td>
-                    <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md">
-                      {formatCurrency(calc.customs_clearance)}
-                    </td>
-                  </tr>
-
-                  {Number(calc.port_demurrage) > 0 && (
-                    <tr className="bg-gray-50/50">
-                      <td className="py-3.5 px-4 text-center tabular-nums font-bold">4</td>
-                      <td className="py-3.5 px-4">
-                        <span className="font-bold block">أرضيات مبيت داخل المنفذ</span>
+              {/* Itemized Calculation Table (Scrollable on tiny screens, full-width on A4 export/print) */}
+              <div className="pdf-table-scroll overflow-x-auto w-full">
+                <table className="w-full min-w-[520px] sm:min-w-0 text-right border-collapse text-body-sm">
+                  <thead>
+                    <tr className="bg-light-gray text-charcoal border-b border-charcoal/20 font-bold">
+                      <th className="py-3 px-3 sm:px-4 w-10 sm:w-12 text-center">م</th>
+                      <th className="py-3 px-3 sm:px-4">بيان البند المالي للتحميلة</th>
+                      <th className="py-3 px-3 sm:px-4 text-center">أساس الاحتساب الآلي</th>
+                      <th className="py-3 px-3 sm:px-4 text-left">المبلغ الإجمالي</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-charcoal/10 text-charcoal">
+                    <tr>
+                      <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-bold">1</td>
+                      <td className="py-3.5 px-3 sm:px-4">
+                        <span className="font-bold block">إجمالي نولون الشحن والتوصيل</span>
                         <span className="text-xs text-light-on-surface-variant">
-                          مبيت وحراسة الشاحنات المبردة داخل ساحات المنفذ
+                          شحن {convoy.truck_count} عربيات تريلا للبوصلة
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-center text-xs text-light-on-surface-variant">
-                        رسوم ساحات وأرضيات
+                      <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-medium text-light-on-surface-variant">
+                        {convoy.truck_count} عربيات × {formatCurrency(calc.freight_rate_per_truck, false)} ج.م
                       </td>
-                      <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md">
-                        {formatCurrency(calc.port_demurrage)}
+                      <td className="py-3.5 px-3 sm:px-4 text-left font-bold tabular-nums text-body-md whitespace-nowrap">
+                        {formatCurrency(calc.total_freight)}
                       </td>
                     </tr>
-                  )}
 
-                  {/* Dynamic Custom Cost Items added by the owner */}
-                  {Array.isArray((calc as any).custom_items) &&
-                    (calc as any).custom_items
-                      .filter((it: any) => it && (it.name || Number(it.amount) > 0))
-                      .map((item: any, idx: number) => {
-                        const startSeq = Number(calc.port_demurrage) > 0 ? 5 : 4;
-                        const rowNumber = startSeq + idx;
-                        const isEven = rowNumber % 2 === 0;
-                        return (
-                          <tr key={item.id || idx} className={isEven ? 'bg-gray-50/50' : ''}>
-                            <td className="py-3.5 px-4 text-center tabular-nums font-bold">{rowNumber}</td>
-                            <td className="py-3.5 px-4">
-                              <span className="font-bold block text-charcoal">
-                                {item.name || `بند تكلفة مخصص ${idx + 1}`}
-                              </span>
-                              <span className="text-xs text-light-on-surface-variant">بند مالي مخصص بالبيان</span>
-                            </td>
-                            <td className="py-3.5 px-4 text-center text-xs text-light-on-surface-variant">
-                              بند مالي إضافي
-                            </td>
-                            <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md text-charcoal">
-                              {formatCurrency(Number(item.amount) || 0)}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                </tbody>
-              </table>
+                    <tr className="bg-gray-50/50">
+                      <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-bold">2</td>
+                      <td className="py-3.5 px-3 sm:px-4">
+                        <span className="font-bold block text-primary">إجمالي المبيت وأيام الانتظار</span>
+                        <span className="text-xs text-light-on-surface-variant">
+                          فترة المبيت الفعلية باستثناء يوم التحميل ويوم التعتيق ({calc.accommodation_nights} {calc.accommodation_nights === 1 ? 'ليلة' : 'ليالي'})
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-medium text-light-on-surface-variant">
+                        {calc.accommodation_nights} {calc.accommodation_nights === 1 ? 'ليلة' : 'ليالي'} × {formatCurrency(calc.daily_accommodation_rate, false)} ج.م × {convoy.truck_count} عربيات
+                      </td>
+                      <td className="py-3.5 px-3 sm:px-4 text-left font-bold tabular-nums text-body-md text-primary whitespace-nowrap">
+                        {formatCurrency(calc.total_accommodation)}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-bold">3</td>
+                      <td className="py-3.5 px-3 sm:px-4">
+                        <span className="font-bold block">رسوم التخليص الجمركي (Clearance)</span>
+                        <span className="text-xs text-light-on-surface-variant">بند مالي منفصل بالمنفذ</span>
+                      </td>
+                      <td className="py-3.5 px-3 sm:px-4 text-center text-xs text-light-on-surface-variant">
+                        بند جمركي مستقل
+                      </td>
+                      <td className="py-3.5 px-3 sm:px-4 text-left font-bold tabular-nums text-body-md whitespace-nowrap">
+                        {formatCurrency(calc.customs_clearance)}
+                      </td>
+                    </tr>
+
+                    {Number(calc.port_demurrage) > 0 && (
+                      <tr className="bg-gray-50/50">
+                        <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-bold">4</td>
+                        <td className="py-3.5 px-3 sm:px-4">
+                          <span className="font-bold block">أرضيات مبيت داخل المنفذ</span>
+                          <span className="text-xs text-light-on-surface-variant">
+                            مبيت وحراسة الشاحنات المبردة داخل ساحات المنفذ
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 sm:px-4 text-center text-xs text-light-on-surface-variant">
+                          رسوم ساحات وأرضيات
+                        </td>
+                        <td className="py-3.5 px-3 sm:px-4 text-left font-bold tabular-nums text-body-md whitespace-nowrap">
+                          {formatCurrency(calc.port_demurrage)}
+                        </td>
+                      </tr>
+                    )}
+
+                    {/* Dynamic Custom Cost Items added by the owner */}
+                    {Array.isArray((calc as any).custom_items) &&
+                      (calc as any).custom_items
+                        .filter((it: any) => it && (it.name || Number(it.amount) > 0))
+                        .map((item: any, idx: number) => {
+                          const startSeq = Number(calc.port_demurrage) > 0 ? 5 : 4;
+                          const rowNumber = startSeq + idx;
+                          const isEven = rowNumber % 2 === 0;
+                          return (
+                            <tr key={item.id || idx} className={isEven ? 'bg-gray-50/50' : ''}>
+                              <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-bold">{rowNumber}</td>
+                              <td className="py-3.5 px-3 sm:px-4">
+                                <span className="font-bold block text-charcoal">
+                                  {item.name || `بند تكلفة مخصص ${idx + 1}`}
+                                </span>
+                                <span className="text-xs text-light-on-surface-variant">بند مالي مخصص بالبيان</span>
+                              </td>
+                              <td className="py-3.5 px-3 sm:px-4 text-center text-xs text-light-on-surface-variant">
+                                بند مالي إضافي
+                              </td>
+                              <td className="py-3.5 px-3 sm:px-4 text-left font-bold tabular-nums text-body-md text-charcoal whitespace-nowrap">
+                                {formatCurrency(Number(item.amount) || 0)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                  </tbody>
+                </table>
+              </div>
 
               {/* Final Grand Total Bar */}
-              <div className="bg-charcoal text-white p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="pdf-total-bar bg-charcoal text-white p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                   <span className="text-xs text-light-gray block">إجمالي صافي مستحقات التحميلة (البوصلة):</span>
-                  <span className="text-body-md font-bold text-outline">
+                  <span className="text-body-sm sm:text-body-md font-bold text-outline">
                     {arabicTafqeet(grandTotal)}
                   </span>
                 </div>
-                <div className="text-left">
-                  <span className="font-headline text-display-lg text-white font-bold tabular-nums leading-none">
+                <div className="text-left self-end sm:self-auto whitespace-nowrap">
+                  <span className="font-headline text-headline-lg sm:text-display-lg text-white font-bold tabular-nums leading-none">
                     {Math.round(grandTotal).toLocaleString('en-US')}
                   </span>
-                  <span className="text-body-sm text-light-gray mr-1">جنيه مصري</span>
+                  <span className="text-body-sm text-light-gray mr-1.5">جنيه مصري</span>
                 </div>
               </div>
             </div>
 
             {/* Official Electronic Document Validation Badge */}
-            <div className="border border-outline/70 bg-light-surface-variant/40 p-4 rounded-md flex items-center justify-between text-body-sm mb-6">
-              <div className="flex items-center gap-3">
-                <svg className="w-6 h-6 text-primary fill-current shrink-0" viewBox="0 0 24 24">
-                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
-                </svg>
+            <div className="pdf-badge-row border border-outline/70 bg-light-surface-variant/40 p-3.5 sm:p-4 rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-body-sm mb-6">
+              <div className="flex items-center">
+                <img
+                  data-pdf-icon="verifiedShield"
+                  src={PDF_ICONS.verifiedShield}
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="pdf-icon-img ml-3"
+                  style={{ width: '24px', height: '24px', minWidth: '24px' }}
+                />
                 <div>
                   <span className="font-bold text-charcoal block">بيان مالي إلكتروني معتمد رسمياً</span>
                   <span className="text-xs text-light-on-surface-variant">
@@ -487,7 +503,7 @@ export default function StatementPreviewPage() {
                   </span>
                 </div>
               </div>
-              <div className="text-left font-mono text-xs text-light-on-surface-variant shrink-0">
+              <div className="pdf-badge-ref text-right sm:text-left font-mono text-xs text-light-on-surface-variant shrink-0">
                 <div>REF: {convoy.convoy_number}</div>
                 <div>VERIFIED: {calc.completion_date}</div>
               </div>
@@ -496,20 +512,32 @@ export default function StatementPreviewPage() {
           </div>
 
           {/* Bottom Corporate Footer (Exact Match to Reference Word Document) */}
-          <div className="relative z-10 pt-6">
+          <div className="relative z-10 pt-4 sm:pt-6">
             <div className="w-full h-[1px] bg-primary mb-3"></div>
-            <div className="flex items-center justify-center gap-6 text-body-sm text-charcoal font-medium tabular-nums">
-              <span className="inline-flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-primary fill-current" viewBox="0 0 24 24">
-                  <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
-                </svg>
+            <div className="pdf-footer-row flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-2 text-body-sm text-charcoal font-medium tabular-nums">
+              <span className="inline-flex items-center">
+                <img
+                  data-pdf-icon="phone"
+                  src={PDF_ICONS.phone}
+                  alt=""
+                  width={16}
+                  height={16}
+                  className="pdf-icon-img ml-1.5"
+                  style={{ width: '16px', height: '16px', minWidth: '16px' }}
+                />
                 <span>01093313193</span>
               </span>
-              <span className="text-primary font-bold">|</span>
-              <span className="inline-flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-primary fill-current" viewBox="0 0 24 24">
-                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                </svg>
+              <span className="pdf-footer-sep text-primary font-bold hidden sm:inline">|</span>
+              <span className="inline-flex items-center">
+                <img
+                  data-pdf-icon="mail"
+                  src={PDF_ICONS.mail}
+                  alt=""
+                  width={16}
+                  height={16}
+                  className="pdf-icon-img ml-1.5"
+                  style={{ width: '16px', height: '16px', minWidth: '16px' }}
+                />
                 <span>elbeekb2b@gmail.com</span>
               </span>
             </div>

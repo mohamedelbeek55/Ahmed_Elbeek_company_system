@@ -28,31 +28,171 @@
   vertical-align: middle;
 }
 
-/* Print simulation & PDF sheet styling */
+/* Print simulation & PDF sheet styling (Responsive across all screen sizes) */
 .a4-sheet {
   width: 100%;
   max-width: 820px;
-  min-height: 1140px;
+  min-height: auto;
   background-color: #FFFFFF;
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
   position: relative;
 }
 
+@media (min-width: 640px) {
+  .a4-sheet {
+    min-height: 1120px;
+  }
+}
+
+/* Explicit PDF icon alignment (prevents vertical drift or clipping across browsers & html2canvas) */
+.pdf-icon-img {
+  display: inline-block !important;
+  flex-shrink: 0 !important;
+  vertical-align: middle !important;
+  object-fit: contain !important;
+  max-width: none !important;
+}
+
+/*
+ * Canonical A4 export mode — forced during html2canvas PDF capture
+ * so the downloaded PDF is 100% consistent regardless of device screen width
+ * (mobile 360px, tablet 768px, laptop 1366px, or 4K desktop).
+ */
+.pdf-export-mode {
+  width: 794px !important;
+  min-width: 794px !important;
+  max-width: 794px !important;
+  min-height: 1122px !important;
+  padding: 44px 48px !important;
+  margin: 0 auto !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  background-color: #FFFFFF !important;
+  box-sizing: border-box !important;
+}
+
+.pdf-export-mode .pdf-header-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+}
+
+.pdf-export-mode .pdf-header-dates {
+  text-align: left !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+.pdf-export-mode .pdf-footer-sep {
+  display: inline !important;
+}
+
+.pdf-export-mode .pdf-bar-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.pdf-export-mode .pdf-params-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+
+.pdf-export-mode .pdf-table-scroll {
+  overflow: visible !important;
+}
+
+.pdf-export-mode .pdf-table-scroll table {
+  width: 100% !important;
+  min-width: 100% !important;
+}
+
+.pdf-export-mode .pdf-total-bar {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.pdf-export-mode .pdf-badge-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+}
+
+.pdf-export-mode .pdf-badge-ref {
+  text-align: left !important;
+}
+
+.pdf-export-mode .pdf-footer-row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 24px !important;
+}
+
+.pdf-export-mode .pdf-watermark-img {
+  width: 440px !important;
+  height: 440px !important;
+  max-width: none !important;
+}
+
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
   body {
-    background: transparent !important;
+    background: #FFFFFF !important;
     padding: 0 !important;
+    margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   header, nav, .no-print {
     display: none !important;
+  }
+  main {
+    background: #FFFFFF !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
   .a4-sheet {
     box-shadow: none !important;
     border: none !important;
     width: 100% !important;
     max-width: 100% !important;
-    padding: 0 !important;
+    min-height: 277mm !important;
+    padding: 8mm !important;
     margin: 0 !important;
+    overflow: visible !important;
+  }
+  .a4-sheet .pdf-header-row,
+  .a4-sheet .pdf-bar-row,
+  .a4-sheet .pdf-total-bar,
+  .a4-sheet .pdf-badge-row {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+  }
+  .a4-sheet .pdf-params-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .a4-sheet .pdf-table-scroll {
+    overflow: visible !important;
   }
 }
 

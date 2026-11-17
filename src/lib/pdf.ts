@@ -5,6 +5,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { supabase } from './supabase/client';
 import { ConvoyRepository, parseCalculationMeta } from './store';
+import { getRasterizedPdfIcons, type PdfIconKey } from './pdf-icons';
 import type { ConvoyWithDetails } from '@/types/database.types';
 
 export interface PDFExportOptions {
@@ -32,11 +33,15 @@ export const PDFService = {
         await (document as any).fonts.ready;
       }
 
-      // 2. Ensure all images inside element are fully loaded
+      // 2. Pre-rasterize all PDF vector icons to crisp 4x PNG data URIs
+      //    (eliminates html2canvas SVG clipping, black-fill, and vertical drift bugs)
+      const rasterizedIcons = await getRasterizedPdfIcons();
+
+      // 3. Ensure all images inside element are fully loaded
       const images = Array.from(element.querySelectorAll('img'));
       await Promise.all(
         images.map((img) => {
-          if (img.complete) return Promise.resolve();
+          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
           return new Promise((resolve) => {
             img.onload = resolve;
             img.onerror = resolve;
@@ -44,7 +49,7 @@ export const PDFService = {
         })
       );
 
-      // 3. Render element to high-res canvas (PNG)
+      // 4. Render element to high-res A4 canvas (screen-size independent!)
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -52,15 +57,54 @@ export const PDFService = {
         backgroundColor: '#FFFFFF',
         logging: false,
         imageTimeout: 0,
-        windowWidth: 1200,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: 1280,
+        windowHeight: 1600,
         onclone: (clonedDoc) => {
+          // Ensure cloned root body never clips or constrains the A4 sheet on small screens
+          if (clonedDoc.documentElement) {
+            clonedDoc.documentElement.style.width = '1280px';
+            clonedDoc.documentElement.style.overflow = 'visible';
+          }
+          if (clonedDoc.body) {
+            clonedDoc.body.style.width = '1280px';
+            clonedDoc.body.style.margin = '0';
+            clonedDoc.body.style.padding = '0';
+            clonedDoc.body.style.overflow = 'visible';
+          }
+
           const clonedEl = clonedDoc.getElementById(options.elementId);
           if (clonedEl) {
+            // Unconstrain ancestor wrappers (important on mobile/tablet viewports)
+            let parent = clonedEl.parentElement;
+            while (parent && parent !== clonedDoc.body) {
+              parent.style.width = '100%';
+              parent.style.maxWidth = 'none';
+              parent.style.padding = '0';
+              parent.style.margin = '0';
+              parent.style.overflow = 'visible';
+              parent.style.transform = 'none';
+              parent = parent.parentElement;
+            }
+
+            // Force canonical 794px A4 desktop layout regardless of current device viewport
+            clonedEl.classList.add('pdf-export-mode');
             clonedEl.style.width = '794px';
+            clonedEl.style.minWidth = '794px';
             clonedEl.style.maxWidth = '794px';
             clonedEl.style.margin = '0 auto';
             clonedEl.style.boxShadow = 'none';
             clonedEl.style.border = 'none';
+
+            // Swap all PDF icon <img> elements with pre-rasterized 4x crisp PNGs
+            const iconImgs = clonedEl.querySelectorAll<HTMLImageElement>('img[data-pdf-icon]');
+            iconImgs.forEach((imgEl) => {
+              const iconKey = imgEl.getAttribute('data-pdf-icon') as PdfIconKey | null;
+              if (iconKey && rasterizedIcons[iconKey]) {
+                imgEl.src = rasterizedIcons[iconKey];
+              }
+            });
           }
         },
       });
