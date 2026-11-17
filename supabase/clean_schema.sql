@@ -61,8 +61,10 @@ CREATE TABLE IF NOT EXISTS public.cost_calculations (
     freight_rate_per_truck NUMERIC(12, 2) NOT NULL DEFAULT 8500.00,
     total_freight NUMERIC(14, 2) NOT NULL,
     customs_clearance NUMERIC(14, 2) NOT NULL DEFAULT 0.00,
+    port_demurrage NUMERIC(14, 2) NOT NULL DEFAULT 0.00,
     additional_expenses NUMERIC(14, 2) NOT NULL DEFAULT 0.00,
     additional_expenses_notes TEXT,
+    custom_items JSONB DEFAULT '[]'::jsonb,
     grand_total NUMERIC(14, 2) NOT NULL,
     average_cost_per_truck NUMERIC(12, 2) NOT NULL,
     currency TEXT NOT NULL DEFAULT 'EGP',
@@ -70,6 +72,10 @@ CREATE TABLE IF NOT EXISTS public.cost_calculations (
     calculated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Ensure columns exist for existing deployments
+ALTER TABLE public.cost_calculations ADD COLUMN IF NOT EXISTS port_demurrage NUMERIC(14, 2) NOT NULL DEFAULT 0.00;
+ALTER TABLE public.cost_calculations ADD COLUMN IF NOT EXISTS custom_items JSONB DEFAULT '[]'::jsonb;
 
 -- 5. Create Issued Documents Table (Statements Archive)
 CREATE TABLE IF NOT EXISTS public.issued_documents (

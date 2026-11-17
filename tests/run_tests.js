@@ -18,11 +18,24 @@ function calculateConvoyFinances(input) {
   const dailyRate = Number(input.dailyAccommodationRate) || 0;
   const freightRate = Number(input.freightRatePerTruck) || 0;
   const clearance = Number(input.customsClearance) || 0;
+  const demurrage = Number(input.portDemurrage) || 0;
   const extras = Number(input.additionalExpenses) || 0;
+
+  const customItems = Array.isArray(input.customItems)
+    ? input.customItems
+        .filter((item) => item && (item.name?.trim() || Number(item.amount) > 0))
+        .map((item, idx) => ({
+          id: item.id || `custom-${idx + 1}`,
+          name: (item.name || '').trim(),
+          amount: Number(item.amount) || 0,
+        }))
+    : [];
+
+  const customItemsTotal = customItems.reduce((acc, it) => acc + (Number(it.amount) || 0), 0);
 
   const totalAccommodation = nights * dailyRate * truckCount;
   const totalFreight = freightRate * truckCount;
-  const grandTotal = totalAccommodation + totalFreight + clearance + extras;
+  const grandTotal = totalAccommodation + totalFreight + clearance + demurrage + extras + customItemsTotal;
   const averageCostPerTruck = truckCount > 0 ? grandTotal / truckCount : 0;
 
   return {
@@ -30,7 +43,10 @@ function calculateConvoyFinances(input) {
     totalAccommodation,
     totalFreight,
     customsClearance: clearance,
+    portDemurrage: demurrage,
     additionalExpenses: extras,
+    customItemsTotal,
+    customItems,
     grandTotal,
     averageCostPerTruck,
   };
@@ -121,5 +137,35 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
   console.log('✓ Test 5 Passed: Lump-sum clearance & expenses separation rule');
 }
 
-console.log('\n🎉 ALL 5 AUTOMATED TESTS PASSED SUCCESSFULLY!');
+// Test 6: Port Demurrage (أرضيات مبيت داخل المنفذ) and Dynamic Custom Cost Items
+{
+  const testNewItems = calculateConvoyFinances({
+    truckCount: 5,
+    loadingDate: '2026-11-10',
+    completionDate: '2026-11-14', // 4 nights
+    dailyAccommodationRate: 500, // 4 * 500 * 5 = 10,000
+    freightRatePerTruck: 8000, // 5 * 8000 = 40,000
+    customsClearance: 12000,
+    portDemurrage: 6500, // أرضيات مبيت داخل المنفذ
+    additionalExpenses: 2500,
+    customItems: [
+      { id: 'c1', name: 'عمال تعتيق إضافية', amount: 3000 },
+      { id: 'c2', name: 'حراسة ساحات ليلية', amount: 1500 },
+    ],
+  });
+
+  // Expected Grand Total:
+  // 10000 + 40000 + 12000 + 6500 + 2500 + 3000 + 1500 = 75,500
+  // Average per truck = 75500 / 5 = 15,100
+  assert.strictEqual(testNewItems.accommodationNights, 4);
+  assert.strictEqual(testNewItems.totalAccommodation, 10000);
+  assert.strictEqual(testNewItems.totalFreight, 40000);
+  assert.strictEqual(testNewItems.portDemurrage, 6500);
+  assert.strictEqual(testNewItems.customItemsTotal, 4500);
+  assert.strictEqual(testNewItems.grandTotal, 75500);
+  assert.strictEqual(testNewItems.averageCostPerTruck, 15100);
+  console.log('✓ Test 6 Passed: Port Demurrage and dynamic custom cost items calculation');
+}
+
+console.log('\n🎉 ALL 6 AUTOMATED TESTS PASSED SUCCESSFULLY!');
 

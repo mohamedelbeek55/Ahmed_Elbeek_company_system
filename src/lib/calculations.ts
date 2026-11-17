@@ -2,6 +2,12 @@
  * Ahmed Elbeek Management System - Business Logic & Financial Calculations
  */
 
+export interface CustomCostItem {
+  id: string;
+  name: string;
+  amount: number;
+}
+
 export interface CalculationInput {
   truckCount: number;
   loadingDate: string; // YYYY-MM-DD
@@ -9,7 +15,9 @@ export interface CalculationInput {
   dailyAccommodationRate: number; // ج.م / يوم
   freightRatePerTruck: number; // ج.م / شاحنة
   customsClearance: number; // ج.م
+  portDemurrage?: number; // أرضيات مبيت داخل المنفذ ج.م
   additionalExpenses: number; // ج.م
+  customItems?: CustomCostItem[]; // بنود تكاليف إضافية مخصصة
 }
 
 export interface CalculationResult {
@@ -17,7 +25,10 @@ export interface CalculationResult {
   totalAccommodation: number;
   totalFreight: number;
   customsClearance: number;
+  portDemurrage: number;
   additionalExpenses: number;
+  customItemsTotal: number;
+  customItems: CustomCostItem[];
   grandTotal: number;
   averageCostPerTruck: number;
   tafqeetAr: string;
@@ -48,7 +59,20 @@ export function calculateConvoyFinances(input: CalculationInput): CalculationRes
   const dailyRate = Number(input.dailyAccommodationRate) || 0;
   const freightRate = Number(input.freightRatePerTruck) || 0;
   const clearance = Number(input.customsClearance) || 0;
+  const demurrage = Number(input.portDemurrage) || 0;
   const extras = Number(input.additionalExpenses) || 0;
+
+  const customItems: CustomCostItem[] = Array.isArray(input.customItems)
+    ? input.customItems
+        .filter((item) => item && (item.name?.trim() || Number(item.amount) > 0))
+        .map((item, idx) => ({
+          id: item.id || `custom-${idx + 1}-${Date.now()}`,
+          name: (item.name || '').trim(),
+          amount: Number(item.amount) || 0,
+        }))
+    : [];
+
+  const customItemsTotal = customItems.reduce((acc, it) => acc + (Number(it.amount) || 0), 0);
 
   // Accommodation = Nights × Daily rate per truck × Truck count
   const totalAccommodation = nights * dailyRate * truckCount;
@@ -56,8 +80,8 @@ export function calculateConvoyFinances(input: CalculationInput): CalculationRes
   // Freight = Freight rate per truck × Truck count
   const totalFreight = freightRate * truckCount;
 
-  // Clearance and Additional Expenses are separate amounts
-  const grandTotal = totalAccommodation + totalFreight + clearance + extras;
+  // Grand total combines standard items, demurrage, clearance, extras, and all custom items
+  const grandTotal = totalAccommodation + totalFreight + clearance + demurrage + extras + customItemsTotal;
 
   // Average cost per truck
   const averageCostPerTruck = truckCount > 0 ? grandTotal / truckCount : 0;
@@ -67,7 +91,10 @@ export function calculateConvoyFinances(input: CalculationInput): CalculationRes
     totalAccommodation,
     totalFreight,
     customsClearance: clearance,
+    portDemurrage: demurrage,
     additionalExpenses: extras,
+    customItemsTotal,
+    customItems,
     grandTotal,
     averageCostPerTruck,
     tafqeetAr: arabicTafqeet(grandTotal),

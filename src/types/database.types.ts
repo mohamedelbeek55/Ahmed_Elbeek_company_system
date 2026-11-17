@@ -10,6 +10,12 @@ export type LoadingLocationId = 'rafah' | 'al_awja';
 export type ConvoyStatus = 'active' | 'completed' | 'cancelled';
 export type DocumentType = 'statement' | 'drivers_manifest';
 
+export interface CustomCostItem {
+  id: string;
+  name: string;
+  amount: number;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -130,8 +136,10 @@ export interface Database {
           freight_rate_per_truck: number;
           total_freight: number;
           customs_clearance: number;
+          port_demurrage: number;
           additional_expenses: number;
           additional_expenses_notes: string | null;
+          custom_items: CustomCostItem[] | null;
           grand_total: number;
           average_cost_per_truck: number;
           currency: string;
@@ -150,8 +158,10 @@ export interface Database {
           freight_rate_per_truck: number;
           total_freight: number;
           customs_clearance?: number;
+          port_demurrage?: number;
           additional_expenses?: number;
           additional_expenses_notes?: string | null;
+          custom_items?: CustomCostItem[] | null;
           grand_total: number;
           average_cost_per_truck: number;
           currency?: string;
@@ -170,8 +180,10 @@ export interface Database {
           freight_rate_per_truck?: number;
           total_freight?: number;
           customs_clearance?: number;
+          port_demurrage?: number;
           additional_expenses?: number;
           additional_expenses_notes?: string | null;
+          custom_items?: CustomCostItem[] | null;
           grand_total?: number;
           average_cost_per_truck?: number;
           currency?: string;

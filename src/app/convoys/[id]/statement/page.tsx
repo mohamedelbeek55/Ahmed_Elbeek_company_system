@@ -86,8 +86,10 @@ export default function StatementPreviewPage() {
     freight_rate_per_truck: 8500,
     total_freight: 8500 * convoy.truck_count,
     customs_clearance: 14500,
+    port_demurrage: 0,
     additional_expenses: 3600,
     additional_expenses_notes: 'موازين، كروت بوابات، حراسات وتفريغ',
+    custom_items: [],
     grand_total:
       calculateElapsedDays(convoy.loading_date, convoy.completion_date) * 500 * convoy.truck_count +
       8500 * convoy.truck_count +
@@ -123,20 +125,35 @@ export default function StatementPreviewPage() {
     const locationName = convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة';
     const grandTotal = currentCalc ? Math.round(currentCalc.grand_total).toLocaleString('en-US') : '0';
     const nights = currentCalc ? currentCalc.accommodation_nights : '0';
+    const demurrage = Number(currentCalc?.port_demurrage) || 0;
+    const customItemsList = Array.isArray((currentCalc as any)?.custom_items) ? (currentCalc as any).custom_items : [];
 
-    const text = [
+    const lines = [
       `*بيان حسابات رسمي — شركة أحمد البيك للاستيراد والتصدير*`,
       `📦 البضاعة: ${convoy.cargo_name}`,
       `⚓ مكان التحميل: ${locationName}`,
       `🚛 عدد الشاحنات: ${convoy.truck_count} تريلا`,
       `📅 تاريخ التحميل: ${convoy.loading_date}`,
       `🏁 تاريخ التعتيق: ${convoy.completion_date || 'جاري'} (${nights} ليالي مبيت)`,
-      `💰 إجمالي المستحق: ${grandTotal} ج.م`,
-      `📄 مستند معتمد رقم: ${convoy.convoy_number}`,
-      `📞 01093313193 | elbeekb2b@gmail.com`,
-    ].join('\n');
+    ];
 
-    navigator.clipboard.writeText(text);
+    if (demurrage > 0) {
+      lines.push(`🏢 أرضيات مبيت داخل المنفذ: ${Math.round(demurrage).toLocaleString('en-US')} ج.م`);
+    }
+
+    if (customItemsList.length > 0) {
+      customItemsList.forEach((ci: any) => {
+        if (ci.name || ci.amount > 0) {
+          lines.push(`➕ ${ci.name || 'بند إضافي'}: ${Math.round(Number(ci.amount) || 0).toLocaleString('en-US')} ج.م`);
+        }
+      });
+    }
+
+    lines.push(`💰 إجمالي المستحق: ${grandTotal} ج.م`);
+    lines.push(`📄 مستند معتمد رقم: ${convoy.convoy_number}`);
+    lines.push(`📞 01093313193 | elbeekb2b@gmail.com`);
+
+    navigator.clipboard.writeText(lines.join('\n'));
     setWhatsappCopied(true);
     setTimeout(() => setWhatsappCopied(false), 3000);
   };
@@ -381,6 +398,22 @@ export default function StatementPreviewPage() {
                   <tr className="bg-gray-50/50">
                     <td className="py-3.5 px-4 text-center tabular-nums font-bold">4</td>
                     <td className="py-3.5 px-4">
+                      <span className="font-bold block">أرضيات مبيت داخل المنفذ</span>
+                      <span className="text-xs text-light-on-surface-variant">
+                        مبيت وحراسة الشاحنات المبردة داخل ساحات المنفذ
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-center text-xs text-light-on-surface-variant">
+                      رسوم ساحات وأرضيات
+                    </td>
+                    <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md">
+                      {formatCurrency(calc.port_demurrage || 0)}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td className="py-3.5 px-4 text-center tabular-nums font-bold">5</td>
+                    <td className="py-3.5 px-4">
                       <span className="font-bold block">المصاريف الإضافية والنثريات</span>
                       <span className="text-xs text-light-on-surface-variant">
                         {calc.additional_expenses_notes || 'موازين، كروت بوابات، حراسات وتفريغ'}
@@ -393,6 +426,32 @@ export default function StatementPreviewPage() {
                       {formatCurrency(calc.additional_expenses)}
                     </td>
                   </tr>
+
+                  {/* Dynamic Custom Cost Items */}
+                  {Array.isArray((calc as any).custom_items) &&
+                    (calc as any).custom_items
+                      .filter((it: any) => it && (it.name || Number(it.amount) > 0))
+                      .map((item: any, idx: number) => {
+                        const rowNumber = 6 + idx;
+                        const isEven = rowNumber % 2 === 0;
+                        return (
+                          <tr key={item.id || idx} className={isEven ? 'bg-gray-50/50' : ''}>
+                            <td className="py-3.5 px-4 text-center tabular-nums font-bold">{rowNumber}</td>
+                            <td className="py-3.5 px-4">
+                              <span className="font-bold block text-charcoal">
+                                {item.name || `بند تكلفة مخصص ${idx + 1}`}
+                              </span>
+                              <span className="text-xs text-light-on-surface-variant">بند مالي إضافي معتمد</span>
+                            </td>
+                            <td className="py-3.5 px-4 text-center text-xs text-light-on-surface-variant">
+                              بند مالي مخصص
+                            </td>
+                            <td className="py-3.5 px-4 text-left font-bold tabular-nums text-body-md text-charcoal">
+                              {formatCurrency(Number(item.amount) || 0)}
+                            </td>
+                          </tr>
+                        );
+                      })}
                 </tbody>
               </table>
 

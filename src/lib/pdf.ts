@@ -186,8 +186,10 @@ export const PDFService = {
     const locationName = convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة';
     const grandTotal = calc ? Math.round(calc.grand_total).toLocaleString('en-US') : '0';
     const nights = calc ? calc.accommodation_nights : '0';
+    const demurrage = Number(calc?.port_demurrage) || 0;
+    const customItemsList = Array.isArray((calc as any)?.custom_items) ? (calc as any).custom_items : [];
 
-    const message = [
+    const lines = [
       `*بيان حسابات رسمي — شركة أحمد البيك للاستيراد والتصدير*`,
       `━━━━━━━━━━━━━━━━━━━━`,
       `📦 *البضاعة:* ${convoy.cargo_name}`,
@@ -195,13 +197,28 @@ export const PDFService = {
       `🚛 *عدد الشاحنات:* ${convoy.truck_count} شاحنة تريلا`,
       `📅 *تاريخ التحميل:* ${convoy.loading_date}`,
       `🏁 *تاريخ التعتيق:* ${convoy.completion_date || 'جاري'} (${nights} ليالي مبيت)`,
+    ];
+
+    if (demurrage > 0) {
+      lines.push(`🏢 *أرضيات مبيت داخل المنفذ:* ${Math.round(demurrage).toLocaleString('en-US')} ج.م`);
+    }
+
+    if (customItemsList.length > 0) {
+      customItemsList.forEach((ci: any) => {
+        if (ci.name || ci.amount > 0) {
+          lines.push(`➕ *${ci.name || 'بند إضافي'}:* ${Math.round(Number(ci.amount) || 0).toLocaleString('en-US')} ج.م`);
+        }
+      });
+    }
+
+    lines.push(
       `💰 *إجمالي المستحق:* ${grandTotal} ج.م`,
       `━━━━━━━━━━━━━━━━━━━━`,
       `📄 مستند إلكتروني معتمد رسمياً: ${convoy.convoy_number}`,
-      `📞 للاستفسار: 01093313193 | elbeekb2b@gmail.com`,
-    ].join('\n');
+      `📞 للاستفسار: 01093313193 | elbeekb2b@gmail.com`
+    );
 
-    const encoded = encodeURIComponent(message);
+    const encoded = encodeURIComponent(lines.join('\n'));
     const targetPhone = phoneNumber ? phoneNumber.replace(/[^0-9]/g, '') : '';
 
     return targetPhone

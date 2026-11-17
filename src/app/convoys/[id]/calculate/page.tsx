@@ -27,8 +27,10 @@ export default function CostCalculationPage() {
   const [dailyRate, setDailyRate] = useState<string>('500');
   const [freightRate, setFreightRate] = useState<string>('8500');
   const [clearanceCost, setClearanceCost] = useState<string>('14500');
+  const [portDemurrage, setPortDemurrage] = useState<string>('0');
   const [extraExpenses, setExtraExpenses] = useState<string>('3600');
   const [extraNotes, setExtraNotes] = useState('موازين، كروت بوابات، حراسات وتفريغ');
+  const [customItems, setCustomItems] = useState<Array<{ id: string; name: string; amount: string }>>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -53,9 +55,19 @@ export default function CostCalculationPage() {
         setDailyRate(String(rawCalc.daily_accommodation_rate));
         setFreightRate(String(rawCalc.freight_rate_per_truck));
         setClearanceCost(String(rawCalc.customs_clearance));
+        setPortDemurrage(String(rawCalc.port_demurrage ?? '0'));
         setExtraExpenses(String(rawCalc.additional_expenses));
         if (rawCalc.additional_expenses_notes) {
           setExtraNotes(rawCalc.additional_expenses_notes);
+        }
+        if (Array.isArray(rawCalc.custom_items) && rawCalc.custom_items.length > 0) {
+          setCustomItems(
+            rawCalc.custom_items.map((item: any, idx: number) => ({
+              id: item.id || `ci-${Date.now()}-${idx}`,
+              name: item.name || '',
+              amount: String(item.amount ?? ''),
+            }))
+          );
         }
       }
     }
@@ -71,6 +83,36 @@ export default function CostCalculationPage() {
     // Remove leading zeros if followed by non-zero digits (e.g. "030000" -> "30000", but keep "0" or "0.")
     const clean = val.replace(/^0+(?=\d)/, '');
     setter(clean);
+  };
+
+  const handleAddCustomItem = () => {
+    setCustomItems((prev) => [
+      ...prev,
+      {
+        id: `ci-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        name: '',
+        amount: '',
+      },
+    ]);
+  };
+
+  const handleUpdateCustomItem = (itemId: string, field: 'name' | 'amount', value: string) => {
+    setCustomItems((prev) =>
+      prev.map((item) => {
+        if (item.id === itemId) {
+          if (field === 'amount') {
+            const clean = value === '' ? '' : value.replace(/^0+(?=\d)/, '');
+            return { ...item, amount: clean };
+          }
+          return { ...item, [field]: value };
+        }
+        return item;
+      })
+    );
+  };
+
+  const handleRemoveCustomItem = (itemId: string) => {
+    setCustomItems((prev) => prev.filter((item) => item.id !== itemId));
   };
 
   if (loading) {
@@ -107,7 +149,14 @@ export default function CostCalculationPage() {
   const numDailyRate = parseFloat(dailyRate) || 0;
   const numFreightRate = parseFloat(freightRate) || 0;
   const numClearanceCost = parseFloat(clearanceCost) || 0;
+  const numPortDemurrage = parseFloat(portDemurrage) || 0;
   const numExtraExpenses = parseFloat(extraExpenses) || 0;
+
+  const formattedCustomItems = customItems.map((item) => ({
+    id: item.id,
+    name: item.name.trim(),
+    amount: parseFloat(item.amount) || 0,
+  }));
 
   const financialResult = calculateConvoyFinances({
     truckCount: convoy.truck_count,
@@ -116,7 +165,9 @@ export default function CostCalculationPage() {
     dailyAccommodationRate: numDailyRate,
     freightRatePerTruck: numFreightRate,
     customsClearance: numClearanceCost,
+    portDemurrage: numPortDemurrage,
     additionalExpenses: numExtraExpenses,
+    customItems: formattedCustomItems,
   });
 
   const handleSaveAndPreview = async (e: React.FormEvent) => {
@@ -134,8 +185,10 @@ export default function CostCalculationPage() {
         freight_rate_per_truck: numFreightRate,
         total_freight: financialResult.totalFreight,
         customs_clearance: numClearanceCost,
+        port_demurrage: numPortDemurrage,
         additional_expenses: numExtraExpenses,
         additional_expenses_notes: extraNotes,
+        custom_items: formattedCustomItems.filter((it) => it.name || it.amount > 0),
         grand_total: financialResult.grandTotal,
         average_cost_per_truck: financialResult.averageCostPerTruck,
         currency: 'EGP',
@@ -334,10 +387,35 @@ export default function CostCalculationPage() {
                 </p>
               </div>
 
-              {/* Input 4: Additional Expenses */}
+              {/* Input 4: Port Demurrage / Yard Fees */}
+              <div>
+                <label className="block font-label text-label-md text-charcoal mb-2 font-bold">
+                  4. أرضيات مبيت داخل المنفذ
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="number"
+                    min="0"
+                    step="100"
+                    placeholder="0"
+                    value={portDemurrage}
+                    onFocus={(e) => e.target.select()}
+                    onChange={handleNumberInput(setPortDemurrage)}
+                    className="w-full border border-outline rounded-DEFAULT p-3 pl-16 font-body text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                  />
+                  <span className="absolute left-4 text-body-md text-light-on-surface-variant font-bold pointer-events-none">
+                    ج.م
+                  </span>
+                </div>
+                <p className="text-body-sm text-light-on-surface-variant mt-1">
+                  * رسوم أرضيات ومبيت الشاحنات المبردة وساحات الانتظار داخل المنفذ الجمركي.
+                </p>
+              </div>
+
+              {/* Input 5: Additional Expenses */}
               <div>
                 <label className="block font-label text-label-md text-charcoal mb-2">
-                  4. المصاريف الإضافية (موازين، بوابات، حراسات)
+                  5. المصاريف الإضافية (موازين، بوابات، حراسات)
                 </label>
                 <div className="relative flex items-center">
                   <input
@@ -370,6 +448,86 @@ export default function CostCalculationPage() {
                   onChange={(e) => setExtraNotes(e.target.value)}
                   className="w-full border border-outline rounded-DEFAULT p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none"
                 />
+              </div>
+
+              {/* Dynamic Custom Cost Items Section */}
+              <div className="pt-6 border-t border-light-gray space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h4 className="font-headline text-headline-sm font-bold text-charcoal flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary text-xl">playlist_add</span>
+                      <span>بنود تكاليف إضافية مخصصة (اختياري)</span>
+                    </h4>
+                    <p className="text-body-sm text-light-on-surface-variant">
+                      يمكن للمالك إضافة بنود مالية إضافية بالاسم والمبلغ المطلوب لإدراجها بالبيان المعتمد.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddCustomItem}
+                    className="px-4 py-2 bg-pale-red hover:bg-pale-red/80 text-primary border border-primary/30 rounded-DEFAULT font-label text-label-md font-bold flex items-center gap-1.5 transition self-start sm:self-auto cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-lg">add_circle</span>
+                    <span>إضافة بند تكلفة جديد</span>
+                  </button>
+                </div>
+
+                {customItems.length === 0 ? (
+                  <div className="bg-light-surface-variant/40 border border-dashed border-outline rounded-lg p-4 text-center text-body-sm text-light-on-surface-variant">
+                    لا توجد بنود تكاليف إضافية مخصصة حالياً. اضغط على زر &quot;إضافة بند تكلفة جديد&quot; لإضافة أي بند آخر.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {customItems.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        className="bg-white border border-outline rounded-lg p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center gap-3 transition hover:border-primary/50"
+                      >
+                        <span className="w-7 h-7 bg-light-surface-variant text-charcoal font-bold rounded-full flex items-center justify-center text-body-sm shrink-0">
+                          {idx + 1}
+                        </span>
+
+                        <div className="flex-1">
+                          <label className="block text-xs text-light-on-surface-variant mb-1 font-medium sm:hidden">
+                            اسم البند المالي
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="مثال: عمال تعتيق إضافية، حراسة خاصة، نثريات منفذ..."
+                            value={item.name}
+                            onChange={(e) => handleUpdateCustomItem(item.id, 'name', e.target.value)}
+                            className="w-full border border-outline rounded p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none"
+                          />
+                        </div>
+
+                        <div className="w-full sm:w-44 relative flex items-center shrink-0">
+                          <input
+                            type="number"
+                            min="0"
+                            step="50"
+                            placeholder="0"
+                            value={item.amount}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => handleUpdateCustomItem(item.id, 'amount', e.target.value)}
+                            className="w-full border border-outline rounded p-2.5 pl-12 font-body text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none"
+                          />
+                          <span className="absolute left-3 text-xs text-light-on-surface-variant font-bold pointer-events-none">
+                            ج.م
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCustomItem(item.id)}
+                          className="p-2 text-primary hover:bg-pale-red rounded transition shrink-0 cursor-pointer flex items-center justify-center self-end sm:self-center"
+                          title="حذف هذا البند"
+                        >
+                          <span className="material-symbols-outlined text-xl">delete</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 flex items-center justify-between border-t border-light-gray">
@@ -448,6 +606,17 @@ export default function CostCalculationPage() {
                 </span>
               </div>
 
+              {/* Port Demurrage row */}
+              <div className="flex items-center justify-between pb-3 border-b border-dashed border-outline">
+                <div>
+                  <span className="font-semibold text-charcoal block">أرضيات مبيت داخل المنفذ</span>
+                  <span className="text-body-sm text-light-on-surface-variant">رسوم مبيت وساحات المنفذ</span>
+                </div>
+                <span className="font-body text-body-lg font-bold text-charcoal tabular-nums">
+                  {formatCurrency(financialResult.portDemurrage)}
+                </span>
+              </div>
+
               {/* Extras row */}
               <div className="flex items-center justify-between pb-3 border-b border-dashed border-outline">
                 <div>
@@ -458,6 +627,25 @@ export default function CostCalculationPage() {
                   {formatCurrency(financialResult.additionalExpenses)}
                 </span>
               </div>
+
+              {/* Dynamic Custom Cost Items in Summary */}
+              {financialResult.customItems.length > 0 && (
+                <div className="pt-2 border-b border-dashed border-outline pb-3 space-y-2 bg-light-surface-variant/40 p-2.5 rounded">
+                  <span className="text-xs font-bold text-charcoal block">
+                    بنود التكاليف الإضافية المخصصة ({financialResult.customItems.length}):
+                  </span>
+                  {financialResult.customItems.map((item, idx) => (
+                    <div key={item.id || idx} className="flex items-center justify-between text-body-sm">
+                      <span className="text-charcoal font-medium truncate max-w-[200px]" title={item.name || `بند إضافي ${idx + 1}`}>
+                        • {item.name || `بند إضافي ${idx + 1}`}
+                      </span>
+                      <span className="font-bold text-charcoal tabular-nums">
+                        {formatCurrency(item.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Average per truck */}
               <div className="flex items-center justify-between pb-3 border-b border-dashed border-outline bg-light-surface-variant p-2.5 rounded">
@@ -477,7 +665,7 @@ export default function CostCalculationPage() {
                     إجمالي مستحقات القافلة بالكامل
                   </span>
                   <span className="text-body-sm text-outline">
-                    شامل النولون والمبيت والتخليص والنثريات
+                    شامل النولون والمبيت والتخليص والأرضيات والنثريات
                   </span>
                 </div>
                 <div className="text-left">
