@@ -228,15 +228,71 @@ async function captureElementWithNativeEngine(
   return canvas;
 }
 
+export interface PDFGenerationResult {
+  success: boolean;
+  blob?: Blob;
+  file?: File;
+  error?: string;
+}
+
+export interface PDFShareResult {
+  supported: boolean;
+  shared: boolean;
+  cancelled?: boolean;
+  blob?: Blob;
+  file?: File;
+  error?: string;
+}
+
 export const PDFService = {
   /**
-   * Generates a downloadable A4 PDF from a DOM element, preserving exact CSS,
-   * Arabic typography, logo, watermark, icons, and corporate layout.
+   * Session cache for the last generated PDF to preserve browser user activation
+   * for the Web Share API and eliminate redundant rendering.
    */
-  async generateAndDownloadPDF(options: PDFExportOptions): Promise<{ success: boolean; blob?: Blob; error?: string }> {
+  _lastGeneratedPDF: null as {
+    elementId: string;
+    fileName: string;
+    blob: Blob;
+    file: File;
+    timestamp: number;
+  } | null,
+
+  /**
+   * Generates a downloadable A4 PDF from a DOM element as a Blob and File object,
+   * preserving exact CSS, Arabic typography, logo, watermark, icons, and corporate layout.
+   * If triggerDownload is true, triggers browser download to disk.
+   */
+  async generatePDF(
+    options: PDFExportOptions,
+    triggerDownload: boolean = true
+  ): Promise<PDFGenerationResult> {
     const element = document.getElementById(options.elementId);
     if (!element) {
       return { success: false, error: `العنصر ${options.elementId} غير موجود` };
+    }
+
+    // Check if we already have a freshly generated PDF for this exact element and filename (< 60s)
+    if (
+      this._lastGeneratedPDF &&
+      this._lastGeneratedPDF.elementId === options.elementId &&
+      this._lastGeneratedPDF.fileName === options.fileName &&
+      Date.now() - this._lastGeneratedPDF.timestamp < 60000
+    ) {
+      if (triggerDownload) {
+        const url = URL.createObjectURL(this._lastGeneratedPDF.blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = options.fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
+      return {
+        success: true,
+        blob: this._lastGeneratedPDF.blob,
+        file: this._lastGeneratedPDF.file,
+      };
     }
 
     let fontMetricsFixStyle: HTMLStyleElement | null = null;
@@ -361,7 +417,7 @@ export const PDFService = {
 
       const imgData = canvas.toDataURL('image/png');
 
-      // 6. Create standard A4 PDF (210 x 297 mm)
+      // 5. Create standard A4 PDF (210 x 297 mm)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -401,11 +457,27 @@ export const PDFService = {
         }
       }
 
-      // 7. Trigger user download
-      pdf.save(options.fileName);
+      // 6. Optional browser download trigger
+      if (triggerDownload) {
+        pdf.save(options.fileName);
+      }
 
-      // 8. Generate blob for Supabase Storage archive
+      // 7. Generate Blob and File objects
       const blob = pdf.output('blob');
+      const file = typeof File !== 'undefined'
+        ? new File([blob], options.fileName, { type: 'application/pdf', lastModified: Date.now() })
+        : undefined;
+
+      // Cache the result for subsequent instant downloads or Web Share actions
+      if (file) {
+        this._lastGeneratedPDF = {
+          elementId: options.elementId,
+          fileName: options.fileName,
+          blob,
+          file,
+          timestamp: Date.now(),
+        };
+      }
 
       // Async upload to Supabase Storage & save document record
       this.uploadToStorageAndArchive({
@@ -416,7 +488,7 @@ export const PDFService = {
         blob,
       }).catch((err) => console.warn('Supabase Storage background upload note:', err));
 
-      return { success: true, blob };
+      return { success: true, blob, file };
     } catch (err: any) {
       console.error('PDF Generation Error:', err);
       return { success: false, error: err.message || 'حدث خطأ أثناء توليد ملف الـ PDF' };
@@ -424,6 +496,81 @@ export const PDFService = {
       if (fontMetricsFixStyle && fontMetricsFixStyle.parentNode) {
         fontMetricsFixStyle.parentNode.removeChild(fontMetricsFixStyle);
       }
+    }
+  },
+
+  /**
+   * Generates and downloads the A4 PDF to user's device (backward-compatible).
+   */
+  async generateAndDownloadPDF(options: PDFExportOptions): Promise<PDFGenerationResult> {
+    return this.generatePDF(options, true);
+  },
+
+  /**
+   * Shares the actual generated PDF FILE as a document attachment via Web Share API.
+   * If supported by the browser, opens the native share sheet with the PDF file.
+   * If unsupported, returns supported: false so caller can trigger download and guide user.
+   */
+  async sharePDFFile(options: PDFExportOptions): Promise<PDFShareResult> {
+    // 1. Generate or retrieve the PDF File/Blob
+    const genResult = await this.generatePDF(options, false);
+    if (!genResult.success || !genResult.blob || !genResult.file) {
+      return {
+        supported: false,
+        shared: false,
+        error: genResult.error || 'فشل توليد ملف الـ PDF للمشاركة',
+      };
+    }
+
+    const file = genResult.file;
+
+    // 2. Check Web Share API file-sharing capability
+    const canShareFiles =
+      typeof navigator !== 'undefined' &&
+      typeof navigator.share === 'function' &&
+      typeof navigator.canShare === 'function' &&
+      navigator.canShare({ files: [file] });
+
+    if (!canShareFiles) {
+      return {
+        supported: false,
+        shared: false,
+        blob: genResult.blob,
+        file: genResult.file,
+      };
+    }
+
+    // 3. Prompt native OS share sheet with the actual PDF file attachment
+    try {
+      await navigator.share({
+        files: [file],
+        title: 'بيان مالي - شركة أحمد البيك للاستيراد والتصدير',
+      });
+      return {
+        supported: true,
+        shared: true,
+        blob: genResult.blob,
+        file: genResult.file,
+      };
+    } catch (err: any) {
+      // User dismissed or cancelled the share sheet
+      if (err?.name === 'AbortError') {
+        return {
+          supported: true,
+          shared: false,
+          cancelled: true,
+          blob: genResult.blob,
+          file: genResult.file,
+        };
+      }
+      console.warn('navigator.share failed, treating as unsupported:', err);
+      return {
+        supported: false,
+        shared: false,
+        blob: genResult.blob,
+        file: genResult.file,
+        error: err?.message,
+      };
     }
   },
 

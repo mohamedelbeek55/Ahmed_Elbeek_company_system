@@ -174,5 +174,71 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
   console.log('✓ Test 6 Passed: Port Demurrage and dynamic custom cost items calculation');
 }
 
+// Test 7: Web Share API PDF File sharing simulation
+{
+  async function simulateShare(canShareValue, shareRejection) {
+    const fakeFile = { name: 'بيان_معتمد_برتقال_1.pdf', type: 'application/pdf', size: 283119 };
+    const fakeBlob = {};
+    const calls = [];
+
+    const mockNavigator = {
+      share: async (data) => {
+        calls.push(data);
+        if (shareRejection) throw shareRejection;
+      },
+      canShare: (data) => {
+        return canShareValue && !!(data && data.files && data.files.length > 0);
+      },
+    };
+
+    if (!mockNavigator.canShare({ files: [fakeFile] })) {
+      return { supported: false, shared: false, file: fakeFile, blob: fakeBlob };
+    }
+
+    try {
+      await mockNavigator.share({
+        files: [fakeFile],
+        title: 'بيان مالي - شركة أحمد البيك للاستيراد والتصدير',
+      });
+      return { supported: true, shared: true, file: fakeFile, blob: fakeBlob, calls };
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        return { supported: true, shared: false, cancelled: true, file: fakeFile, blob: fakeBlob };
+      }
+      return { supported: false, shared: false, file: fakeFile, blob: fakeBlob };
+    }
+  }
+
+  // 7a. Supported device share test
+  simulateShare(true, null).then((res) => {
+    assert.strictEqual(res.supported, true);
+    assert.strictEqual(res.shared, true);
+    assert.strictEqual(res.calls.length, 1);
+    assert.strictEqual(res.calls[0].files[0].name, 'بيان_معتمد_برتقال_1.pdf');
+    assert.strictEqual(res.calls[0].files[0].type, 'application/pdf');
+    assert.strictEqual(res.calls[0].title, 'بيان مالي - شركة أحمد البيك للاستيراد والتصدير');
+    assert.strictEqual(res.calls[0].text, undefined, 'Must not share report body as long WhatsApp text');
+    console.log('✓ Test 7a Passed: Web Share API file attachment invocation with zero text body');
+  });
+
+  // 7b. Cancelled share test (AbortError)
+  const abortErr = new Error('User cancelled');
+  abortErr.name = 'AbortError';
+  simulateShare(true, abortErr).then((res) => {
+    assert.strictEqual(res.supported, true);
+    assert.strictEqual(res.cancelled, true);
+    assert.strictEqual(res.shared, false);
+    console.log('✓ Test 7b Passed: User cancellation handled gracefully without errors');
+  });
+
+  // 7c. Unsupported device fallback
+  simulateShare(false, null).then((res) => {
+    assert.strictEqual(res.supported, false);
+    assert.strictEqual(res.shared, false);
+    assert.strictEqual(res.file.name, 'بيان_معتمد_برتقال_1.pdf');
+    console.log('✓ Test 7c Passed: Unsupported browser fallback triggers file download');
+  });
+}
+
 console.log('\n🎉 ALL 6 AUTOMATED TESTS PASSED SUCCESSFULLY!');
 

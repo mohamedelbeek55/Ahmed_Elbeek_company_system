@@ -25,6 +25,11 @@ export default function StatementPreviewPage() {
   const [convoy, setConvoy] = useState<ConvoyWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSharingWhatsApp, setIsSharingWhatsApp] = useState(false);
+  const [unsupportedShareModal, setUnsupportedShareModal] = useState<{
+    open: boolean;
+    fileName: string;
+  } | null>(null);
   const [whatsappCopied, setWhatsappCopied] = useState(false);
 
   useEffect(() => {
@@ -135,9 +140,55 @@ export default function StatementPreviewPage() {
     setIsGenerating(false);
   };
 
-  const handleWhatsAppShare = () => {
-    const url = PDFService.getWhatsAppShareUrl(convoy);
-    window.open(url, '_blank');
+  const handleWhatsAppShare = async () => {
+    if (!convoy) return;
+    setIsSharingWhatsApp(true);
+    const fileName = `بيان_معتمد_${convoy.cargo_name.replace(/\s+/g, '_')}_${convoy.convoy_number}.pdf`;
+
+    try {
+      const shareResult = await PDFService.sharePDFFile({
+        elementId: 'official-statement-sheet',
+        fileName,
+        convoyId: convoy.id,
+        documentType: 'statement',
+        documentNumber: convoy.convoy_number,
+      });
+
+      if (shareResult.cancelled) {
+        // User closed or dismissed the native share sheet
+        return;
+      }
+
+      if (!shareResult.supported) {
+        // Browser does not support Web Share API with files (Desktop Chrome/Brave/Firefox, etc.)
+        // 1. Download the generated PDF file automatically to user's device
+        if (shareResult.blob) {
+          const blobUrl = URL.createObjectURL(shareResult.blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+        } else {
+          await handleDownloadPDF();
+        }
+
+        // 2. Open WhatsApp Web in a new tab
+        window.open('https://web.whatsapp.com', '_blank');
+
+        // 3. Show clear Arabic notification explaining that the PDF was downloaded and must be attached manually
+        setUnsupportedShareModal({
+          open: true,
+          fileName,
+        });
+      }
+    } catch (err: any) {
+      console.error('WhatsApp share error:', err);
+    } finally {
+      setIsSharingWhatsApp(false);
+    }
   };
 
   const handleCopyWhatsAppText = () => {
@@ -213,11 +264,21 @@ export default function StatementPreviewPage() {
             <button
               type="button"
               onClick={handleWhatsAppShare}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-DEFAULT font-label text-label-md font-bold flex items-center gap-2 transition shadow-xs cursor-pointer"
-              title="إرسال ملخص البيان عبر تطبيق واتساب"
+              disabled={isSharingWhatsApp || isGenerating}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-DEFAULT font-label text-label-md font-bold flex items-center gap-2 transition shadow-xs cursor-pointer disabled:opacity-50"
+              title="مشاركة ملف الـ PDF كملف مرفق عبر واتساب"
             >
-              <span className="material-symbols-outlined text-lg">chat</span>
-              <span>مشاركة واتساب</span>
+              {isSharingWhatsApp ? (
+                <>
+                  <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                  <span>جارٍ تجهيز الملف...</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-lg">chat</span>
+                  <span>مشاركة واتساب</span>
+                </>
+              )}
             </button>
 
             <button
@@ -546,6 +607,71 @@ export default function StatementPreviewPage() {
         </article>
 
       </main>
+
+      {/* Unsupported Browser Share Notification Modal */}
+      {unsupportedShareModal?.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs no-print">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-outline animate-in fade-in zoom-in-95 duration-150 text-right">
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-light-gray">
+              <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl">chat</span>
+              </div>
+              <div>
+                <h3 className="font-headline text-headline-sm font-bold text-charcoal">
+                  مشاركة ملف البيان عبر واتساب
+                </h3>
+                <span className="text-xs text-light-on-surface-variant">
+                  إرفاق مستند الـ PDF المعتمد
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-3.5 text-body-sm text-charcoal leading-relaxed mb-6">
+              <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-emerald-900 font-medium flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-700 text-xl shrink-0">check_circle</span>
+                <span>
+                  تم تنزيل ملف الـ PDF الرسمي <strong>({unsupportedShareModal.fileName})</strong> على جهازك بنجاح.
+                </span>
+              </div>
+
+              <p className="text-light-on-surface-variant">
+                نظراً لأن متصفحات أجهزة الكمبيوتر لا تدعم مشاركة الملفات المباشرة إلى التطبيقات، تم فتح <strong>واتساب ويب</strong> في نافذة جديدة.
+              </p>
+
+              <div className="bg-light-surface-variant p-3.5 rounded-lg border border-outline/70">
+                <span className="font-bold text-charcoal block mb-1.5 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-primary text-base">attach_file</span>
+                  <span>طريقة إرسال الملف في واتساب:</span>
+                </span>
+                <ol className="list-decimal list-inside space-y-1.5 text-xs text-light-on-surface-variant mr-1">
+                  <li>اختر المحادثة المطلوبة في نافذة واتساب ويب المفتوحة.</li>
+                  <li>اسحب ملف الـ PDF المحمّل وأفلته داخل المحادثة، أو اضغط على علامة المشبك (<strong>📎 مستند</strong>).</li>
+                  <li>اضغط إرسال ليصل البيان كملف PDF معتمد ذو صفحة واحدة بدقة عالية.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => window.open('https://web.whatsapp.com', '_blank')}
+                className="px-4 py-2 border border-outline hover:bg-light-surface-variant text-charcoal font-label text-label-md rounded-DEFAULT transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-base">open_in_new</span>
+                <span>فتح واتساب ويب</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setUnsupportedShareModal(null)}
+                className="px-6 py-2 bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-md font-bold rounded-DEFAULT shadow-xs transition cursor-pointer"
+              >
+                حسناً، فهمت
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="no-print">
         <Footer />
