@@ -507,6 +507,27 @@ export interface PDFShareResult {
   error?: string;
 }
 
+/**
+ * Triggers a native browser file download with full UTF-8 Arabic filename preservation.
+ * Completely replaces jsPDF's internal saveAs which corrupts non-ASCII Arabic characters on computers.
+ */
+function downloadBlob(blob: Blob, fileName: string): void {
+  if (typeof window === 'undefined') return;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    if (a.parentNode) {
+      a.parentNode.removeChild(a);
+    }
+    URL.revokeObjectURL(url);
+  }, 10000);
+}
+
 export const PDFService = {
   /**
    * Session cache for the last generated PDF to preserve browser user activation
@@ -542,14 +563,7 @@ export const PDFService = {
       Date.now() - this._lastGeneratedPDF.timestamp < 60000
     ) {
       if (triggerDownload) {
-        const url = URL.createObjectURL(this._lastGeneratedPDF.blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = options.fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        downloadBlob(this._lastGeneratedPDF.blob, options.fileName);
       }
       return {
         success: true,
@@ -574,9 +588,10 @@ export const PDFService = {
       await Promise.all(
         images.map((img) => {
           if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-          return new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
+          if (img.decode) return img.decode().catch(() => {});
+          return new Promise<void>((resolve) => {
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
           });
         })
       );
@@ -599,8 +614,23 @@ export const PDFService = {
       renderHost.appendChild(canonicalElement);
       document.body.appendChild(renderHost);
 
+      // Force-decode all cloned images (including company logo and watermark) before capture
+      const cloneImgs = Array.from(canonicalElement.querySelectorAll('img'));
+      await Promise.all(
+        cloneImgs.map(async (img) => {
+          if (img.complete && img.naturalWidth > 0) return;
+          try {
+            if (img.decode) await img.decode();
+          } catch {
+            // ignore
+          }
+        })
+      );
+
       const measuredHeight = Math.max(
         A4_CAPTURE_MIN_HEIGHT_PX,
+        canonicalElement.scrollHeight || 0,
+        canonicalElement.offsetHeight || 0,
         Math.ceil(canonicalElement.getBoundingClientRect().height)
       );
 
@@ -628,7 +658,7 @@ export const PDFService = {
           allowTaint: true,
           backgroundColor: '#FFFFFF',
           logging: false,
-          imageTimeout: 0,
+          imageTimeout: 15000,
           scrollX: 0,
           scrollY: 0,
           width: A4_CAPTURE_WIDTH_PX,
@@ -638,12 +668,37 @@ export const PDFService = {
           x: 0,
           y: 0,
           onclone: async (clonedDoc) => {
-            // 1. Inject inlined critical styles and collected document CSS
+            // 1. ISOLATE the cloned document: Remove all page navbar/body content so ONLY our canonical export element exists!
+            // This ensures (x: 0, y: 0) starts exactly at the top of the statement sheet (with the logo and title)!
+            const clonedTarget = clonedDoc.getElementById('pdf-export-host');
+            if (clonedTarget && clonedDoc.body) {
+              clonedDoc.body.innerHTML = '';
+              clonedDoc.body.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
+              clonedDoc.body.style.minWidth = `${A4_CAPTURE_WIDTH_PX}px`;
+              clonedDoc.body.style.maxWidth = `${A4_CAPTURE_WIDTH_PX}px`;
+              clonedDoc.body.style.height = `${measuredHeight}px`;
+              clonedDoc.body.style.margin = '0';
+              clonedDoc.body.style.padding = '0';
+              clonedDoc.body.style.overflow = 'visible';
+              clonedDoc.body.style.backgroundColor = '#FFFFFF';
+
+              clonedTarget.style.position = 'static';
+              clonedTarget.style.left = '0';
+              clonedTarget.style.top = '0';
+              clonedTarget.style.margin = '0';
+              clonedTarget.style.padding = '0';
+              clonedTarget.style.visibility = 'visible';
+              clonedTarget.style.opacity = '1';
+              clonedTarget.style.zIndex = '1';
+              clonedDoc.body.appendChild(clonedTarget);
+            }
+
+            // 2. Inject inlined critical styles and collected document CSS
             const criticalStyle = clonedDoc.createElement('style');
             criticalStyle.textContent = `${getCriticalPdfExportCss()}\n${documentCss}`;
             clonedDoc.head.appendChild(criticalStyle);
 
-            // 2. Fix html2canvas FontMetrics bug
+            // 3. Fix html2canvas FontMetrics bug
             const cloneFixStyle = clonedDoc.createElement('style');
             cloneFixStyle.textContent =
               'body > div > img[width="1"][height="1"] { display: inline !important; }';
@@ -651,26 +706,28 @@ export const PDFService = {
 
             if (clonedDoc.documentElement) {
               clonedDoc.documentElement.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
-              clonedDoc.documentElement.style.height = 'auto';
+              clonedDoc.documentElement.style.height = `${measuredHeight}px`;
               clonedDoc.documentElement.style.overflow = 'visible';
             }
-            if (clonedDoc.body) {
-              clonedDoc.body.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
-              clonedDoc.body.style.height = 'auto';
-              clonedDoc.body.style.display = 'block';
-              clonedDoc.body.style.margin = '0';
-              clonedDoc.body.style.padding = '0';
-              clonedDoc.body.style.overflow = 'visible';
-            }
 
-            const clonedHost = clonedDoc.getElementById('pdf-export-host');
-            if (clonedHost) {
-              clonedHost.style.position = 'static';
-              clonedHost.style.left = '0';
-              clonedHost.style.top = '0';
-              clonedHost.style.visibility = 'visible';
-              clonedHost.style.opacity = '1';
-            }
+            // 4. Force decode of all images in cloned document (including logo and watermark)
+            const clonedImgs = Array.from(clonedDoc.querySelectorAll('img'));
+            await Promise.all(
+              clonedImgs.map(async (img) => {
+                if (img.complete && img.naturalWidth > 0) return;
+                try {
+                  if (img.decode) {
+                    await img.decode();
+                  }
+                } catch {
+                  await new Promise<void>((resolve) => {
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve();
+                    setTimeout(resolve, 500);
+                  });
+                }
+              })
+            );
           },
         });
       } finally {
@@ -681,7 +738,7 @@ export const PDFService = {
 
       const imgData = canvas.toDataURL('image/png');
 
-      // 5. Create standard A4 PDF (210 x 297 mm)
+      // 6. Create standard A4 PDF (210 x 297 mm)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -694,36 +751,18 @@ export const PDFService = {
       const imgWidth = pdfWidth;
       const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      // Single-page fit check: if content fits within ~1 A4 page (up to 6% tolerance),
-      // scale BOTH dimensions proportionally so aspect ratio is never distorted.
-      if (imgHeight <= pdfHeight * 1.06) {
-        if (imgHeight <= pdfHeight) {
-          pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight, undefined, 'FAST');
-        } else {
-          const ratio = pdfHeight / imgHeight;
-          const scaledWidth = imgWidth * ratio;
-          const xOffset = (pdfWidth - scaledWidth) / 2;
-          pdf.addImage(imgData, 'PNG', xOffset, 0, scaledWidth, pdfHeight, undefined, 'FAST');
-        }
+      // Corporate statement single-page fit:
+      // Always fits cleanly onto the official 1-page A4 document without vertical cropping.
+      if (imgHeight <= pdfHeight) {
+        const yOffset = Math.max(0, (pdfHeight - imgHeight) / 2);
+        pdf.addImage(imgData, 'PNG', 0, yOffset, imgWidth, imgHeight, undefined, 'FAST');
       } else {
-        // Multi-page document
-        let heightLeft = imgHeight;
-        let position = 0;
-
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-        heightLeft -= pdfHeight;
-
-        while (heightLeft > 5) {
-          position -= pdfHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-          heightLeft -= pdfHeight;
-        }
-      }
-
-      // 6. Optional browser download trigger
-      if (triggerDownload) {
-        pdf.save(options.fileName);
+        // Proportionally scale to fit exact A4 height so footer is never cropped or pushed to page 2
+        const scale = pdfHeight / imgHeight;
+        const scaledWidth = imgWidth * scale;
+        const scaledHeight = pdfHeight;
+        const xOffset = (pdfWidth - scaledWidth) / 2;
+        pdf.addImage(imgData, 'PNG', xOffset, 0, scaledWidth, scaledHeight, undefined, 'FAST');
       }
 
       // 7. Generate Blob and File objects
@@ -731,6 +770,11 @@ export const PDFService = {
       const file = typeof File !== 'undefined'
         ? new File([blob], options.fileName, { type: 'application/pdf', lastModified: Date.now() })
         : undefined;
+
+      // 8. Trigger browser download to disk with full UTF-8 Arabic filename preservation
+      if (triggerDownload) {
+        downloadBlob(blob, options.fileName);
+      }
 
       // Cache the result for subsequent instant downloads or Web Share actions
       if (file) {
