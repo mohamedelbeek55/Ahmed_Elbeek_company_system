@@ -64,7 +64,7 @@
   max-width: 794px !important;
   min-height: 1120px !important;
   height: auto !important;
-  padding: 40px 44px !important;
+  padding: 48px !important;
   margin: 0 auto !important;
   box-shadow: none !important;
   border: none !important;
@@ -72,6 +72,29 @@
   overflow: visible !important;
   background-color: #FFFFFF !important;
   box-sizing: border-box !important;
+}
+
+.pdf-export-mode .pdf-logo-box {
+  width: 128px !important;
+  height: 128px !important;
+  min-width: 128px !important;
+  min-height: 128px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.pdf-export-mode .pdf-logo-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+.pdf-export-mode .pdf-title {
+  font-size: 1.25rem !important; /* text-headline-md */
+  line-height: 1.75rem !important;
+  font-weight: 700 !important;
+  color: #800000 !important;
 }
 
 .pdf-export-mode .pdf-header-row {
@@ -108,11 +131,13 @@
 
 .pdf-export-mode .pdf-table-scroll {
   overflow: visible !important;
+  width: 100% !important;
 }
 
 .pdf-export-mode .pdf-table-scroll table {
   width: 100% !important;
   min-width: 100% !important;
+  table-layout: auto !important;
 }
 
 .pdf-export-mode .pdf-total-bar {
@@ -121,6 +146,12 @@
   align-items: center !important;
   justify-content: space-between !important;
   gap: 12px !important;
+}
+
+.pdf-export-mode .pdf-total-amount {
+  font-size: 2rem !important;
+  line-height: 2.25rem !important;
+  font-weight: 700 !important;
 }
 
 .pdf-export-mode .pdf-badge-row {
@@ -145,8 +176,8 @@
 }
 
 .pdf-export-mode .pdf-watermark-img {
-  width: 440px !important;
-  height: 440px !important;
+  width: 420px !important;
+  height: 420px !important;
   max-width: none !important;
 }
 

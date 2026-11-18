@@ -344,11 +344,11 @@ export default function StatementPreviewPage() {
             
             {/* Official Logo Centered */}
             <div className="flex flex-col items-center justify-center mb-4 sm:mb-6">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center">
+              <div className="pdf-logo-box w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center">
                 <img
                   src={COMPANY_LOGO_BASE64}
                   alt="Ahmed Elbeek Import & Export"
-                  className="w-full h-full object-contain"
+                  className="pdf-logo-img w-full h-full object-contain"
                 />
               </div>
             </div>
@@ -371,7 +371,7 @@ export default function StatementPreviewPage() {
                     <span>مكان التحميل: {convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</span>
                   </span>
                 </div>
-                <h2 className="font-headline text-headline-sm sm:text-headline-md font-bold text-primary">
+                <h2 className="pdf-title font-headline text-headline-sm sm:text-headline-md font-bold text-primary">
                   بضاعة: {convoy.cargo_name} ({convoy.truck_count} شاحنة تريلا)
                 </h2>
               </div>
@@ -552,7 +552,7 @@ export default function StatementPreviewPage() {
                   </span>
                 </div>
                 <div className="text-left self-end sm:self-auto whitespace-nowrap">
-                  <span className="font-headline text-headline-lg sm:text-display-lg text-white font-bold tabular-nums leading-none">
+                  <span className="pdf-total-amount font-headline text-headline-lg sm:text-display-lg text-white font-bold tabular-nums leading-none">
                     {Math.round(grandTotal).toLocaleString('en-US')}
                   </span>
                   <span className="text-body-sm text-light-gray mr-1.5">جنيه مصري</span>

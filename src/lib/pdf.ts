@@ -84,10 +84,140 @@ async function getInlinedCairoFontCss(): Promise<string> {
 }
 
 /**
+ * Inlined critical styles for the canonical A4 PDF export.
+ * Guarantees that even if external stylesheets fail to load (e.g. mobile browsers,
+ * CORS restrictions, or slow connections), the PDF export will ALWAYS render with
+ * exact corporate colors, 4-column layout, 128px logo, 420px watermark, and unclipped tables.
+ */
+function getCriticalPdfExportCss(): string {
+  return `
+    :root { --font-cairo: "Cairo", sans-serif; }
+    * { box-sizing: border-box; }
+    .pdf-export-mode {
+      width: ${A4_CAPTURE_WIDTH_PX}px !important;
+      min-width: ${A4_CAPTURE_WIDTH_PX}px !important;
+      max-width: ${A4_CAPTURE_WIDTH_PX}px !important;
+      min-height: ${A4_CAPTURE_MIN_HEIGHT_PX}px !important;
+      height: auto !important;
+      padding: 48px !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      overflow: visible !important;
+      background-color: #FFFFFF !important;
+      color: #262626 !important;
+      font-family: var(--font-cairo) !important;
+      direction: rtl !important;
+      text-align: right !important;
+      box-sizing: border-box !important;
+    }
+    .pdf-export-mode .pdf-watermark-img {
+      width: 420px !important;
+      height: 420px !important;
+      max-width: none !important;
+    }
+    .pdf-export-mode .pdf-logo-box {
+      width: 128px !important;
+      height: 128px !important;
+      min-width: 128px !important;
+      min-height: 128px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .pdf-export-mode .pdf-logo-img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain !important;
+    }
+    .pdf-export-mode .pdf-title {
+      font-size: 20px !important;
+      line-height: 28px !important;
+      font-weight: 700 !important;
+      color: #800000 !important;
+    }
+    .pdf-export-mode .pdf-header-row {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: flex-end !important;
+      justify-content: space-between !important;
+      gap: 16px !important;
+    }
+    .pdf-export-mode .pdf-header-dates {
+      text-align: left !important;
+      background-color: transparent !important;
+      padding: 0 !important;
+    }
+    .pdf-export-mode .pdf-bar-row {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 12px !important;
+    }
+    .pdf-export-mode .pdf-params-grid {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+      gap: 16px !important;
+    }
+    .pdf-export-mode .pdf-table-scroll {
+      overflow: visible !important;
+      width: 100% !important;
+    }
+    .pdf-export-mode .pdf-table-scroll table {
+      width: 100% !important;
+      min-width: 100% !important;
+      table-layout: auto !important;
+    }
+    .pdf-export-mode .pdf-total-bar {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 12px !important;
+    }
+    .pdf-export-mode .pdf-total-amount {
+      font-size: 32px !important;
+      line-height: 36px !important;
+      font-weight: 700 !important;
+    }
+    .pdf-export-mode .pdf-badge-row {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 16px !important;
+    }
+    .pdf-export-mode .pdf-badge-ref {
+      text-align: left !important;
+    }
+    .pdf-export-mode .pdf-footer-row {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 24px !important;
+    }
+    .pdf-export-mode .pdf-footer-sep {
+      display: inline !important;
+    }
+    .pdf-export-mode .pdf-icon-img {
+      display: inline-block !important;
+      flex-shrink: 0 !important;
+      vertical-align: middle !important;
+      object-fit: contain !important;
+      max-width: none !important;
+    }
+  `;
+}
+
+/**
  * Collects all same-origin CSS rules currently active on the page (Tailwind + globals.css).
  */
 function collectDocumentCss(): string {
-  const chunks: string[] = [':root { --font-cairo: "Cairo", sans-serif; }'];
+  const chunks: string[] = [getCriticalPdfExportCss()];
   for (const sheet of Array.from(document.styleSheets)) {
     try {
       const rules = sheet.cssRules;
@@ -96,21 +226,196 @@ function collectDocumentCss(): string {
         chunks.push(rule.cssText);
       }
     } catch {
-      // Cross-origin stylesheet (Google Fonts handled via getInlinedCairoFontCss)
+      // Cross-origin stylesheet
     }
   }
   return chunks.join('\n');
 }
 
 /**
- * Renders the preview DOM element to a high-DPI canvas using the browser's native
- * layout and text-shaping engine (SVG <foreignObject> + inlined Cairo fonts + PNG icons).
- * Matches the on-screen PDF Preview pixel-for-pixel, eliminating html2canvas Arabic
- * baseline drift and pill/icon vertical misalignment.
+ * Transforms an on-screen DOM node into a canonical desktop A4 element.
+ * Enforces explicit inline styles on every child element so that mobile media queries
+ * (e.g. sm:flex-row, sm:grid-cols-4, sm:w-32) NEVER downgrade or break the layout
+ * on mobile devices.
+ */
+function prepareCanonicalA4Element(
+  sourceElement: HTMLElement,
+  rasterizedIcons: Record<PdfIconKey, string>
+): HTMLElement {
+  const clone = sourceElement.cloneNode(true) as HTMLElement;
+  clone.classList.add('pdf-export-mode');
+
+  // Enforce root canonical A4 styles
+  clone.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
+  clone.style.minWidth = `${A4_CAPTURE_WIDTH_PX}px`;
+  clone.style.maxWidth = `${A4_CAPTURE_WIDTH_PX}px`;
+  clone.style.minHeight = `${A4_CAPTURE_MIN_HEIGHT_PX}px`;
+  clone.style.height = 'auto';
+  clone.style.padding = '48px';
+  clone.style.margin = '0';
+  clone.style.boxShadow = 'none';
+  clone.style.border = 'none';
+  clone.style.borderRadius = '0';
+  clone.style.backgroundColor = '#FFFFFF';
+  clone.style.color = '#262626';
+  clone.style.fontFamily = '"Cairo", sans-serif';
+  clone.style.direction = 'rtl';
+  clone.style.textAlign = 'right';
+  clone.style.boxSizing = 'border-box';
+
+  // 1. Watermark image
+  const watermarkImg = clone.querySelector<HTMLElement>('.pdf-watermark-img');
+  if (watermarkImg) {
+    watermarkImg.style.width = '420px';
+    watermarkImg.style.height = '420px';
+    watermarkImg.style.maxWidth = 'none';
+  }
+
+  // 2. Logo container & img
+  const logoBox = clone.querySelector<HTMLElement>('.pdf-logo-box');
+  if (logoBox) {
+    logoBox.style.width = '128px';
+    logoBox.style.height = '128px';
+    logoBox.style.minWidth = '128px';
+    logoBox.style.minHeight = '128px';
+    logoBox.style.display = 'flex';
+    logoBox.style.alignItems = 'center';
+    logoBox.style.justifyContent = 'center';
+  }
+  const logoImg = clone.querySelector<HTMLElement>('.pdf-logo-img');
+  if (logoImg) {
+    logoImg.style.width = '100%';
+    logoImg.style.height = '100%';
+    logoImg.style.objectFit = 'contain';
+  }
+
+  // 3. Header row
+  const headerRow = clone.querySelector<HTMLElement>('.pdf-header-row');
+  if (headerRow) {
+    headerRow.style.display = 'flex';
+    headerRow.style.flexDirection = 'row';
+    headerRow.style.alignItems = 'flex-end';
+    headerRow.style.justifyContent = 'space-between';
+    headerRow.style.gap = '16px';
+  }
+
+  // 4. Header dates
+  const headerDates = clone.querySelector<HTMLElement>('.pdf-header-dates');
+  if (headerDates) {
+    headerDates.style.textAlign = 'left';
+    headerDates.style.backgroundColor = 'transparent';
+    headerDates.style.padding = '0';
+  }
+
+  // 5. Title
+  const title = clone.querySelector<HTMLElement>('.pdf-title');
+  if (title) {
+    title.style.fontSize = '20px';
+    title.style.lineHeight = '28px';
+    title.style.fontWeight = '700';
+    title.style.color = '#800000';
+  }
+
+  // 6. Bar row
+  const barRow = clone.querySelector<HTMLElement>('.pdf-bar-row');
+  if (barRow) {
+    barRow.style.display = 'flex';
+    barRow.style.flexDirection = 'row';
+    barRow.style.alignItems = 'center';
+    barRow.style.justifyContent = 'space-between';
+    barRow.style.gap = '12px';
+  }
+
+  // 7. Parameters grid
+  const paramsGrid = clone.querySelector<HTMLElement>('.pdf-params-grid');
+  if (paramsGrid) {
+    paramsGrid.style.display = 'grid';
+    paramsGrid.style.gridTemplateColumns = 'repeat(4, minmax(0, 1fr))';
+    paramsGrid.style.gap = '16px';
+  }
+
+  // 8. Table & Scroll container
+  const tableScroll = clone.querySelector<HTMLElement>('.pdf-table-scroll');
+  if (tableScroll) {
+    tableScroll.style.overflow = 'visible';
+    tableScroll.style.width = '100%';
+  }
+  const table = clone.querySelector<HTMLElement>('.pdf-table-scroll table');
+  if (table) {
+    table.style.width = '100%';
+    table.style.minWidth = '100%';
+    table.style.tableLayout = 'auto';
+  }
+
+  // 9. Total bar
+  const totalBar = clone.querySelector<HTMLElement>('.pdf-total-bar');
+  if (totalBar) {
+    totalBar.style.display = 'flex';
+    totalBar.style.flexDirection = 'row';
+    totalBar.style.alignItems = 'center';
+    totalBar.style.justifyContent = 'space-between';
+    totalBar.style.gap = '12px';
+  }
+  const totalAmount = clone.querySelector<HTMLElement>('.pdf-total-amount');
+  if (totalAmount) {
+    totalAmount.style.fontSize = '32px';
+    totalAmount.style.lineHeight = '36px';
+    totalAmount.style.fontWeight = '700';
+  }
+
+  // 10. Badge row
+  const badgeRow = clone.querySelector<HTMLElement>('.pdf-badge-row');
+  if (badgeRow) {
+    badgeRow.style.display = 'flex';
+    badgeRow.style.flexDirection = 'row';
+    badgeRow.style.alignItems = 'center';
+    badgeRow.style.justifyContent = 'space-between';
+    badgeRow.style.gap = '16px';
+  }
+  const badgeRef = clone.querySelector<HTMLElement>('.pdf-badge-ref');
+  if (badgeRef) {
+    badgeRef.style.textAlign = 'left';
+  }
+
+  // 11. Footer row & separator
+  const footerRow = clone.querySelector<HTMLElement>('.pdf-footer-row');
+  if (footerRow) {
+    footerRow.style.display = 'flex';
+    footerRow.style.flexDirection = 'row';
+    footerRow.style.flexWrap = 'nowrap';
+    footerRow.style.alignItems = 'center';
+    footerRow.style.justifyContent = 'center';
+    footerRow.style.gap = '24px';
+  }
+  const footerSep = clone.querySelector<HTMLElement>('.pdf-footer-sep');
+  if (footerSep) {
+    footerSep.style.display = 'inline';
+  }
+
+  // 12. Swap all icons to pre-rasterized 4x crisp PNG data URIs
+  const iconImgs = Array.from(clone.querySelectorAll<HTMLImageElement>('img[data-pdf-icon]'));
+  iconImgs.forEach((imgEl) => {
+    const iconKey = imgEl.getAttribute('data-pdf-icon') as PdfIconKey | null;
+    if (iconKey && rasterizedIcons[iconKey]) {
+      imgEl.setAttribute('src', rasterizedIcons[iconKey]);
+      imgEl.style.display = 'inline-block';
+      imgEl.style.verticalAlign = 'middle';
+      imgEl.style.objectFit = 'contain';
+      imgEl.style.flexShrink = '0';
+      imgEl.style.maxWidth = 'none';
+    }
+  });
+
+  return clone;
+}
+
+/**
+ * Renders the canonical A4 element to a high-DPI canvas using browser-native SVG <foreignObject>.
+ * Uses inlined Cairo fonts and pre-rasterized 4x PNG icons.
  */
 async function captureElementWithNativeEngine(
-  element: HTMLElement,
-  rasterizedIcons: Record<PdfIconKey, string>
+  canonicalClone: HTMLElement,
+  measuredHeight: number
 ): Promise<HTMLCanvasElement> {
   const [inlinedFontCss, documentCss] = await Promise.all([
     getInlinedCairoFontCss(),
@@ -121,50 +426,8 @@ async function captureElementWithNativeEngine(
     throw new Error('Cairo font CSS could not be inlined for native SVG capture');
   }
 
-  // Clone the preview DOM node so the visible page is never disturbed
-  const clone = element.cloneNode(true) as HTMLElement;
-  clone.classList.add('pdf-export-mode');
-  clone.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
-  clone.style.minWidth = `${A4_CAPTURE_WIDTH_PX}px`;
-  clone.style.maxWidth = `${A4_CAPTURE_WIDTH_PX}px`;
-  clone.style.minHeight = `${A4_CAPTURE_MIN_HEIGHT_PX}px`;
-  clone.style.height = 'auto';
-  clone.style.margin = '0';
-  clone.style.boxShadow = 'none';
-  clone.style.border = 'none';
-  clone.style.borderRadius = '0';
-  clone.style.backgroundColor = '#FFFFFF';
+  const svgTarget = canonicalClone.cloneNode(true) as HTMLElement;
 
-  // Swap icon <img> elements to pre-rasterized 4x crisp PNG data URIs
-  const iconImgs = Array.from(clone.querySelectorAll<HTMLImageElement>('img[data-pdf-icon]'));
-  iconImgs.forEach((imgEl) => {
-    const iconKey = imgEl.getAttribute('data-pdf-icon') as PdfIconKey | null;
-    if (iconKey && rasterizedIcons[iconKey]) {
-      imgEl.setAttribute('src', rasterizedIcons[iconKey]);
-    }
-  });
-
-  // Measure true rendered A4 height in an offscreen container at exact 794px width
-  const measureHost = document.createElement('div');
-  measureHost.setAttribute('dir', 'rtl');
-  measureHost.setAttribute('lang', 'ar');
-  measureHost.style.position = 'fixed';
-  measureHost.style.left = '-99999px';
-  measureHost.style.top = '0';
-  measureHost.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
-  measureHost.style.visibility = 'hidden';
-  measureHost.style.pointerEvents = 'none';
-  measureHost.style.zIndex = '-1';
-  measureHost.appendChild(clone);
-  document.body.appendChild(measureHost);
-
-  const measuredHeight = Math.max(
-    A4_CAPTURE_MIN_HEIGHT_PX,
-    Math.ceil(clone.getBoundingClientRect().height)
-  );
-  document.body.removeChild(measureHost);
-
-  // Build self-contained XHTML SVG <foreignObject>
   const svgNS = 'http://www.w3.org/2000/svg';
   const xhtmlNS = 'http://www.w3.org/1999/xhtml';
 
@@ -195,7 +458,7 @@ async function captureElementWithNativeEngine(
   xhtmlWrapper.style.fontFamily = '"Cairo", sans-serif';
   xhtmlWrapper.style.direction = 'rtl';
   xhtmlWrapper.style.textAlign = 'right';
-  xhtmlWrapper.appendChild(clone);
+  xhtmlWrapper.appendChild(svgTarget);
 
   foreignObject.appendChild(xhtmlWrapper);
   svg.appendChild(foreignObject);
@@ -223,7 +486,7 @@ async function captureElementWithNativeEngine(
   ctx.scale(A4_CAPTURE_SCALE, A4_CAPTURE_SCALE);
   ctx.drawImage(img, 0, 0, A4_CAPTURE_WIDTH_PX, measuredHeight);
 
-  // Verify canvas is readable (not tainted)
+  // Verify canvas is readable (not tainted by Safari/WebKit)
   canvas.toDataURL('image/png');
   return canvas;
 }
@@ -318,12 +581,35 @@ export const PDFService = {
         })
       );
 
-      // 4. Primary capture: browser-native SVG <foreignObject> renderer with inlined Cairo fonts.
+      // 4. Prepare canonical A4 clone with forced desktop styles (eliminates all mobile viewport differences)
+      const canonicalElement = prepareCanonicalA4Element(element, rasterizedIcons);
+
+      // Mount into an offscreen desktop host to accurately measure height and render
+      const renderHost = document.createElement('div');
+      renderHost.id = 'pdf-export-host';
+      renderHost.setAttribute('dir', 'rtl');
+      renderHost.setAttribute('lang', 'ar');
+      renderHost.style.position = 'fixed';
+      renderHost.style.left = '0';
+      renderHost.style.top = '0';
+      renderHost.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
+      renderHost.style.zIndex = '-99999';
+      renderHost.style.opacity = '1';
+      renderHost.style.pointerEvents = 'none';
+      renderHost.appendChild(canonicalElement);
+      document.body.appendChild(renderHost);
+
+      const measuredHeight = Math.max(
+        A4_CAPTURE_MIN_HEIGHT_PX,
+        Math.ceil(canonicalElement.getBoundingClientRect().height)
+      );
+
+      // 5. Primary capture: browser-native SVG <foreignObject> renderer with inlined Cairo fonts.
       //    Produces a pixel-for-pixel match to the PDF Preview (exact Arabic RTL, icons, badges, spacing).
-      //    Falls back cleanly to html2canvas if fonts are offline or browser blocks foreignObject.
+      //    Falls back cleanly to html2canvas on mobile Safari/WebKit or if Cairo font cannot be inlined.
       let canvas: HTMLCanvasElement;
       try {
-        canvas = await captureElementWithNativeEngine(element, rasterizedIcons);
+        canvas = await captureElementWithNativeEngine(canonicalElement, measuredHeight);
       } catch (nativeErr) {
         console.warn('Native PDF capture fallback to html2canvas:', nativeErr);
 
@@ -334,7 +620,9 @@ export const PDFService = {
           'body > div > img[width="1"][height="1"] { display: inline !important; }';
         document.head.appendChild(fontMetricsFixStyle);
 
-        canvas = await html2canvas(element, {
+        const documentCss = collectDocumentCss();
+
+        canvas = await html2canvas(canonicalElement, {
           scale: A4_CAPTURE_SCALE,
           useCORS: true,
           allowTaint: true,
@@ -343,76 +631,52 @@ export const PDFService = {
           imageTimeout: 0,
           scrollX: 0,
           scrollY: 0,
-          windowWidth: 1280,
-          windowHeight: 1123,
+          width: A4_CAPTURE_WIDTH_PX,
+          height: measuredHeight,
+          windowWidth: A4_CAPTURE_WIDTH_PX,
+          windowHeight: measuredHeight,
+          x: 0,
+          y: 0,
           onclone: async (clonedDoc) => {
+            // 1. Inject inlined critical styles and collected document CSS
+            const criticalStyle = clonedDoc.createElement('style');
+            criticalStyle.textContent = `${getCriticalPdfExportCss()}\n${documentCss}`;
+            clonedDoc.head.appendChild(criticalStyle);
+
+            // 2. Fix html2canvas FontMetrics bug
             const cloneFixStyle = clonedDoc.createElement('style');
             cloneFixStyle.textContent =
               'body > div > img[width="1"][height="1"] { display: inline !important; }';
             clonedDoc.head.appendChild(cloneFixStyle);
 
             if (clonedDoc.documentElement) {
-              clonedDoc.documentElement.style.width = '1280px';
+              clonedDoc.documentElement.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
               clonedDoc.documentElement.style.height = 'auto';
-              clonedDoc.documentElement.style.minHeight = '0';
               clonedDoc.documentElement.style.overflow = 'visible';
             }
             if (clonedDoc.body) {
-              clonedDoc.body.style.width = '1280px';
+              clonedDoc.body.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
               clonedDoc.body.style.height = 'auto';
-              clonedDoc.body.style.minHeight = '0';
               clonedDoc.body.style.display = 'block';
               clonedDoc.body.style.margin = '0';
               clonedDoc.body.style.padding = '0';
               clonedDoc.body.style.overflow = 'visible';
             }
 
-            const clonedEl = clonedDoc.getElementById(options.elementId);
-            if (clonedEl) {
-              let parent = clonedEl.parentElement;
-              while (parent && parent !== clonedDoc.body) {
-                parent.style.display = 'block';
-                parent.style.width = '100%';
-                parent.style.maxWidth = 'none';
-                parent.style.height = 'auto';
-                parent.style.minHeight = '0';
-                parent.style.padding = '0';
-                parent.style.margin = '0';
-                parent.style.overflow = 'visible';
-                parent.style.transform = 'none';
-                parent = parent.parentElement;
-              }
-
-              clonedEl.classList.add('pdf-export-mode');
-              clonedEl.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
-              clonedEl.style.minWidth = `${A4_CAPTURE_WIDTH_PX}px`;
-              clonedEl.style.maxWidth = `${A4_CAPTURE_WIDTH_PX}px`;
-              clonedEl.style.minHeight = `${A4_CAPTURE_MIN_HEIGHT_PX}px`;
-              clonedEl.style.height = 'auto';
-              clonedEl.style.margin = '0 auto';
-              clonedEl.style.boxShadow = 'none';
-              clonedEl.style.border = 'none';
-
-              const iconImgs = Array.from(
-                clonedEl.querySelectorAll<HTMLImageElement>('img[data-pdf-icon]')
-              );
-              await Promise.all(
-                iconImgs.map((imgEl) => {
-                  const iconKey = imgEl.getAttribute('data-pdf-icon') as PdfIconKey | null;
-                  if (!iconKey || !rasterizedIcons[iconKey]) return Promise.resolve();
-                  return new Promise<void>((resolve) => {
-                    imgEl.onload = () => resolve();
-                    imgEl.onerror = () => resolve();
-                    imgEl.src = rasterizedIcons[iconKey];
-                    if (imgEl.complete && imgEl.naturalWidth > 0) {
-                      resolve();
-                    }
-                  });
-                })
-              );
+            const clonedHost = clonedDoc.getElementById('pdf-export-host');
+            if (clonedHost) {
+              clonedHost.style.position = 'static';
+              clonedHost.style.left = '0';
+              clonedHost.style.top = '0';
+              clonedHost.style.visibility = 'visible';
+              clonedHost.style.opacity = '1';
             }
           },
         });
+      } finally {
+        if (renderHost && renderHost.parentNode) {
+          renderHost.parentNode.removeChild(renderHost);
+        }
       }
 
       const imgData = canvas.toDataURL('image/png');
