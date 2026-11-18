@@ -4,7 +4,7 @@
  * zero currentColor/SVG misalignment bugs across all browsers and html2canvas exports.
  */
 
-const BRAND_RED = '#9E1B24';
+const BRAND_RED = '#B51F2D';
 
 function toSvgDataUri(pathD: string, fill: string = BRAND_RED, size: number = 24): string {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${fill}"><path d="${pathD}"/></svg>`;
