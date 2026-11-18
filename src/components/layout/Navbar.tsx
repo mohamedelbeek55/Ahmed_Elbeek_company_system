@@ -28,23 +28,23 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
         
         {/* Brand & Title */}
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-12 h-12 relative flex-shrink-0 flex items-center justify-center">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 relative flex-shrink-0 flex items-center justify-center">
               <Image
                 src="/logo.png"
                 alt="شعار شركة أحمد البيك للاستيراد والتصدير"
                 width={48}
                 height={48}
                 priority
-                className="w-12 h-12 object-contain"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
               />
             </div>
             <div>
-              <h1 className="font-headline text-headline-sm font-bold text-charcoal leading-tight">
+              <h1 className="font-headline text-sm sm:text-headline-sm font-bold text-charcoal leading-tight">
                 أحمد البيك للاستيراد والتصدير
               </h1>
-              <p className="font-body text-body-sm text-light-on-surface-variant">
+              <p className="font-body text-xs sm:text-body-sm text-light-on-surface-variant truncate max-w-[150px] sm:max-w-none">
                 نظام إدارة وتسيير قوافل الشاحنات
               </p>
             </div>
@@ -88,7 +88,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-charcoal hover:bg-light-surface-variant rounded-DEFAULT transition"
+            className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-charcoal hover:bg-light-surface-variant rounded-DEFAULT transition"
             aria-label="القائمة الرئيسية"
           >
             <span className="material-symbols-outlined text-2xl">
@@ -101,7 +101,7 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-outline bg-light-surface px-4 py-3 space-y-1 shadow-md">
+        <div className="md:hidden border-t border-outline bg-light-surface px-4 py-3 space-y-1.5 shadow-md">
           {navLinks.map((item) => {
             const active = isActive(item.href);
             return (
@@ -109,20 +109,20 @@ export default function Navbar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-DEFAULT text-body-md font-semibold transition ${
+                className={`flex items-center gap-3 px-3.5 py-3 min-h-[44px] rounded-DEFAULT text-base font-semibold transition ${
                   active
-                    ? 'bg-pale-red text-primary'
+                    ? 'bg-pale-red text-primary font-bold'
                     : 'text-charcoal hover:bg-light-surface-variant'
                 }`}
               >
-                <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                <span className="material-symbols-outlined text-2xl">{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             );
           })}
-          <div className="pt-2 border-t border-outline/50 flex items-center justify-between text-body-sm text-light-on-surface-variant px-3 py-1">
+          <div className="pt-3 border-t border-outline/50 flex items-center justify-between text-body-sm text-light-on-surface-variant px-3 py-1.5">
             <span>م. أحمد البيك (صاحب الشركة)</span>
-            <Link href="/login" className="text-primary font-bold">تسجيل الخروج</Link>
+            <Link href="/login" className="text-primary font-bold min-h-[36px] flex items-center">تسجيل الخروج</Link>
           </div>
         </div>
       )}

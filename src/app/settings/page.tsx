@@ -299,7 +299,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="px-8 py-3.5 bg-primary hover:bg-opacity-95 text-on-primary font-headline text-headline-sm font-bold rounded-DEFAULT shadow-md transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto px-8 py-3.5 bg-primary hover:bg-opacity-95 text-on-primary font-headline text-headline-sm font-bold rounded-DEFAULT shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[48px]"
             >
               <span className="material-symbols-outlined text-xl">save</span>
               <span>{saving ? 'جارٍ الحفظ...' : 'حفظ إعدادات الشركة'}</span>

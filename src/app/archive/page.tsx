@@ -44,19 +44,19 @@ export default function ArchivePage() {
     <>
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 sm:py-8">
         
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div>
             <div className="flex items-center gap-2 text-primary font-label text-label-sm mb-1">
               <span className="material-symbols-outlined text-base">inventory_2</span>
               <span>الأرشيف المؤسسي المعتمد</span>
             </div>
-            <h2 className="font-headline text-headline-lg font-bold text-charcoal">
+            <h2 className="font-headline text-headline-md sm:text-headline-lg font-bold text-charcoal">
               أرشيف القوافل والبيانات الرسمية الصادرة
             </h2>
-            <p className="font-body text-body-md text-light-on-surface-variant">
+            <p className="font-body text-body-sm sm:text-body-md text-light-on-surface-variant mt-0.5">
               سجل مستندات الـ PDF وبيانات الشحن المعتمدة الصادرة عن النظام لميناء رفح وميناء العوجة.
             </p>
           </div>
@@ -69,12 +69,12 @@ export default function ArchivePage() {
         </div>
 
         {/* Filters & Search */}
-        <div className="bg-light-surface border border-outline rounded-xl p-4 sm:p-5 mb-6 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <div className="bg-light-surface border border-outline rounded-xl p-3.5 sm:p-5 mb-6 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 -mb-1 w-full md:w-auto">
             <button
               type="button"
               onClick={() => setActiveTab('all')}
-              className={`px-4 py-2 rounded-DEFAULT font-label text-label-md transition ${
+              className={`px-3.5 py-2 rounded-DEFAULT font-label text-label-md transition shrink-0 min-h-[40px] ${
                 activeTab === 'all'
                   ? 'bg-primary text-on-primary font-bold'
                   : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
@@ -85,7 +85,7 @@ export default function ArchivePage() {
             <button
               type="button"
               onClick={() => setActiveTab('rafah')}
-              className={`px-4 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition ${
+              className={`px-3.5 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition shrink-0 min-h-[40px] ${
                 activeTab === 'rafah'
                   ? 'bg-primary text-on-primary font-bold'
                   : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
@@ -97,7 +97,7 @@ export default function ArchivePage() {
             <button
               type="button"
               onClick={() => setActiveTab('al_awja')}
-              className={`px-4 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition ${
+              className={`px-3.5 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition shrink-0 min-h-[40px] ${
                 activeTab === 'al_awja'
                   ? 'bg-primary text-on-primary font-bold'
                   : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
@@ -114,16 +114,126 @@ export default function ArchivePage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="بحث في الأرشيف باسم البضاعة..."
-              className="w-full border border-outline rounded-DEFAULT px-4 py-2.5 pr-10 font-body text-body-md text-charcoal focus:border-primary outline-none transition"
+              className="w-full border border-outline rounded-DEFAULT px-4 py-2.5 pr-10 font-body text-body-sm sm:text-body-md text-charcoal focus:border-primary outline-none transition min-h-[42px]"
             />
-            <span className="material-symbols-outlined absolute right-3 top-3 text-light-on-surface-variant text-lg pointer-events-none">
+            <span className="material-symbols-outlined absolute right-3 top-2.5 text-light-on-surface-variant text-xl pointer-events-none">
               search
             </span>
           </div>
         </div>
 
-        {/* Archive Table */}
-        <div className="bg-light-surface border border-outline rounded-xl overflow-hidden shadow-xs">
+        {/* Mobile Archive Card List (md:hidden) */}
+        <div className="md:hidden space-y-3.5 mb-6">
+          {convoys.length === 0 ? (
+            <div className="bg-light-surface border border-outline rounded-xl p-8 text-center text-light-on-surface-variant">
+              <span className="material-symbols-outlined text-4xl block mb-2 text-outline">
+                folder_open
+              </span>
+              <span>لا توجد مستندات معتمدة بالأرشيف مطابقة للبحث.</span>
+            </div>
+          ) : (
+            convoys.map((convoy) => {
+              const nights = calculateElapsedDays(convoy.loading_date, convoy.completion_date);
+              const grandTotal = convoy.calculation?.grand_total || 0;
+
+              return (
+                <div
+                  key={convoy.id}
+                  className="bg-light-surface border border-outline rounded-xl p-4 shadow-xs space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2 border-b border-light-gray pb-2.5">
+                    <div>
+                      <Link
+                        href={`/convoys/${convoy.id}/statement`}
+                        className="font-headline text-headline-sm font-bold text-charcoal hover:text-primary transition block"
+                      >
+                        {convoy.cargo_name}
+                      </Link>
+                      <span className="text-xs text-light-on-surface-variant tabular-nums">
+                        رقم القافلة: {convoy.convoy_number}
+                      </span>
+                    </div>
+
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-label font-bold shrink-0 ${
+                      convoy.location_id === 'rafah'
+                        ? 'bg-red-50 text-primary border border-red-200'
+                        : 'bg-amber-50 text-warning border border-amber-300'
+                    }`}>
+                      <span className="material-symbols-outlined text-xs">anchor</span>
+                      <span>{convoy.location_id === 'rafah' ? 'ميناء رفح' : 'ميناء العوجة'}</span>
+                    </span>
+                  </div>
+
+                  {/* Total & Nights Highlight */}
+                  <div className="bg-pale-red/60 p-3 rounded-lg flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-light-on-surface-variant block">إجمالي المستحق بالبيان:</span>
+                      <span className="font-headline text-lg font-bold text-primary tabular-nums">
+                        {formatCurrency(grandTotal)}
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-charcoal bg-white/80 px-2.5 py-1 rounded border border-outline/50">
+                      {nights} {nights === 1 ? 'ليلة' : 'ليالي'} مبيت
+                    </span>
+                  </div>
+
+                  {/* Dates & Trucks Info */}
+                  <div className="grid grid-cols-3 gap-2 text-center bg-light-surface-variant/60 p-2.5 rounded-lg text-xs">
+                    <div>
+                      <span className="text-light-on-surface-variant block mb-0.5">الشاحنات</span>
+                      <span className="font-bold text-charcoal tabular-nums text-sm">
+                        {convoy.truck_count} شاحنة
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-light-on-surface-variant block mb-0.5">التحميل</span>
+                      <span className="font-bold text-charcoal tabular-nums text-xs">
+                        {convoy.loading_date}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-light-on-surface-variant block mb-0.5">التعتيق</span>
+                      <span className="font-bold text-charcoal tabular-nums text-xs">
+                        {convoy.completion_date || '—'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-light-gray">
+                    <Link
+                      href={`/convoys/${convoy.id}/statement`}
+                      className="flex-1 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-sm font-bold flex items-center justify-center gap-1.5 shadow-xs transition min-h-[44px]"
+                    >
+                      <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
+                      <span>عرض البيان المعتمد</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => handleShareWhatsApp(convoy)}
+                      className="p-2.5 rounded-DEFAULT bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+                      title="مشاركة البيان عبر واتساب"
+                    >
+                      <span className="material-symbols-outlined text-xl">chat</span>
+                    </button>
+
+                    <Link
+                      href={`/convoys/${convoy.id}/drivers`}
+                      className="p-2.5 rounded-DEFAULT hover:bg-light-surface-variant text-charcoal border border-outline transition min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      title="كشف السائقين"
+                    >
+                      <span className="material-symbols-outlined text-xl">badge</span>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Archive Desktop Table (hidden md:block) */}
+        <div className="hidden md:block bg-light-surface border border-outline rounded-xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-right border-collapse">
               <thead>

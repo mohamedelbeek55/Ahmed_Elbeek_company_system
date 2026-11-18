@@ -234,12 +234,12 @@ export default function DriverManifestPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="px-5 py-2.5 border border-outline hover:bg-light-surface-variant text-charcoal rounded-DEFAULT font-label text-label-md font-bold transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="flex-1 sm:flex-initial px-5 py-2.5 border border-outline hover:bg-light-surface-variant text-charcoal rounded-DEFAULT font-label text-label-md font-bold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
             >
               <span className="material-symbols-outlined text-lg">save</span>
               <span>{isSaving ? 'جارٍ الحفظ...' : saveSuccess ? 'تم الحفظ ✓' : 'حفظ التعديلات'}</span>
@@ -249,7 +249,7 @@ export default function DriverManifestPage() {
               type="button"
               onClick={handleDownloadPdf}
               disabled={isGeneratingPdf}
-              className="px-6 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="flex-1 sm:flex-initial px-6 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold shadow-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
             >
               <span className="material-symbols-outlined text-lg">download</span>
               <span>{isGeneratingPdf ? 'جارٍ التوليد...' : 'تنزيل كشف PDF'}</span>
@@ -259,14 +259,14 @@ export default function DriverManifestPage() {
 
         {/* Tab 1: Editable Form Mode */}
         {!previewPdfMode ? (
-          <div className="bg-light-surface border border-outline rounded-xl p-6 shadow-xs">
+          <div className="bg-light-surface border border-outline rounded-xl p-4 sm:p-6 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-light-gray">
               <div>
-                <h3 className="font-headline text-headline-md font-bold text-charcoal flex items-center gap-2">
+                <h3 className="font-headline text-headline-sm sm:text-headline-md font-bold text-charcoal flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">badge</span>
                   <span>كشف بيانات السائقين والسيارات المعتمد</span>
                 </h3>
-                <p className="font-body text-body-sm text-light-on-surface-variant">
+                <p className="font-body text-body-sm text-light-on-surface-variant mt-0.5">
                   مطابق للنموذج الرسمي (الميناء، الاسم، الرقم القومي، سيارة رقم، مقطورة رقم).
                 </p>
               </div>
@@ -274,14 +274,115 @@ export default function DriverManifestPage() {
               <button
                 type="button"
                 onClick={handleAddTruck}
-                className="px-4 py-2 bg-light-surface-variant hover:bg-pale-red text-charcoal hover:text-primary border border-outline rounded-DEFAULT font-label text-label-sm font-bold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 bg-light-surface-variant hover:bg-pale-red text-charcoal hover:text-primary border border-outline rounded-DEFAULT font-label text-label-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
               >
                 <span className="material-symbols-outlined text-lg text-primary">add</span>
                 <span>إضافة شاحنة جديدة للكشف</span>
               </button>
             </div>
 
-            <div className="overflow-x-auto border border-outline rounded-lg">
+            {/* Mobile Driver Card List (md:hidden) */}
+            <div className="md:hidden space-y-3.5 mb-4">
+              {trucks.map((row, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white border-2 border-outline/80 rounded-xl p-3.5 shadow-xs space-y-3"
+                >
+                  <div className="flex items-center justify-between border-b border-light-gray pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-7 h-7 bg-charcoal text-white font-bold rounded-full flex items-center justify-center text-xs">
+                        {idx + 1}
+                      </span>
+                      <span className="font-bold text-charcoal text-body-sm">
+                        شاحنة تريلا #{idx + 1}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTruck(idx)}
+                      disabled={trucks.length <= 1}
+                      className="p-1.5 text-light-on-surface-variant hover:text-primary disabled:opacity-30 cursor-pointer flex items-center"
+                      title="حذف هذا الصف"
+                    >
+                      <span className="material-symbols-outlined text-lg">delete</span>
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-charcoal mb-1">
+                      اسم السائق رباعياً
+                    </label>
+                    <input
+                      type="text"
+                      value={row.driver_name || ''}
+                      onChange={(e) => handleRowChange(idx, 'driver_name', e.target.value)}
+                      placeholder="اسم السائق رباعياً"
+                      className="w-full border border-outline rounded px-3 py-2 text-body-sm font-semibold text-charcoal focus:border-primary outline-none min-h-[42px]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-charcoal mb-1">
+                      الرقم القومي (14 رقماً)
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={14}
+                      value={row.national_id || ''}
+                      onChange={(e) => handleRowChange(idx, 'national_id', e.target.value)}
+                      placeholder="14 رقماً"
+                      className="w-full border border-outline rounded px-3 py-2 text-body-sm tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal mb-1">
+                        سيارة رقم
+                      </label>
+                      <input
+                        type="text"
+                        value={row.truck_plate || ''}
+                        onChange={(e) => handleRowChange(idx, 'truck_plate', e.target.value)}
+                        placeholder="د ف ج 8391"
+                        className="w-full border border-outline rounded px-2.5 py-2 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-charcoal mb-1">
+                        مقطورة رقم
+                      </label>
+                      <input
+                        type="text"
+                        value={row.trailer_plate || ''}
+                        onChange={(e) => handleRowChange(idx, 'trailer_plate', e.target.value)}
+                        placeholder="ط ن ر 2940"
+                        className="w-full border border-outline rounded px-2.5 py-2 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-charcoal mb-1">
+                      الميناء
+                    </label>
+                    <select
+                      value={row.political_destination?.includes('رفح') ? 'ميناء رفح' : 'ميناء العوجة'}
+                      onChange={(e) => handleRowChange(idx, 'political_destination', e.target.value)}
+                      className="w-full border border-outline rounded px-3 py-2 text-body-sm font-semibold text-charcoal bg-light-surface focus:border-primary outline-none transition cursor-pointer min-h-[42px]"
+                    >
+                      <option value="ميناء رفح">ميناء رفح</option>
+                      <option value="ميناء العوجة">ميناء العوجة</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Driver Table (hidden md:block) */}
+            <div className="hidden md:block overflow-x-auto border border-outline rounded-lg">
               <table className="w-full text-right border-collapse">
                 <thead>
                   <tr className="bg-charcoal text-on-primary border-b border-outline text-label-md font-label">
@@ -364,26 +465,26 @@ export default function DriverManifestPage() {
               </table>
             </div>
 
-            <div className="flex items-center justify-between pt-6 border-t border-light-gray mt-6">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 border-t border-light-gray mt-6">
               <Link
                 href={`/convoys/${convoy.id}`}
-                className="px-6 py-2.5 border border-outline text-charcoal hover:bg-light-surface-variant font-label text-label-md rounded-DEFAULT transition"
+                className="w-full sm:w-auto px-6 py-2.5 border border-outline text-charcoal hover:bg-light-surface-variant font-label text-label-md rounded-DEFAULT transition text-center min-h-[44px] flex items-center justify-center"
               >
                 الرجوع لتفاصيل القافلة
               </Link>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2.5 bg-charcoal hover:bg-charcoal/90 text-white font-label text-label-md rounded-DEFAULT transition cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-charcoal hover:bg-charcoal/90 text-white font-label text-label-md rounded-DEFAULT transition cursor-pointer min-h-[44px] flex items-center justify-center"
                 >
                   {isSaving ? 'جارٍ الحفظ...' : 'حفظ الكشف'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setPreviewPdfMode(true)}
-                  className="px-6 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-md font-bold rounded-DEFAULT shadow-xs transition flex items-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-md font-bold rounded-DEFAULT shadow-xs transition flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
                 >
                   <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
                   <span>معاينة ورقة الـ PDF المعتمدة</span>

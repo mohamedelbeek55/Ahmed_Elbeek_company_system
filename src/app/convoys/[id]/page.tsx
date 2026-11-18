@@ -107,11 +107,11 @@ export default function ConvoyDetailsPage() {
     <>
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6 sm:py-8">
         
         {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 text-body-sm text-light-on-surface-variant">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-body-sm text-light-on-surface-variant">
             <Link href="/" className="hover:text-primary transition">الرئيسية</Link>
             <span>/</span>
             <Link href="/convoys" className="hover:text-primary transition">سجل البوصلات</Link>
@@ -119,10 +119,10 @@ export default function ConvoyDetailsPage() {
             <span className="text-charcoal font-bold">{convoy.cargo_name}</span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <Link
               href={`/convoys/${convoy.id}/drivers`}
-              className="px-4 py-2 border border-outline hover:bg-light-surface-variant text-charcoal rounded-DEFAULT font-label text-label-md flex items-center gap-2 font-bold transition"
+              className="flex-1 sm:flex-initial px-4 py-2.5 border border-outline hover:bg-light-surface-variant text-charcoal rounded-DEFAULT font-label text-label-md flex items-center justify-center gap-2 font-bold transition min-h-[44px]"
             >
               <span className="material-symbols-outlined text-lg text-primary">badge</span>
               <span>تنسيق كشف السائقين</span>
@@ -131,7 +131,7 @@ export default function ConvoyDetailsPage() {
             {isCompleted && (
               <Link
                 href={`/convoys/${convoy.id}/statement`}
-                className="px-4 py-2 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md flex items-center gap-2 font-bold transition shadow-xs"
+                className="flex-1 sm:flex-initial px-4 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md flex items-center justify-center gap-2 font-bold transition shadow-xs min-h-[44px]"
               >
                 <span className="material-symbols-outlined text-lg">picture_as_pdf</span>
                 <span>معاينة البيان المعتمد</span>
@@ -141,11 +141,11 @@ export default function ConvoyDetailsPage() {
             <button
               type="button"
               onClick={() => setDeleteModalOpen(true)}
-              className="px-3.5 py-2 border border-red-300 hover:bg-pale-red text-primary rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 font-bold transition cursor-pointer"
+              className="px-3.5 py-2.5 border border-red-300 hover:bg-pale-red text-primary rounded-DEFAULT font-label text-label-md flex items-center justify-center gap-1.5 font-bold transition cursor-pointer min-h-[44px]"
               title="حذف القافلة نهائياً"
             >
               <span className="material-symbols-outlined text-lg">delete</span>
-              <span>حذف البوصلة</span>
+              <span>حذف</span>
             </button>
           </div>
         </div>
@@ -406,18 +406,18 @@ export default function ConvoyDetailsPage() {
               </p>
             </div>
 
-            <footer className="flex items-center justify-end gap-3 pt-4 border-t border-light-gray">
+            <footer className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-4 border-t border-light-gray">
               <button
                 type="button"
                 onClick={() => setUnloadingModalOpen(false)}
-                className="px-5 py-2.5 border border-outline rounded-DEFAULT text-charcoal font-label text-label-md hover:bg-light-surface-variant cursor-pointer transition"
+                className="w-full sm:w-auto px-5 py-2.5 border border-outline rounded-DEFAULT text-charcoal font-label text-label-md hover:bg-light-surface-variant cursor-pointer transition min-h-[44px] flex items-center justify-center"
               >
                 إلغاء
               </button>
               <button
                 type="button"
                 onClick={handleConfirmUnloading}
-                className="px-6 py-2.5 bg-primary text-on-primary rounded-DEFAULT font-label text-label-md font-bold hover:bg-opacity-95 shadow-xs cursor-pointer transition flex items-center gap-2"
+                className="w-full sm:w-auto px-6 py-2.5 bg-primary text-on-primary rounded-DEFAULT font-label text-label-md font-bold hover:bg-opacity-95 shadow-xs cursor-pointer transition flex items-center justify-center gap-2 min-h-[44px]"
               >
                 <span>تأكيد التعتيق والانتقال للحساب</span>
                 <span className="material-symbols-outlined text-lg">arrow_back</span>
@@ -431,7 +431,7 @@ export default function ConvoyDetailsPage() {
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && convoy && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-light-surface border border-outline rounded-xl p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="bg-light-surface border border-outline rounded-xl p-5 sm:p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex items-center gap-3 mb-4 text-primary">
               <span className="w-10 h-10 rounded-full bg-pale-red flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl">warning</span>
@@ -454,12 +454,12 @@ export default function ConvoyDetailsPage() {
               سيتم حذف هذه القافلة وسجل شاحناتها وحساباتها ومستنداتها نهائياً من قاعدة البيانات، وسيتم تحويلك إلى سجل البوصلات.
             </p>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-light-gray">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2.5 pt-3 border-t border-light-gray">
               <button
                 type="button"
                 onClick={() => setDeleteModalOpen(false)}
                 disabled={isDeleting}
-                className="px-4 py-2 border border-outline rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md transition cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 border border-outline rounded-DEFAULT text-charcoal hover:bg-light-surface-variant font-label text-label-md transition cursor-pointer min-h-[44px] flex items-center justify-center"
               >
                 إلغاء
               </button>
@@ -467,7 +467,7 @@ export default function ConvoyDetailsPage() {
                 type="button"
                 onClick={handleDeleteConvoy}
                 disabled={isDeleting}
-                className="px-5 py-2 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto px-5 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold shadow-xs transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px]"
               >
                 <span className="material-symbols-outlined text-lg">delete</span>
                 <span>{isDeleting ? 'جارٍ الحذف...' : 'تأكيد الحذف نهائياً'}</span>
