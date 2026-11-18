@@ -176,11 +176,24 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
 
 // Test 7: Web Share API PDF File sharing simulation
 {
-  async function simulateShare(canShareValue, shareRejection) {
-    const fakeFile = { name: 'بيان_معتمد_برتقال_1.pdf', type: 'application/pdf', size: 283119 };
-    const fakeBlob = {};
-    const calls = [];
+  function getStatementFileName(cargoName, truckCount) {
+    const cleanCargo = (cargoName || 'بضاعة').replace(/[\\/:*?"<>|]/g, '').trim();
+    const truckUnit = truckCount >= 3 && truckCount <= 10 ? 'عربيات' : 'عربية';
+    const truckStr = `${truckCount} ${truckUnit}`;
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+    return `${cleanCargo} - ${truckStr} - ${todayStr}.pdf`;
+  }
 
+  const expectedName = getStatementFileName('برتقال صيفي', 5);
+  const fakeFile = { name: expectedName, type: 'application/pdf', size: 283119 };
+  const fakeBlob = {};
+
+  async function simulateShare(canShareValue, shareRejection) {
+    const calls = [];
     const mockNavigator = {
       share: async (data) => {
         calls.push(data);
@@ -198,7 +211,7 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
     try {
       await mockNavigator.share({
         files: [fakeFile],
-        title: 'بيان مالي - شركة أحمد البيك للاستيراد والتصدير',
+        title: fakeFile.name.replace(/\.pdf$/i, ''),
       });
       return { supported: true, shared: true, file: fakeFile, blob: fakeBlob, calls };
     } catch (err) {
@@ -214,11 +227,11 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
     assert.strictEqual(res.supported, true);
     assert.strictEqual(res.shared, true);
     assert.strictEqual(res.calls.length, 1);
-    assert.strictEqual(res.calls[0].files[0].name, 'بيان_معتمد_برتقال_1.pdf');
+    assert.strictEqual(res.calls[0].files[0].name, expectedName);
     assert.strictEqual(res.calls[0].files[0].type, 'application/pdf');
-    assert.strictEqual(res.calls[0].title, 'بيان مالي - شركة أحمد البيك للاستيراد والتصدير');
+    assert.strictEqual(res.calls[0].title, expectedName.replace(/\.pdf$/i, ''));
     assert.strictEqual(res.calls[0].text, undefined, 'Must not share report body as long WhatsApp text');
-    console.log('✓ Test 7a Passed: Web Share API file attachment invocation with zero text body');
+    console.log(`✓ Test 7a Passed: Web Share API file attachment invocation with clean name: "${expectedName}"`);
   });
 
   // 7b. Cancelled share test (AbortError)
@@ -235,7 +248,7 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
   simulateShare(false, null).then((res) => {
     assert.strictEqual(res.supported, false);
     assert.strictEqual(res.shared, false);
-    assert.strictEqual(res.file.name, 'بيان_معتمد_برتقال_1.pdf');
+    assert.strictEqual(res.file.name, expectedName);
     console.log('✓ Test 7c Passed: Unsupported browser fallback triggers file download');
   });
 }

@@ -127,9 +127,24 @@ export default function StatementPreviewPage() {
       customItemsTotal
   );
 
+  const getStatementFileName = (cargoName: string, truckCount: number): string => {
+    const cleanCargo = (cargoName || 'بضاعة')
+      .replace(/[\\/:*?"<>|]/g, '')
+      .trim();
+    const truckUnit = truckCount >= 3 && truckCount <= 10 ? 'عربيات' : 'عربية';
+    const truckStr = `${truckCount} ${truckUnit}`;
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+    return `${cleanCargo} - ${truckStr} - ${todayStr}.pdf`;
+  };
+
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
-    const fileName = `بيان_معتمد_${convoy.cargo_name.replace(/\s+/g, '_')}_${convoy.convoy_number}.pdf`;
+    const fileName = getStatementFileName(convoy.cargo_name, convoy.truck_count);
     await PDFService.generateAndDownloadPDF({
       elementId: 'official-statement-sheet',
       fileName,
@@ -143,7 +158,7 @@ export default function StatementPreviewPage() {
   const handleWhatsAppShare = async () => {
     if (!convoy) return;
     setIsSharingWhatsApp(true);
-    const fileName = `بيان_معتمد_${convoy.cargo_name.replace(/\s+/g, '_')}_${convoy.convoy_number}.pdf`;
+    const fileName = getStatementFileName(convoy.cargo_name, convoy.truck_count);
 
     try {
       const shareResult = await PDFService.sharePDFFile({

@@ -544,7 +544,7 @@ export const PDFService = {
     try {
       await navigator.share({
         files: [file],
-        title: 'بيان مالي - شركة أحمد البيك للاستيراد والتصدير',
+        title: options.fileName.replace(/\.pdf$/i, ''),
       });
       return {
         supported: true,
