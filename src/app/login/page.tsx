@@ -71,7 +71,12 @@ export default function LoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                enterKeyHint="next"
+                className="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition min-h-[46px]"
                 placeholder="أدخل اسم المستخدم"
               />
               <span className="material-symbols-outlined absolute right-3 text-light-on-surface-variant pointer-events-none text-xl">
@@ -95,7 +100,9 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                autoComplete="current-password"
+                enterKeyHint="go"
+                className="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition min-h-[46px]"
                 placeholder="أدخل كلمة المرور"
               />
               <span className="material-symbols-outlined absolute right-3 text-light-on-surface-variant pointer-events-none text-xl">
@@ -105,14 +112,14 @@ export default function LoginPage() {
           </div>
 
           <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="min-h-[44px] flex items-center gap-2.5 cursor-pointer py-1">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="rounded border-outline text-primary focus:ring-primary h-4 w-4"
               />
-              <span className="font-body text-body-sm text-light-on-surface-variant">
+              <span className="font-body text-body-sm text-light-on-surface-variant select-none">
                 تذكر تسجيل الدخول
               </span>
             </label>

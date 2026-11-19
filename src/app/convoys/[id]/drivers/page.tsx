@@ -302,7 +302,7 @@ export default function DriverManifestPage() {
                       type="button"
                       onClick={() => handleRemoveTruck(idx)}
                       disabled={trucks.length <= 1}
-                      className="p-1.5 text-light-on-surface-variant hover:text-primary disabled:opacity-30 cursor-pointer flex items-center"
+                      className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-light-on-surface-variant hover:text-primary hover:bg-pale-red/30 rounded-full disabled:opacity-30 cursor-pointer transition shrink-0"
                       title="حذف هذا الصف"
                     >
                       <span className="material-symbols-outlined text-lg">delete</span>
@@ -317,8 +317,10 @@ export default function DriverManifestPage() {
                       type="text"
                       value={row.driver_name || ''}
                       onChange={(e) => handleRowChange(idx, 'driver_name', e.target.value)}
+                      autoComplete="name"
+                      enterKeyHint="next"
                       placeholder="اسم السائق رباعياً"
-                      className="w-full border border-outline rounded px-3 py-2 text-body-sm font-semibold text-charcoal focus:border-primary outline-none min-h-[42px]"
+                      className="w-full border border-outline rounded px-3 py-2 text-body-sm font-semibold text-charcoal focus:border-primary outline-none min-h-[44px]"
                     />
                   </div>
 
@@ -332,8 +334,9 @@ export default function DriverManifestPage() {
                       maxLength={14}
                       value={row.national_id || ''}
                       onChange={(e) => handleRowChange(idx, 'national_id', e.target.value)}
+                      enterKeyHint="next"
                       placeholder="14 رقماً"
-                      className="w-full border border-outline rounded px-3 py-2 text-body-sm tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                      className="w-full border border-outline rounded px-3 py-2 text-body-sm tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
                     />
                   </div>
 
@@ -346,8 +349,9 @@ export default function DriverManifestPage() {
                         type="text"
                         value={row.truck_plate || ''}
                         onChange={(e) => handleRowChange(idx, 'truck_plate', e.target.value)}
+                        enterKeyHint="next"
                         placeholder="د ف ج 8391"
-                        className="w-full border border-outline rounded px-2.5 py-2 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                        className="w-full border border-outline rounded px-2.5 py-2 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
                       />
                     </div>
                     <div>
@@ -358,8 +362,9 @@ export default function DriverManifestPage() {
                         type="text"
                         value={row.trailer_plate || ''}
                         onChange={(e) => handleRowChange(idx, 'trailer_plate', e.target.value)}
+                        enterKeyHint="next"
                         placeholder="ط ن ر 2940"
-                        className="w-full border border-outline rounded px-2.5 py-2 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                        className="w-full border border-outline rounded px-2.5 py-2 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
                       />
                     </div>
                   </div>
@@ -371,7 +376,7 @@ export default function DriverManifestPage() {
                     <select
                       value={row.political_destination?.includes('رفح') ? 'ميناء رفح' : 'ميناء العوجة'}
                       onChange={(e) => handleRowChange(idx, 'political_destination', e.target.value)}
-                      className="w-full border border-outline rounded px-3 py-2 text-body-sm font-semibold text-charcoal bg-light-surface focus:border-primary outline-none transition cursor-pointer min-h-[42px]"
+                      className="w-full border border-outline rounded px-3 py-2 text-body-sm font-semibold text-charcoal bg-light-surface focus:border-primary outline-none transition cursor-pointer min-h-[44px]"
                     >
                       <option value="ميناء رفح">ميناء رفح</option>
                       <option value="ميناء العوجة">ميناء العوجة</option>
