@@ -99,6 +99,9 @@ function getCriticalPdfExportCss(): string {
       max-width: ${A4_CAPTURE_WIDTH_PX}px !important;
       min-height: ${A4_CAPTURE_MIN_HEIGHT_PX}px !important;
       height: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
       padding: 48px !important;
       margin: 0 !important;
       box-shadow: none !important;
@@ -251,6 +254,9 @@ function prepareCanonicalA4Element(
   clone.style.maxWidth = `${A4_CAPTURE_WIDTH_PX}px`;
   clone.style.minHeight = `${A4_CAPTURE_MIN_HEIGHT_PX}px`;
   clone.style.height = 'auto';
+  clone.style.display = 'flex';
+  clone.style.flexDirection = 'column';
+  clone.style.justifyContent = 'space-between';
   clone.style.padding = '48px';
   clone.style.margin = '0';
   clone.style.boxShadow = 'none';
@@ -263,12 +269,24 @@ function prepareCanonicalA4Element(
   clone.style.textAlign = 'right';
   clone.style.boxSizing = 'border-box';
 
-  // 1. Watermark image
+  // 1. Watermark image & container
   const watermarkImg = clone.querySelector<HTMLElement>('.pdf-watermark-img');
   if (watermarkImg) {
     watermarkImg.style.width = '420px';
     watermarkImg.style.height = '420px';
     watermarkImg.style.maxWidth = 'none';
+    watermarkImg.style.objectFit = 'contain';
+    watermarkImg.style.display = 'block';
+  }
+  const watermarkWrap = watermarkImg?.parentElement;
+  if (watermarkWrap) {
+    watermarkWrap.style.position = 'absolute';
+    watermarkWrap.style.inset = '0';
+    watermarkWrap.style.display = 'flex';
+    watermarkWrap.style.alignItems = 'center';
+    watermarkWrap.style.justifyContent = 'center';
+    watermarkWrap.style.opacity = '0.04';
+    watermarkWrap.style.pointerEvents = 'none';
   }
 
   // 2. Logo container & img
@@ -282,11 +300,20 @@ function prepareCanonicalA4Element(
     logoBox.style.alignItems = 'center';
     logoBox.style.justifyContent = 'center';
   }
+  const logoContainer = logoBox?.parentElement;
+  if (logoContainer) {
+    logoContainer.style.display = 'flex';
+    logoContainer.style.flexDirection = 'column';
+    logoContainer.style.alignItems = 'center';
+    logoContainer.style.justifyContent = 'center';
+    logoContainer.style.marginBottom = '24px';
+  }
   const logoImg = clone.querySelector<HTMLElement>('.pdf-logo-img');
   if (logoImg) {
     logoImg.style.width = '100%';
     logoImg.style.height = '100%';
     logoImg.style.objectFit = 'contain';
+    logoImg.style.display = 'block';
   }
 
   // 3. Header row
@@ -508,6 +535,31 @@ export interface PDFShareResult {
 }
 
 /**
+ * Waits for an HTMLImageElement to be fully loaded and decoded.
+ * Uses a combination of naturalWidth check, decode(), and load/error events with a safe timeout.
+ * Eliminates indefinite hangs on mobile viewports while guaranteeing images are rasterized.
+ */
+function waitImageReady(img: HTMLImageElement, timeoutMs = 3500): Promise<boolean> {
+  if (img.complete && img.naturalWidth > 0) return Promise.resolve(true);
+  return new Promise<boolean>((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        resolve(img.complete && img.naturalWidth > 0);
+      }
+    };
+    const timer = setTimeout(finish, timeoutMs);
+    img.addEventListener('load', finish, { once: true });
+    img.addEventListener('error', finish, { once: true });
+    if (typeof img.decode === 'function') {
+      img.decode().then(finish).catch(finish);
+    }
+  });
+}
+
+/**
  * Triggers a native browser file download with full UTF-8 Arabic filename preservation.
  * Completely replaces jsPDF's internal saveAs which corrupts non-ASCII Arabic characters on computers.
  */
@@ -583,23 +635,17 @@ export const PDFService = {
       // 2. Pre-rasterize all PDF vector icons to crisp 4x PNG data URIs
       const rasterizedIcons = await getRasterizedPdfIcons();
 
-      // 3. Ensure all images inside element are fully loaded
+      // 3. Ensure all images inside element are fully loaded and decoded
       const images = Array.from(element.querySelectorAll('img'));
-      await Promise.all(
-        images.map((img) => {
-          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-          if (img.decode) return img.decode().catch(() => {});
-          return new Promise<void>((resolve) => {
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-          });
-        })
-      );
+      await Promise.all(images.map((img) => waitImageReady(img, 3500)));
 
       // 4. Prepare canonical A4 clone with forced desktop styles (eliminates all mobile viewport differences)
       const canonicalElement = prepareCanonicalA4Element(element, rasterizedIcons);
 
-      // Mount into an offscreen desktop host to accurately measure height and render
+      // Mount into an in-viewport desktop host positioned behind content to accurately measure height and render.
+      // Keeping it within viewport bounds (left: 0, top: 0, opacity: 0.01) ensures mobile engines (WebKit/Blink)
+      // do not apply offscreen compositor culling or throttle image decoding, while zIndex: -9999 and
+      // pointerEvents: none guarantee zero interference with the user UI.
       const renderHost = document.createElement('div');
       renderHost.id = 'pdf-export-host';
       renderHost.setAttribute('dir', 'rtl');
@@ -608,24 +654,33 @@ export const PDFService = {
       renderHost.style.left = '0';
       renderHost.style.top = '0';
       renderHost.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
-      renderHost.style.zIndex = '-99999';
-      renderHost.style.opacity = '1';
+      renderHost.style.zIndex = '-9999';
+      renderHost.style.opacity = '0.01';
       renderHost.style.pointerEvents = 'none';
       renderHost.appendChild(canonicalElement);
       document.body.appendChild(renderHost);
 
       // Force-decode all cloned images (including company logo and watermark) before capture
       const cloneImgs = Array.from(canonicalElement.querySelectorAll('img'));
-      await Promise.all(
-        cloneImgs.map(async (img) => {
-          if (img.complete && img.naturalWidth > 0) return;
-          try {
-            if (img.decode) await img.decode();
-          } catch {
-            // ignore
-          }
-        })
-      );
+      await Promise.all(cloneImgs.map((img) => waitImageReady(img, 3500)));
+
+      // Strict verification: ensure logo and watermark have rendered dimensions before capture
+      const canonicalLogo = canonicalElement.querySelector<HTMLImageElement>('.pdf-logo-img');
+      const canonicalWm = canonicalElement.querySelector<HTMLImageElement>('.pdf-watermark-img');
+
+      if (canonicalLogo) {
+        const logoReady = await waitImageReady(canonicalLogo, 4000);
+        if (!logoReady || canonicalLogo.naturalWidth === 0) {
+          throw new Error('تعذر تحميل وتجهيز شعار الشركة في بيان الـ PDF. يرجى إعادة المحاولة.');
+        }
+      }
+
+      if (canonicalWm) {
+        const wmReady = await waitImageReady(canonicalWm, 4000);
+        if (!wmReady || canonicalWm.naturalWidth === 0) {
+          throw new Error('تعذر تحميل وتجهيز العلامة المائية في بيان الـ PDF. يرجى إعادة المحاولة.');
+        }
+      }
 
       const measuredHeight = Math.max(
         A4_CAPTURE_MIN_HEIGHT_PX,
@@ -663,8 +718,8 @@ export const PDFService = {
           scrollY: 0,
           width: A4_CAPTURE_WIDTH_PX,
           height: measuredHeight,
-          windowWidth: A4_CAPTURE_WIDTH_PX,
-          windowHeight: measuredHeight,
+          windowWidth: 1280, // Fixed desktop viewport width so all responsive sm: / md: rules evaluate to true
+          windowHeight: Math.max(A4_CAPTURE_MIN_HEIGHT_PX, measuredHeight),
           x: 0,
           y: 0,
           onclone: async (clonedDoc) => {
@@ -673,16 +728,15 @@ export const PDFService = {
             const clonedTarget = clonedDoc.getElementById('pdf-export-host');
             if (clonedTarget && clonedDoc.body) {
               clonedDoc.body.innerHTML = '';
-              clonedDoc.body.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
-              clonedDoc.body.style.minWidth = `${A4_CAPTURE_WIDTH_PX}px`;
-              clonedDoc.body.style.maxWidth = `${A4_CAPTURE_WIDTH_PX}px`;
+              clonedDoc.body.style.width = '1280px';
+              clonedDoc.body.style.minWidth = '1280px';
               clonedDoc.body.style.height = `${measuredHeight}px`;
               clonedDoc.body.style.margin = '0';
               clonedDoc.body.style.padding = '0';
               clonedDoc.body.style.overflow = 'visible';
               clonedDoc.body.style.backgroundColor = '#FFFFFF';
 
-              clonedTarget.style.position = 'static';
+              clonedTarget.style.position = 'absolute';
               clonedTarget.style.left = '0';
               clonedTarget.style.top = '0';
               clonedTarget.style.margin = '0';
@@ -705,34 +759,60 @@ export const PDFService = {
             clonedDoc.head.appendChild(cloneFixStyle);
 
             if (clonedDoc.documentElement) {
-              clonedDoc.documentElement.style.width = `${A4_CAPTURE_WIDTH_PX}px`;
+              clonedDoc.documentElement.style.width = '1280px';
               clonedDoc.documentElement.style.height = `${measuredHeight}px`;
               clonedDoc.documentElement.style.overflow = 'visible';
             }
 
             // 4. Force decode of all images in cloned document (including logo and watermark)
             const clonedImgs = Array.from(clonedDoc.querySelectorAll('img'));
-            await Promise.all(
-              clonedImgs.map(async (img) => {
-                if (img.complete && img.naturalWidth > 0) return;
-                try {
-                  if (img.decode) {
-                    await img.decode();
-                  }
-                } catch {
-                  await new Promise<void>((resolve) => {
-                    img.onload = () => resolve();
-                    img.onerror = () => resolve();
-                    setTimeout(resolve, 500);
-                  });
-                }
-              })
-            );
+            await Promise.all(clonedImgs.map((img) => waitImageReady(img, 3500)));
+
+            // 5. Strict verification on cloned logo and watermark before canvas capture
+            const clonedLogoImg = clonedDoc.querySelector<HTMLImageElement>('.pdf-logo-img');
+            if (clonedLogoImg) {
+              const cLogoReady = await waitImageReady(clonedLogoImg, 4000);
+              if (!cLogoReady || clonedLogoImg.naturalWidth === 0) {
+                throw new Error('تعذر تحميل شعار الشركة داخل بيئة تصوير المستند.');
+              }
+            }
+
+            const clonedWmImg = clonedDoc.querySelector<HTMLImageElement>('.pdf-watermark-img');
+            if (clonedWmImg) {
+              const cWmReady = await waitImageReady(clonedWmImg, 4000);
+              if (!cWmReady || clonedWmImg.naturalWidth === 0) {
+                throw new Error('تعذر تحميل العلامة المائية داخل بيئة تصوير المستند.');
+              }
+            }
           },
         });
       } finally {
         if (renderHost && renderHost.parentNode) {
           renderHost.parentNode.removeChild(renderHost);
+        }
+      }
+
+      // Verification: verify logo rendered with non-white pixels (prevent silent incomplete PDF)
+      const verifyCtx = canvas.getContext('2d');
+      if (verifyCtx) {
+        const scale = A4_CAPTURE_SCALE;
+        const sampleX = Math.round((A4_CAPTURE_WIDTH_PX / 2 - 40) * scale);
+        const sampleY = Math.round(90 * scale);
+        const sampleW = Math.round(80 * scale);
+        const sampleH = Math.round(80 * scale);
+        const logoImgData = verifyCtx.getImageData(sampleX, sampleY, sampleW, sampleH);
+        let nonWhiteCount = 0;
+        for (let i = 0; i < logoImgData.data.length; i += 4) {
+          const r = logoImgData.data[i];
+          const g = logoImgData.data[i + 1];
+          const b = logoImgData.data[i + 2];
+          if (r < 240 || g < 240 || b < 240) {
+            nonWhiteCount++;
+          }
+        }
+        if (nonWhiteCount < 30) {
+          console.warn('Canvas verification: Logo region had insufficient pixels:', nonWhiteCount);
+          throw new Error('لم يتم اكتمال تحميل شعار الشركة في ملف الـ PDF. يرجى إعادة المحاولة.');
         }
       }
 
