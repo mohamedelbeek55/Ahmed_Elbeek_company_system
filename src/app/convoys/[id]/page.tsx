@@ -374,7 +374,8 @@ export default function ConvoyDetailsPage() {
               <button
                 type="button"
                 onClick={() => setUnloadingModalOpen(false)}
-                className="text-light-on-surface-variant hover:text-charcoal cursor-pointer"
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center text-light-on-surface-variant hover:text-charcoal hover:bg-light-surface-variant rounded-full cursor-pointer transition shrink-0"
+                title="إغلاق"
               >
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
@@ -394,7 +395,8 @@ export default function ConvoyDetailsPage() {
                   required
                   value={completionDate}
                   onChange={(e) => setCompletionDate(e.target.value)}
-                  className="w-full border-2 border-outline rounded-DEFAULT p-3 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                  enterKeyHint="done"
+                  className="w-full border-2 border-outline rounded-DEFAULT p-3 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[44px]"
                 />
                 <span className="text-body-sm text-light-on-surface-variant mt-1 block">
                   سيتم احتساب {calculateElapsedDays(editableLoadingDate || convoy.loading_date, completionDate)} ليالي مبيت تلقائياً (باستثناء يوم التحميل ويوم التعتيق).

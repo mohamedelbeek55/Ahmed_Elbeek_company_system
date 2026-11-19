@@ -349,9 +349,10 @@ export default function CostCalculationPage() {
                     step="50"
                     placeholder="0"
                     value={dailyRate}
+                    enterKeyHint="next"
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setDailyRate)}
-                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-20 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-20 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م / يوم
@@ -375,9 +376,10 @@ export default function CostCalculationPage() {
                     step="100"
                     placeholder="0"
                     value={freightRate}
+                    enterKeyHint="next"
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setFreightRate)}
-                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-22 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-22 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م / شاحنة
@@ -401,9 +403,10 @@ export default function CostCalculationPage() {
                     step="100"
                     placeholder="0"
                     value={clearanceCost}
+                    enterKeyHint="next"
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setClearanceCost)}
-                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م
@@ -427,9 +430,10 @@ export default function CostCalculationPage() {
                     step="100"
                     placeholder="0"
                     value={portDemurrage}
+                    enterKeyHint="next"
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setPortDemurrage)}
-                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م
@@ -486,7 +490,7 @@ export default function CostCalculationPage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveCustomItem(item.id)}
-                            className="sm:hidden p-1.5 text-primary hover:bg-pale-red rounded-md transition cursor-pointer flex items-center justify-center"
+                            className="sm:hidden w-11 h-11 min-w-[44px] min-h-[44px] text-primary hover:bg-pale-red rounded-md transition cursor-pointer flex items-center justify-center shrink-0"
                             title="حذف هذا البند من الفاتورة"
                           >
                             <span className="material-symbols-outlined text-xl">delete</span>
@@ -502,7 +506,8 @@ export default function CostCalculationPage() {
                             placeholder="اكتب اسم البند (مثال: عمال تعتيق إضافية، حراسة خاصة، موازين، كروت بوابات...)"
                             value={item.name}
                             onChange={(e) => handleUpdateCustomItem(item.id, 'name', e.target.value)}
-                            className="w-full border border-outline rounded p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none font-medium min-h-[42px]"
+                            enterKeyHint="next"
+                            className="w-full border border-outline rounded p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none font-medium min-h-[44px]"
                           />
                         </div>
 
@@ -514,9 +519,10 @@ export default function CostCalculationPage() {
                             step="50"
                             placeholder="0"
                             value={item.amount}
+                            enterKeyHint="done"
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => handleUpdateCustomItem(item.id, 'amount', e.target.value)}
-                            className="w-full border border-outline rounded p-2.5 pl-12 font-body text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                            className="w-full border border-outline rounded p-2.5 pl-12 font-body text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
                           />
                           <span className="absolute left-3 text-xs text-light-on-surface-variant font-bold pointer-events-none">
                             ج.م

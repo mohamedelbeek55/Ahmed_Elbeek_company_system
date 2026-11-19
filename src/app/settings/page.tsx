@@ -104,7 +104,8 @@ export default function SettingsPage() {
                   required
                   value={settings.company_name}
                   onChange={(e) => setSettings({ ...settings, company_name: e.target.value })}
-                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md text-charcoal focus:border-primary outline-none"
+                  enterKeyHint="next"
+                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md text-charcoal focus:border-primary outline-none min-h-[44px]"
                 />
               </div>
 
@@ -116,7 +117,8 @@ export default function SettingsPage() {
                   type="text"
                   value={settings.trade_name_en || ''}
                   onChange={(e) => setSettings({ ...settings, trade_name_en: e.target.value })}
-                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md text-charcoal focus:border-primary outline-none"
+                  enterKeyHint="next"
+                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md text-charcoal focus:border-primary outline-none min-h-[44px]"
                 />
               </div>
 
@@ -126,9 +128,11 @@ export default function SettingsPage() {
                 </label>
                 <input
                   type="text"
+                  inputMode="numeric"
                   value={settings.commercial_registration || ''}
                   onChange={(e) => setSettings({ ...settings, commercial_registration: e.target.value })}
-                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md tabular-nums text-charcoal focus:border-primary outline-none"
+                  enterKeyHint="next"
+                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
                 />
               </div>
 
@@ -138,9 +142,11 @@ export default function SettingsPage() {
                 </label>
                 <input
                   type="text"
+                  inputMode="numeric"
                   value={settings.tax_id || ''}
                   onChange={(e) => setSettings({ ...settings, tax_id: e.target.value })}
-                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md tabular-nums text-charcoal focus:border-primary outline-none"
+                  enterKeyHint="next"
+                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
                 />
               </div>
 
@@ -152,7 +158,8 @@ export default function SettingsPage() {
                   type="text"
                   value={settings.address || ''}
                   onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md text-charcoal focus:border-primary outline-none"
+                  enterKeyHint="next"
+                  className="w-full border border-outline rounded-DEFAULT p-3 font-body text-body-md text-charcoal focus:border-primary outline-none min-h-[44px]"
                 />
               </div>
             </div>
@@ -172,11 +179,14 @@ export default function SettingsPage() {
                 </label>
                 <div className="relative flex items-center">
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
                     required
                     value={settings.phone}
                     onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                    className="w-full border-2 border-outline rounded-DEFAULT p-3 pl-10 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none"
+                    enterKeyHint="next"
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3 pl-10 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
                   />
                   <span className="material-symbols-outlined absolute left-3 text-primary text-xl pointer-events-none">
                     call
@@ -191,10 +201,13 @@ export default function SettingsPage() {
                 <div className="relative flex items-center">
                   <input
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
                     required
                     value={settings.email}
                     onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                    className="w-full border-2 border-outline rounded-DEFAULT p-3 pl-10 font-body text-body-md font-bold text-charcoal focus:border-primary outline-none"
+                    enterKeyHint="next"
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3 pl-10 font-body text-body-md font-bold text-charcoal focus:border-primary outline-none min-h-[44px]"
                   />
                   <span className="material-symbols-outlined absolute left-3 text-primary text-xl pointer-events-none">
                     mail
@@ -219,15 +232,17 @@ export default function SettingsPage() {
                 <div className="relative flex items-center">
                   <input
                     type="number"
+                    inputMode="decimal"
                     step="50"
                     placeholder="0"
                     value={settings.default_daily_rate ?? 500}
+                    enterKeyHint="next"
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
                       const val = e.target.value.replace(/^0+(?=\d)/, '');
                       setSettings({ ...settings, default_daily_rate: val === '' ? 0 : Number(val) });
                     }}
-                    className="w-full border border-outline rounded-DEFAULT p-3 pl-20 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none"
+                    className="w-full border border-outline rounded-DEFAULT p-3 pl-20 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
                   />
                   <span className="absolute left-4 text-body-sm text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م / يوم
@@ -242,15 +257,17 @@ export default function SettingsPage() {
                 <div className="relative flex items-center">
                   <input
                     type="number"
+                    inputMode="decimal"
                     step="100"
                     placeholder="0"
                     value={settings.default_freight_rate ?? 8500}
+                    enterKeyHint="done"
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
                       const val = e.target.value.replace(/^0+(?=\d)/, '');
                       setSettings({ ...settings, default_freight_rate: val === '' ? 0 : Number(val) });
                     }}
-                    className="w-full border border-outline rounded-DEFAULT p-3 pl-24 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none"
+                    className="w-full border border-outline rounded-DEFAULT p-3 pl-24 font-body text-body-md font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
                   />
                   <span className="absolute left-4 text-body-sm text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م / شاحنة

@@ -243,7 +243,10 @@ export default function StatementPreviewPage() {
   return (
     <>
       {/* Floating PDF Action Bar */}
-      <header className="bg-charcoal text-on-primary sticky top-0 z-40 border-b border-white/10 px-3 sm:px-6 py-3 sm:py-3.5 shadow-md no-print">
+      <header
+        className="bg-charcoal text-on-primary sticky top-0 z-40 border-b border-white/10 px-3 sm:px-6 py-3 sm:py-3.5 shadow-md no-print"
+        style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))' }}
+      >
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
           
           <div className="flex items-center gap-2.5 sm:gap-3">

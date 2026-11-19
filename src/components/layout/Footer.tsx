@@ -2,7 +2,10 @@ import React from 'react';
 
 export default function Footer() {
   return (
-    <footer className="bg-light-surface border-t border-outline py-6 mt-auto">
+    <footer
+      className="bg-light-surface border-t border-outline py-6 mt-auto"
+      style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+    >
       <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-right">
         
         <div>

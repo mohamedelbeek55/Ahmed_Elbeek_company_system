@@ -97,8 +97,9 @@ export default function CreateConvoyPage() {
                 required
                 value={cargoName}
                 onChange={(e) => setCargoName(e.target.value)}
+                enterKeyHint="next"
                 placeholder="اكتب اسم البضاعة (مثال: رمان وندرفل، بصل أحمر تصدير، بطاطس...)"
-                className="w-full border-2 border-outline rounded-DEFAULT px-4 py-3 sm:py-3.5 font-body text-body-md sm:text-body-lg text-charcoal focus:border-primary outline-none transition"
+                className="w-full border-2 border-outline rounded-DEFAULT px-4 py-3 sm:py-3.5 font-body text-body-md sm:text-body-lg text-charcoal focus:border-primary outline-none transition min-h-[46px]"
               />
               <span className="block text-body-sm text-light-on-surface-variant mt-1.5">
                 هذا الاسم سيظهر مباشرة على الترويسة وفي بيان الحسابات وتنسيق السائقين.
@@ -115,7 +116,7 @@ export default function CreateConvoyPage() {
                   required
                   value={locationId}
                   onChange={(e) => setLocationId(e.target.value as LoadingLocationId)}
-                  className="w-full border-2 border-outline rounded-DEFAULT px-4 py-3 sm:py-3.5 pr-11 font-body text-body-md sm:text-body-lg font-semibold text-charcoal focus:border-primary outline-none transition bg-light-surface appearance-none cursor-pointer"
+                  className="w-full border-2 border-outline rounded-DEFAULT px-4 py-3 sm:py-3.5 pr-11 font-body text-body-md sm:text-body-lg font-semibold text-charcoal focus:border-primary outline-none transition bg-light-surface appearance-none cursor-pointer min-h-[46px]"
                 >
                   <option value="rafah">ميناء رفح</option>
                   <option value="al_awja">ميناء العوجة</option>
@@ -149,6 +150,7 @@ export default function CreateConvoyPage() {
                     max={100}
                     placeholder="1"
                     value={truckCount}
+                    enterKeyHint="next"
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -159,7 +161,7 @@ export default function CreateConvoyPage() {
                       const clean = val.replace(/^0+/, '');
                       setTruckCount(clean);
                     }}
-                    className="w-full border-2 border-outline rounded-DEFAULT px-4 py-3 sm:py-3.5 pl-20 font-body text-body-md sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border-2 border-outline rounded-DEFAULT px-4 py-3 sm:py-3.5 pl-20 font-body text-body-md sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-4 text-body-sm sm:text-body-md text-light-on-surface-variant font-semibold pointer-events-none">
                     عربيات
@@ -180,7 +182,8 @@ export default function CreateConvoyPage() {
                   required
                   value={loadingDate}
                   onChange={(e) => setLoadingDate(e.target.value)}
-                  className="w-full border-2 border-outline rounded-DEFAULT px-4 py-3 sm:py-3.5 font-body text-body-md sm:text-body-lg font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                  enterKeyHint="done"
+                  className="w-full border-2 border-outline rounded-DEFAULT px-4 py-3 sm:py-3.5 font-body text-body-md sm:text-body-lg font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                 />
                 <span className="block text-body-sm text-light-on-surface-variant mt-1.5">
                   تاريخ انطلاق البوصلة وبدء احتساب أيام المبيت التشغيلية.
