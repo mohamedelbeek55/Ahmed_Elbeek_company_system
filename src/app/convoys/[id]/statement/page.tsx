@@ -16,6 +16,7 @@ import {
   calculateConvoyFinances,
   formatCurrency,
   arabicTafqeet,
+  getCustomItemTotal,
 } from '@/lib/calculations';
 
 export default function StatementPreviewPage() {
@@ -80,7 +81,7 @@ export default function StatementPreviewPage() {
     ? (convoy.calculation.length > 0 ? convoy.calculation[0] : null)
     : convoy.calculation;
 
-  const parsedCalc = parseCalculationMeta(rawCalc);
+  const parsedCalc = parseCalculationMeta(rawCalc, convoy.truck_count);
 
   // Fallback financial calculation if not yet stored
   const calc = parsedCalc || {
@@ -114,7 +115,7 @@ export default function StatementPreviewPage() {
     : [];
 
   const customItemsTotal = customItemsList.reduce(
-    (acc: number, it: any) => acc + (Number(it.amount) || 0),
+    (acc: number, it: any) => acc + getCustomItemTotal(it, convoy.truck_count),
     0
   );
 
@@ -227,7 +228,12 @@ export default function StatementPreviewPage() {
 
     if (customItemsList.length > 0) {
       customItemsList.forEach((ci: any) => {
-        lines.push(`➕ ${ci.name || 'بند إضافي'}: ${Math.round(Number(ci.amount) || 0).toLocaleString('en-US')} ج.م`);
+        const itemTotal = getCustomItemTotal(ci, convoy.truck_count);
+        const mode = ci.calculation_mode || ci.calculationMode || 'FIXED_TOTAL';
+        const note = mode === 'PER_VEHICLE'
+          ? ` (${convoy.truck_count} عربيات × ${Number(ci.amount || 0).toLocaleString('en-US')} ج.م)`
+          : '';
+        lines.push(`➕ ${ci.name || 'بند إضافي'}${note}: ${Math.round(itemTotal).toLocaleString('en-US')} ج.م`);
       });
     }
 
@@ -266,12 +272,12 @@ export default function StatementPreviewPage() {
           </div>
 
           {/* Quick Document Actions */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
             <button
               type="button"
               onClick={handleWhatsAppShare}
               disabled={isSharingWhatsApp || isGenerating}
-              className="flex-1 sm:flex-initial px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-DEFAULT font-label text-label-md font-bold flex items-center justify-center gap-2 transition shadow-xs cursor-pointer disabled:opacity-50 min-h-[44px]"
+              className="px-3 sm:px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-DEFAULT font-label text-label-sm sm:text-label-md font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition shadow-xs cursor-pointer disabled:opacity-50 min-h-[44px]"
               title="مشاركة ملف الـ PDF كملف مرفق عبر واتساب"
             >
               {isSharingWhatsApp ? (
@@ -291,16 +297,16 @@ export default function StatementPreviewPage() {
               type="button"
               onClick={handleDownloadPDF}
               disabled={isGenerating}
-              className="flex-1 sm:flex-initial px-4 sm:px-5 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold shadow-sm flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50 min-h-[44px]"
+              className="px-3 sm:px-5 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-sm sm:text-label-md font-bold shadow-sm flex items-center justify-center gap-1.5 sm:gap-2 transition cursor-pointer disabled:opacity-50 min-h-[44px]"
             >
               <span className="material-symbols-outlined text-lg">download</span>
-              <span>{isGenerating ? 'جارٍ التوليد...' : 'تنزيل وحفظ PDF'}</span>
+              <span>{isGenerating ? 'جارٍ التوليد...' : 'تنزيل PDF'}</span>
             </button>
 
             <button
               type="button"
               onClick={() => window.print()}
-              className="px-3 sm:px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-DEFAULT font-label text-label-sm sm:text-label-md flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[44px]"
+              className="px-3 sm:px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-DEFAULT font-label text-label-sm sm:text-label-md flex items-center justify-center gap-1.5 transition cursor-pointer min-h-[42px]"
             >
               <span className="material-symbols-outlined text-lg">print</span>
               <span>طباعة</span>
@@ -309,10 +315,11 @@ export default function StatementPreviewPage() {
             <button
               type="button"
               onClick={handleCopyWhatsAppText}
-              className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-DEFAULT font-label text-label-sm transition cursor-pointer min-h-[44px] flex items-center justify-center"
+              className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-DEFAULT font-label text-label-sm sm:text-label-md transition cursor-pointer min-h-[42px] flex items-center justify-center gap-1"
               title="نسخ نص البيان للواتساب"
             >
-              {whatsappCopied ? 'تم النسخ ✓' : 'نسخ النص'}
+              <span className="material-symbols-outlined text-base">content_copy</span>
+              <span>{whatsappCopied ? 'تم النسخ ✓' : 'نسخ النص'}</span>
             </button>
           </div>
 
@@ -514,31 +521,34 @@ export default function StatementPreviewPage() {
                     )}
 
                     {/* Dynamic Custom Cost Items added by the owner */}
-                    {Array.isArray((calc as any).custom_items) &&
-                      (calc as any).custom_items
-                        .filter((it: any) => it && (it.name || Number(it.amount) > 0))
-                        .map((item: any, idx: number) => {
-                          const startSeq = Number(calc.port_demurrage) > 0 ? 5 : 4;
-                          const rowNumber = startSeq + idx;
-                          const isEven = rowNumber % 2 === 0;
-                          return (
-                            <tr key={item.id || idx} className={isEven ? 'bg-gray-50/50' : ''}>
-                              <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-bold">{rowNumber}</td>
-                              <td className="py-3.5 px-3 sm:px-4">
-                                <span className="font-bold block text-charcoal">
-                                  {item.name || `بند تكلفة مخصص ${idx + 1}`}
-                                </span>
-                                <span className="text-xs text-light-on-surface-variant">بند مالي مخصص بالبيان</span>
-                              </td>
-                              <td className="py-3.5 px-3 sm:px-4 text-center text-xs text-light-on-surface-variant">
-                                بند مالي إضافي
-                              </td>
-                              <td className="py-3.5 px-3 sm:px-4 text-left font-bold tabular-nums text-body-md text-charcoal whitespace-nowrap">
-                                {formatCurrency(Number(item.amount) || 0)}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                    {customItemsList.map((item: any, idx: number) => {
+                      const startSeq = Number(calc.port_demurrage) > 0 ? 5 : 4;
+                      const rowNumber = startSeq + idx;
+                      const isEven = rowNumber % 2 === 0;
+                      const mode = item.calculation_mode || item.calculationMode || 'FIXED_TOTAL';
+                      const itemTotal = getCustomItemTotal(item, convoy.truck_count);
+                      const isPerVehicle = mode === 'PER_VEHICLE';
+
+                      return (
+                        <tr key={item.id || idx} className={isEven ? 'bg-gray-50/50' : ''}>
+                          <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-bold">{rowNumber}</td>
+                          <td className="py-3.5 px-3 sm:px-4">
+                            <span className="font-bold block text-charcoal">
+                              {item.name || `بند تكلفة مخصص ${idx + 1}`}
+                            </span>
+                            <span className="text-xs text-light-on-surface-variant">بند مالي مخصص بالبيان</span>
+                          </td>
+                          <td className="py-3.5 px-3 sm:px-4 text-center text-xs text-light-on-surface-variant tabular-nums">
+                            {isPerVehicle
+                              ? `${convoy.truck_count} عربيات × ${formatCurrency(Number(item.amount) || 0, false)} ج.م`
+                              : 'مبلغ إجمالي ثابت'}
+                          </td>
+                          <td className="py-3.5 px-3 sm:px-4 text-left font-bold tabular-nums text-body-md text-charcoal whitespace-nowrap">
+                            {formatCurrency(itemTotal)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

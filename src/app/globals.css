@@ -28,6 +28,54 @@
   vertical-align: middle;
 }
 
+/*
+ * P1 Mobile Form UX: Enforce minimum 16px font-size on mobile viewports (< 640px)
+ * to prevent iOS Safari & WebKit automatic viewport zoom on input focus.
+ * Strictly excludes non-text inputs (checkbox, radio, range, file, hidden, buttons).
+ * Preserves desktop styling intact.
+ */
+@media screen and (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/*
+ * Virtual keyboard scroll margin optimization:
+ * Keeps active form elements visible above on-screen keyboard
+ */
+input,
+select,
+textarea {
+  scroll-margin-top: 5rem;
+  scroll-margin-bottom: 5rem;
+}
+
+/*
+ * Mobile Touch & Scroll Quality
+ */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/*
+ * Safe Area utilities (additive to prevent notch/home-indicator overlap)
+ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+  .safe-area-top {
+    padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+  }
+}
+
 /* Print simulation & PDF sheet styling (Responsive across all screen sizes) */
 .a4-sheet {
   width: 100%;

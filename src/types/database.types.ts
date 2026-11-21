@@ -9,11 +9,14 @@ export type Json =
 export type LoadingLocationId = 'rafah' | 'al_awja';
 export type ConvoyStatus = 'active' | 'completed' | 'cancelled';
 export type DocumentType = 'statement' | 'drivers_manifest';
+export type CustomItemCalculationMode = 'PER_VEHICLE' | 'FIXED_TOTAL';
 
 export interface CustomCostItem {
   id: string;
   name: string;
   amount: number;
+  calculation_mode?: CustomItemCalculationMode;
+  calculationMode?: CustomItemCalculationMode;
 }
 
 export interface Database {

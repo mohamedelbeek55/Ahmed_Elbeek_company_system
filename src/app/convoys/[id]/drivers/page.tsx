@@ -94,6 +94,15 @@ export default function DriverManifestPage() {
         trailer_plate: '',
       },
     ]);
+
+    setTimeout(() => {
+      const el = document.getElementById(`truck-card-${nextSeq - 1}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = el.querySelector('input');
+        if (input) input.focus();
+      }
+    }, 120);
   };
 
   const handleRemoveTruck = (index: number) => {
@@ -274,7 +283,7 @@ export default function DriverManifestPage() {
               <button
                 type="button"
                 onClick={handleAddTruck}
-                className="w-full sm:w-auto px-4 py-2.5 bg-light-surface-variant hover:bg-pale-red text-charcoal hover:text-primary border border-outline rounded-DEFAULT font-label text-label-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
+                className="hidden sm:flex w-auto px-4 py-2.5 bg-light-surface-variant hover:bg-pale-red text-charcoal hover:text-primary border border-outline rounded-DEFAULT font-label text-label-sm font-bold transition items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
               >
                 <span className="material-symbols-outlined text-lg text-primary">add</span>
                 <span>إضافة شاحنة جديدة للكشف</span>
@@ -286,11 +295,12 @@ export default function DriverManifestPage() {
               {trucks.map((row, idx) => (
                 <div
                   key={idx}
-                  className="bg-white border-2 border-outline/80 rounded-xl p-3.5 shadow-xs space-y-3"
+                  id={`truck-card-${idx}`}
+                  className="bg-white border-2 border-outline/80 rounded-xl p-3.5 sm:p-4 shadow-xs space-y-3"
                 >
                   <div className="flex items-center justify-between border-b border-light-gray pb-2">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 bg-charcoal text-white font-bold rounded-full flex items-center justify-center text-xs">
+                      <span className="w-7 h-7 bg-charcoal text-white font-bold rounded-full flex items-center justify-center text-xs tabular-nums">
                         {idx + 1}
                       </span>
                       <span className="font-bold text-charcoal text-body-sm">
@@ -302,7 +312,7 @@ export default function DriverManifestPage() {
                       type="button"
                       onClick={() => handleRemoveTruck(idx)}
                       disabled={trucks.length <= 1}
-                      className="p-1.5 text-light-on-surface-variant hover:text-primary disabled:opacity-30 cursor-pointer flex items-center"
+                      className="p-2 text-light-on-surface-variant hover:text-primary hover:bg-pale-red rounded-DEFAULT transition disabled:opacity-30 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
                       title="حذف هذا الصف"
                     >
                       <span className="material-symbols-outlined text-lg">delete</span>
@@ -315,10 +325,12 @@ export default function DriverManifestPage() {
                     </label>
                     <input
                       type="text"
+                      autoComplete="name"
+                      enterKeyHint="next"
                       value={row.driver_name || ''}
                       onChange={(e) => handleRowChange(idx, 'driver_name', e.target.value)}
                       placeholder="اسم السائق رباعياً"
-                      className="w-full border border-outline rounded px-3 py-2 text-body-sm font-semibold text-charcoal focus:border-primary outline-none min-h-[42px]"
+                      className="w-full border border-outline rounded px-3 py-2.5 text-body-sm font-semibold text-charcoal focus:border-primary outline-none min-h-[46px]"
                     />
                   </div>
 
@@ -329,11 +341,13 @@ export default function DriverManifestPage() {
                     <input
                       type="text"
                       inputMode="numeric"
+                      pattern="[0-9]*"
+                      enterKeyHint="next"
                       maxLength={14}
                       value={row.national_id || ''}
                       onChange={(e) => handleRowChange(idx, 'national_id', e.target.value)}
                       placeholder="14 رقماً"
-                      className="w-full border border-outline rounded px-3 py-2 text-body-sm tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                      className="w-full border border-outline rounded px-3 py-2.5 text-body-sm tabular-nums text-charcoal focus:border-primary outline-none min-h-[46px]"
                     />
                   </div>
 
@@ -344,10 +358,11 @@ export default function DriverManifestPage() {
                       </label>
                       <input
                         type="text"
+                        enterKeyHint="next"
                         value={row.truck_plate || ''}
                         onChange={(e) => handleRowChange(idx, 'truck_plate', e.target.value)}
                         placeholder="د ف ج 8391"
-                        className="w-full border border-outline rounded px-2.5 py-2 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                        className="w-full border border-outline rounded px-2.5 py-2.5 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[46px]"
                       />
                     </div>
                     <div>
@@ -356,10 +371,11 @@ export default function DriverManifestPage() {
                       </label>
                       <input
                         type="text"
+                        enterKeyHint="next"
                         value={row.trailer_plate || ''}
                         onChange={(e) => handleRowChange(idx, 'trailer_plate', e.target.value)}
                         placeholder="ط ن ر 2940"
-                        className="w-full border border-outline rounded px-2.5 py-2 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
+                        className="w-full border border-outline rounded px-2.5 py-2.5 text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[46px]"
                       />
                     </div>
                   </div>
@@ -371,7 +387,7 @@ export default function DriverManifestPage() {
                     <select
                       value={row.political_destination?.includes('رفح') ? 'ميناء رفح' : 'ميناء العوجة'}
                       onChange={(e) => handleRowChange(idx, 'political_destination', e.target.value)}
-                      className="w-full border border-outline rounded px-3 py-2 text-body-sm font-semibold text-charcoal bg-light-surface focus:border-primary outline-none transition cursor-pointer min-h-[42px]"
+                      className="w-full border border-outline rounded px-3 py-2.5 text-body-sm font-semibold text-charcoal bg-light-surface focus:border-primary outline-none transition cursor-pointer min-h-[46px]"
                     >
                       <option value="ميناء رفح">ميناء رفح</option>
                       <option value="ميناء العوجة">ميناء العوجة</option>
@@ -379,6 +395,29 @@ export default function DriverManifestPage() {
                   </div>
                 </div>
               ))}
+
+              {/* Add Truck Button: Positioned BELOW the mobile truck list for continuous data entry */}
+              <button
+                type="button"
+                onClick={handleAddTruck}
+                className="w-full py-3.5 px-5 bg-white hover:bg-pale-red/30 text-primary border-2 border-dashed border-primary/40 hover:border-primary rounded-xl font-label text-label-md font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs min-h-[48px]"
+              >
+                <span className="material-symbols-outlined text-xl">add_circle</span>
+                <span>+ إضافة شاحنة جديدة للكشف</span>
+              </button>
+
+              {/* Bottom Quick Save Row for Mobile */}
+              <div className="pt-3 border-t border-light-gray flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex-1 py-3 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[48px] shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-lg">save</span>
+                  <span>{isSaving ? 'جارٍ الحفظ...' : saveSuccess ? 'تم الحفظ بنجاح ✓' : 'حفظ كشف السائقين'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Desktop Driver Table (hidden md:block) */}

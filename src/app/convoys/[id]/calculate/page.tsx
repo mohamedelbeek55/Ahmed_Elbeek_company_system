@@ -6,12 +6,20 @@ import { useParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import { ConvoyRepository } from '@/lib/store';
-import type { ConvoyWithDetails } from '@/types/database.types';
+import type { ConvoyWithDetails, CustomItemCalculationMode } from '@/types/database.types';
 import {
   calculateElapsedDays,
   calculateConvoyFinances,
   formatCurrency,
+  getCustomItemTotal,
 } from '@/lib/calculations';
+
+interface CustomItemFormState {
+  id: string;
+  name: string;
+  amount: string;
+  calculation_mode: CustomItemCalculationMode;
+}
 
 export default function CostCalculationPage() {
   const params = useParams();
@@ -28,7 +36,7 @@ export default function CostCalculationPage() {
   const [freightRate, setFreightRate] = useState<string>('8500');
   const [clearanceCost, setClearanceCost] = useState<string>('14500');
   const [portDemurrage, setPortDemurrage] = useState<string>('0');
-  const [customItems, setCustomItems] = useState<Array<{ id: string; name: string; amount: string }>>([]);
+  const [customItems, setCustomItems] = useState<CustomItemFormState[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -60,6 +68,7 @@ export default function CostCalculationPage() {
               id: item.id || `ci-${Date.now()}-${idx}`,
               name: item.name || '',
               amount: String(item.amount ?? ''),
+              calculation_mode: (item.calculation_mode || item.calculationMode || 'FIXED_TOTAL') as CustomItemCalculationMode,
             }))
           );
         }
@@ -80,23 +89,41 @@ export default function CostCalculationPage() {
   };
 
   const handleAddCustomItem = () => {
+    const newId = `ci-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     setCustomItems((prev) => [
       ...prev,
       {
-        id: `ci-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        id: newId,
         name: '',
         amount: '',
+        calculation_mode: 'FIXED_TOTAL', // Default to FIXED_TOTAL to prevent unintended inflation
       },
     ]);
+
+    setTimeout(() => {
+      const el = document.getElementById(`custom-item-${newId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = el.querySelector('input');
+        if (input) input.focus();
+      }
+    }, 120);
   };
 
-  const handleUpdateCustomItem = (itemId: string, field: 'name' | 'amount', value: string) => {
+  const handleUpdateCustomItem = (
+    itemId: string,
+    field: 'name' | 'amount' | 'calculation_mode',
+    value: string
+  ) => {
     setCustomItems((prev) =>
       prev.map((item) => {
         if (item.id === itemId) {
           if (field === 'amount') {
             const clean = value === '' ? '' : value.replace(/^0+(?=\d)/, '');
             return { ...item, amount: clean };
+          }
+          if (field === 'calculation_mode') {
+            return { ...item, calculation_mode: value as CustomItemCalculationMode };
           }
           return { ...item, [field]: value };
         }
@@ -149,6 +176,8 @@ export default function CostCalculationPage() {
     id: item.id,
     name: item.name.trim(),
     amount: parseFloat(item.amount) || 0,
+    calculation_mode: item.calculation_mode,
+    calculationMode: item.calculation_mode,
   }));
 
   const financialResult = calculateConvoyFinances({
@@ -345,13 +374,14 @@ export default function CostCalculationPage() {
                   <input
                     type="number"
                     inputMode="decimal"
+                    enterKeyHint="next"
                     min="0"
                     step="50"
                     placeholder="0"
                     value={dailyRate}
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setDailyRate)}
-                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-20 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-20 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م / يوم
@@ -371,13 +401,14 @@ export default function CostCalculationPage() {
                   <input
                     type="number"
                     inputMode="decimal"
+                    enterKeyHint="next"
                     min="0"
                     step="100"
                     placeholder="0"
                     value={freightRate}
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setFreightRate)}
-                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-22 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-22 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م / شاحنة
@@ -397,13 +428,14 @@ export default function CostCalculationPage() {
                   <input
                     type="number"
                     inputMode="decimal"
+                    enterKeyHint="next"
                     min="0"
                     step="100"
                     placeholder="0"
                     value={clearanceCost}
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setClearanceCost)}
-                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م
@@ -423,13 +455,14 @@ export default function CostCalculationPage() {
                   <input
                     type="number"
                     inputMode="decimal"
+                    enterKeyHint="next"
                     min="0"
                     step="100"
                     placeholder="0"
                     value={portDemurrage}
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setPortDemurrage)}
-                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م
@@ -440,101 +473,162 @@ export default function CostCalculationPage() {
                 </p>
               </div>
 
-              {/* Dynamic Custom Invoice Items Section (بنود الفاتورة المخصصة بالاسم والسعر) */}
+              {/* Dynamic Custom Invoice Items Section (بنود الفاتورة المخصصة بالاسم والسعر وطريقة الحساب) */}
               <div className="pt-6 border-t border-light-gray space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-light-surface-variant/40 p-3.5 sm:p-4 rounded-xl border border-outline/70">
-                  <div>
-                    <h4 className="font-headline text-base sm:text-headline-sm font-bold text-charcoal flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary text-xl sm:text-2xl">post_add</span>
-                      <span>بنود الفاتورة المخصصة (بالاسم والسعر)</span>
-                    </h4>
-                    <p className="text-body-sm text-light-on-surface-variant mt-0.5">
-                      أضف أي بند تريده بالاسم والسعر المحدد ليظهر مرتباً ومنظماً داخل فاتورة الـ PDF المعتمدة.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAddCustomItem}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-primary hover:bg-opacity-95 text-on-primary rounded-DEFAULT font-label text-label-md font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs shrink-0 min-h-[44px]"
-                  >
-                    <span className="material-symbols-outlined text-lg">add_circle</span>
-                    <span>+ إضافة بند جديد للفاتورة</span>
-                  </button>
+                {/* Section Header (Info Only) */}
+                <div className="bg-light-surface-variant/40 p-3.5 sm:p-4 rounded-xl border border-outline/70">
+                  <h4 className="font-headline text-base sm:text-headline-sm font-bold text-charcoal flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-xl sm:text-2xl">post_add</span>
+                    <span>بنود الفاتورة المخصصة (بالاسم والسعر)</span>
+                  </h4>
+                  <p className="text-body-sm text-light-on-surface-variant mt-0.5">
+                    أضف أي بنود إضافية للفاتورة بالاسم مع حرية اختيار طريقة احتساب كل بند بشكل مستقل (لكل عربية أو مبلغ إجمالي ثابت).
+                  </p>
                 </div>
 
+                {/* Custom Items List */}
                 {customItems.length === 0 ? (
-                  <div className="bg-white border-2 border-dashed border-outline/80 rounded-lg p-5 sm:p-6 text-center text-body-sm text-light-on-surface-variant">
+                  <div className="bg-white border-2 border-dashed border-outline/80 rounded-xl p-5 sm:p-6 text-center text-body-sm text-light-on-surface-variant">
                     <span className="material-symbols-outlined text-3xl text-light-on-surface-variant/60 block mb-1">
                       playlist_add
                     </span>
-                    لا توجد بنود مخصصة حالياً. الفاتورة ستعتمد بنود النولون والمبيت والتخليص، أو اضغط <strong className="text-primary font-bold">&quot;+ إضافة بند جديد للفاتورة&quot;</strong> لإضافة أي بند آخر.
+                    لا توجد بنود مخصصة حالياً. الفاتورة ستعتمد بنود النولون والمبيت والتخليص، أو اضغط <strong className="text-primary font-bold">&quot;+ إضافة بند جديد للفاتورة&quot;</strong> أدناه لإضافة أي بند آخر.
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {customItems.map((item, idx) => (
-                      <div
-                        key={item.id}
-                        className="bg-white border-2 border-outline/80 rounded-lg p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center gap-3 transition hover:border-primary/60"
-                      >
-                        <div className="flex items-center justify-between sm:justify-start gap-2">
-                          <span className="w-7 h-7 sm:w-8 sm:h-8 bg-charcoal text-white font-bold rounded-full flex items-center justify-center text-xs sm:text-body-sm shrink-0">
-                            {idx + 1}
-                          </span>
-                          <span className="text-xs font-bold text-light-on-surface-variant sm:hidden">
-                            بند إضافي #{idx + 1}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveCustomItem(item.id)}
-                            className="sm:hidden p-1.5 text-primary hover:bg-pale-red rounded-md transition cursor-pointer flex items-center justify-center"
-                            title="حذف هذا البند من الفاتورة"
-                          >
-                            <span className="material-symbols-outlined text-xl">delete</span>
-                          </button>
-                        </div>
+                  <div className="space-y-3.5">
+                    {customItems.map((item, idx) => {
+                      const isPerVehicle = item.calculation_mode === 'PER_VEHICLE';
+                      const unitAmount = parseFloat(item.amount) || 0;
+                      const truckCount = convoy.truck_count;
+                      const itemTotal = isPerVehicle ? unitAmount * truckCount : unitAmount;
+                      const truckLabel = truckCount >= 3 && truckCount <= 10 ? 'عربيات' : 'عربية';
 
-                        <div className="flex-1">
-                          <label className="block text-xs text-light-on-surface-variant mb-1 font-medium sm:hidden">
-                            اسم البند المالي
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="اكتب اسم البند (مثال: عمال تعتيق إضافية، حراسة خاصة، موازين، كروت بوابات...)"
-                            value={item.name}
-                            onChange={(e) => handleUpdateCustomItem(item.id, 'name', e.target.value)}
-                            className="w-full border border-outline rounded p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none font-medium min-h-[42px]"
-                          />
-                        </div>
-
-                        <div className="w-full sm:w-44 relative flex items-center shrink-0">
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            min="0"
-                            step="50"
-                            placeholder="0"
-                            value={item.amount}
-                            onFocus={(e) => e.target.select()}
-                            onChange={(e) => handleUpdateCustomItem(item.id, 'amount', e.target.value)}
-                            className="w-full border border-outline rounded p-2.5 pl-12 font-body text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[42px]"
-                          />
-                          <span className="absolute left-3 text-xs text-light-on-surface-variant font-bold pointer-events-none">
-                            ج.م
-                          </span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCustomItem(item.id)}
-                          className="hidden sm:flex p-2 text-primary hover:bg-pale-red rounded-md transition shrink-0 cursor-pointer items-center justify-center"
-                          title="حذف هذا البند من الفاتورة"
+                      return (
+                        <div
+                          key={item.id}
+                          id={`custom-item-${item.id}`}
+                          className="bg-white border-2 border-outline/80 rounded-xl p-3.5 sm:p-4 shadow-xs space-y-3 transition hover:border-primary/60"
                         >
-                          <span className="material-symbols-outlined text-xl">delete</span>
-                        </button>
-                      </div>
-                    ))}
+                          {/* Card Header: Item Number & Delete Action */}
+                          <div className="flex items-center justify-between border-b border-light-gray pb-2.5">
+                            <div className="flex items-center gap-2">
+                              <span className="w-7 h-7 sm:w-8 sm:h-8 bg-charcoal text-white font-bold rounded-full flex items-center justify-center text-xs sm:text-body-sm shrink-0">
+                                {idx + 1}
+                              </span>
+                              <span className="font-bold text-charcoal text-body-sm sm:text-body-md">
+                                {item.name ? item.name : `بند إضافي #${idx + 1}`}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomItem(item.id)}
+                              className="w-11 h-11 min-w-[44px] min-h-[44px] text-primary hover:bg-pale-red rounded-lg transition cursor-pointer flex items-center justify-center shrink-0"
+                              title="حذف هذا البند من الفاتورة"
+                            >
+                              <span className="material-symbols-outlined text-xl">delete</span>
+                            </button>
+                          </div>
+
+                          {/* Calculation Mode Selector: Segmented 2-option Control */}
+                          <div>
+                            <label className="block text-xs font-semibold text-charcoal mb-1.5">
+                              طريقة احتساب البند:
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1 bg-light-surface-variant/80 rounded-lg border border-outline/70">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateCustomItem(item.id, 'calculation_mode', 'PER_VEHICLE')}
+                                className={`py-2 px-3 rounded-md text-xs sm:text-body-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer min-h-[44px] ${
+                                  isPerVehicle
+                                    ? 'bg-primary text-white shadow-xs'
+                                    : 'text-charcoal hover:bg-white/70'
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-base">local_shipping</span>
+                                <span>لكل عربية ({truckCount} {truckLabel})</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateCustomItem(item.id, 'calculation_mode', 'FIXED_TOTAL')}
+                                className={`py-2 px-3 rounded-md text-xs sm:text-body-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer min-h-[44px] ${
+                                  !isPerVehicle
+                                    ? 'bg-primary text-white shadow-xs'
+                                    : 'text-charcoal hover:bg-white/70'
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-base">payments</span>
+                                <span>مبلغ إجمالي (مرة واحدة)</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Item Name & Amount Inputs */}
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                            <div className="sm:col-span-7">
+                              <label className="block text-xs font-semibold text-charcoal mb-1">
+                                اسم البند المالي
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="اكتب اسم البند (مثال: عمال تعتيق إضافية، حراسة خاصة، موازين...)"
+                                value={item.name}
+                                onChange={(e) => handleUpdateCustomItem(item.id, 'name', e.target.value)}
+                                className="w-full border border-outline rounded p-2.5 font-body text-body-sm text-charcoal focus:border-primary outline-none font-medium min-h-[44px]"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-5">
+                              <label className="block text-xs font-semibold text-charcoal mb-1">
+                                {isPerVehicle ? 'السعر لكل عربية (ج.م)' : 'القيمة الإجمالية للبند (ج.م)'}
+                              </label>
+                              <div className="relative flex items-center">
+                                <input
+                                  type="number"
+                                  inputMode="decimal"
+                                  min="0"
+                                  step="50"
+                                  placeholder="0"
+                                  value={item.amount}
+                                  onFocus={(e) => e.target.select()}
+                                  onChange={(e) => handleUpdateCustomItem(item.id, 'amount', e.target.value)}
+                                  className="w-full border border-outline rounded p-2.5 pl-12 font-body text-body-sm font-bold tabular-nums text-charcoal focus:border-primary outline-none min-h-[44px]"
+                                />
+                                <span className="absolute left-3 text-xs text-light-on-surface-variant font-bold pointer-events-none">
+                                  ج.م
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Live Calculation Preview Banner */}
+                          <div className="bg-pale-red/35 border border-primary/20 rounded-lg px-3 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs sm:text-body-sm">
+                            <span className="font-semibold text-primary flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-base">calculate</span>
+                              <span>معاينة احتساب البند:</span>
+                            </span>
+                            <span className="font-bold text-charcoal tabular-nums">
+                              {isPerVehicle
+                                ? `${truckCount} ${truckLabel} × ${unitAmount.toLocaleString('en-US')} ج.م = ${Math.round(itemTotal).toLocaleString('en-US')} ج.م`
+                                : `مبلغ ثابت = ${Math.round(itemTotal).toLocaleString('en-US')} ج.م`}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
+
+                {/* Add New Item Button: Positioned BELOW the items list for smooth mobile experience */}
+                <button
+                  type="button"
+                  onClick={handleAddCustomItem}
+                  className="w-full py-3.5 px-5 bg-white hover:bg-pale-red/30 text-primary border-2 border-dashed border-primary/40 hover:border-primary rounded-xl font-label text-label-md font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs min-h-[48px]"
+                >
+                  <span className="material-symbols-outlined text-xl">add_circle</span>
+                  <span>+ إضافة بند جديد للفاتورة</span>
+                </button>
               </div>
 
               <div className="pt-4 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-light-gray">
@@ -630,16 +724,29 @@ export default function CostCalculationPage() {
                   <span className="text-xs font-bold text-charcoal block">
                     بنود الفاتورة المخصصة ({financialResult.customItems.length}):
                   </span>
-                  {financialResult.customItems.map((item, idx) => (
-                    <div key={item.id || idx} className="flex items-center justify-between text-body-sm">
-                      <span className="text-charcoal font-medium truncate max-w-[200px]" title={item.name || `بند إضافي ${idx + 1}`}>
-                        • {item.name || `بند إضافي ${idx + 1}`}
-                      </span>
-                      <span className="font-bold text-charcoal tabular-nums">
-                        {formatCurrency(item.amount)}
-                      </span>
-                    </div>
-                  ))}
+                  {financialResult.customItems.map((item, idx) => {
+                    const mode = item.calculation_mode || item.calculationMode || 'FIXED_TOTAL';
+                    const isPerVehicle = mode === 'PER_VEHICLE';
+                    const itemTotal = getCustomItemTotal(item, convoy.truck_count);
+
+                    return (
+                      <div key={item.id || idx} className="flex items-center justify-between text-body-sm">
+                        <div className="flex flex-col">
+                          <span className="text-charcoal font-medium truncate max-w-[190px]" title={item.name || `بند إضافي ${idx + 1}`}>
+                            • {item.name || `بند إضافي ${idx + 1}`}
+                          </span>
+                          {isPerVehicle && (
+                            <span className="text-[11px] text-light-on-surface-variant tabular-nums mr-2">
+                              ({convoy.truck_count} عربيات × {formatCurrency(item.amount, false)})
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-bold text-charcoal tabular-nums">
+                          {formatCurrency(itemTotal)}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 

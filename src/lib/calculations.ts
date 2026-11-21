@@ -2,10 +2,29 @@
  * Ahmed Elbeek Management System - Business Logic & Financial Calculations
  */
 
+export type CustomItemCalculationMode = 'PER_VEHICLE' | 'FIXED_TOTAL';
+
 export interface CustomCostItem {
   id: string;
   name: string;
   amount: number;
+  calculation_mode?: CustomItemCalculationMode;
+  calculationMode?: CustomItemCalculationMode;
+}
+
+/**
+ * Calculates the final total for a custom invoice item:
+ * - PER_VEHICLE (لكل عربية): Entered Amount × Convoy Vehicle Count
+ * - FIXED_TOTAL (مبلغ إجمالي): Entered Amount (100% backward-compatible with legacy records)
+ */
+export function getCustomItemTotal(item: Partial<CustomCostItem>, truckCount: number): number {
+  const mode = item.calculation_mode || item.calculationMode || 'FIXED_TOTAL';
+  const amount = Number(item.amount) || 0;
+  if (mode === 'PER_VEHICLE') {
+    const count = Math.max(1, Math.round(Number(truckCount) || 1));
+    return amount * count;
+  }
+  return amount;
 }
 
 export interface CalculationInput {
@@ -76,14 +95,19 @@ export function calculateConvoyFinances(input: CalculationInput): CalculationRes
   const customItems: CustomCostItem[] = Array.isArray(input.customItems)
     ? input.customItems
         .filter((item) => item && (item.name?.trim() || Number(item.amount) > 0))
-        .map((item, idx) => ({
-          id: item.id || `custom-${idx + 1}-${Date.now()}`,
-          name: (item.name || '').trim(),
-          amount: Number(item.amount) || 0,
-        }))
+        .map((item, idx) => {
+          const mode = item.calculation_mode || item.calculationMode || 'FIXED_TOTAL';
+          return {
+            id: item.id || `custom-${idx + 1}-${Date.now()}`,
+            name: (item.name || '').trim(),
+            amount: Number(item.amount) || 0,
+            calculation_mode: mode,
+            calculationMode: mode,
+          };
+        })
     : [];
 
-  const customItemsTotal = customItems.reduce((acc, it) => acc + (Number(it.amount) || 0), 0);
+  const customItemsTotal = customItems.reduce((acc, it) => acc + getCustomItemTotal(it, truckCount), 0);
 
   // Accommodation = Nights × Daily rate per truck × Truck count
   const totalAccommodation = nights * dailyRate * truckCount;
