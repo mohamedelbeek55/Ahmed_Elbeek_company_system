@@ -16,6 +16,7 @@ import {
   calculateConvoyFinances,
   formatCurrency,
   arabicTafqeet,
+  getCustomItemTotal,
 } from '@/lib/calculations';
 
 export default function StatementPreviewPage() {
@@ -80,7 +81,7 @@ export default function StatementPreviewPage() {
     ? (convoy.calculation.length > 0 ? convoy.calculation[0] : null)
     : convoy.calculation;
 
-  const parsedCalc = parseCalculationMeta(rawCalc);
+  const parsedCalc = parseCalculationMeta(rawCalc, convoy.truck_count);
 
   // Fallback financial calculation if not yet stored
   const calc = parsedCalc || {
@@ -114,7 +115,7 @@ export default function StatementPreviewPage() {
     : [];
 
   const customItemsTotal = customItemsList.reduce(
-    (acc: number, it: any) => acc + (Number(it.amount) || 0),
+    (acc: number, it: any) => acc + getCustomItemTotal(it, convoy.truck_count),
     0
   );
 
@@ -227,7 +228,12 @@ export default function StatementPreviewPage() {
 
     if (customItemsList.length > 0) {
       customItemsList.forEach((ci: any) => {
-        lines.push(`➕ ${ci.name || 'بند إضافي'}: ${Math.round(Number(ci.amount) || 0).toLocaleString('en-US')} ج.م`);
+        const itemTotal = getCustomItemTotal(ci, convoy.truck_count);
+        const mode = ci.calculation_mode || ci.calculationMode || 'FIXED_TOTAL';
+        const note = mode === 'PER_VEHICLE'
+          ? ` (${convoy.truck_count} عربيات × ${Number(ci.amount || 0).toLocaleString('en-US')} ج.م)`
+          : '';
+        lines.push(`➕ ${ci.name || 'بند إضافي'}${note}: ${Math.round(itemTotal).toLocaleString('en-US')} ج.م`);
       });
     }
 
@@ -514,31 +520,34 @@ export default function StatementPreviewPage() {
                     )}
 
                     {/* Dynamic Custom Cost Items added by the owner */}
-                    {Array.isArray((calc as any).custom_items) &&
-                      (calc as any).custom_items
-                        .filter((it: any) => it && (it.name || Number(it.amount) > 0))
-                        .map((item: any, idx: number) => {
-                          const startSeq = Number(calc.port_demurrage) > 0 ? 5 : 4;
-                          const rowNumber = startSeq + idx;
-                          const isEven = rowNumber % 2 === 0;
-                          return (
-                            <tr key={item.id || idx} className={isEven ? 'bg-gray-50/50' : ''}>
-                              <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-bold">{rowNumber}</td>
-                              <td className="py-3.5 px-3 sm:px-4">
-                                <span className="font-bold block text-charcoal">
-                                  {item.name || `بند تكلفة مخصص ${idx + 1}`}
-                                </span>
-                                <span className="text-xs text-light-on-surface-variant">بند مالي مخصص بالبيان</span>
-                              </td>
-                              <td className="py-3.5 px-3 sm:px-4 text-center text-xs text-light-on-surface-variant">
-                                بند مالي إضافي
-                              </td>
-                              <td className="py-3.5 px-3 sm:px-4 text-left font-bold tabular-nums text-body-md text-charcoal whitespace-nowrap">
-                                {formatCurrency(Number(item.amount) || 0)}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                    {customItemsList.map((item: any, idx: number) => {
+                      const startSeq = Number(calc.port_demurrage) > 0 ? 5 : 4;
+                      const rowNumber = startSeq + idx;
+                      const isEven = rowNumber % 2 === 0;
+                      const mode = item.calculation_mode || item.calculationMode || 'FIXED_TOTAL';
+                      const itemTotal = getCustomItemTotal(item, convoy.truck_count);
+                      const isPerVehicle = mode === 'PER_VEHICLE';
+
+                      return (
+                        <tr key={item.id || idx} className={isEven ? 'bg-gray-50/50' : ''}>
+                          <td className="py-3.5 px-3 sm:px-4 text-center tabular-nums font-bold">{rowNumber}</td>
+                          <td className="py-3.5 px-3 sm:px-4">
+                            <span className="font-bold block text-charcoal">
+                              {item.name || `بند تكلفة مخصص ${idx + 1}`}
+                            </span>
+                            <span className="text-xs text-light-on-surface-variant">بند مالي مخصص بالبيان</span>
+                          </td>
+                          <td className="py-3.5 px-3 sm:px-4 text-center text-xs text-light-on-surface-variant tabular-nums">
+                            {isPerVehicle
+                              ? `${convoy.truck_count} عربيات × ${formatCurrency(Number(item.amount) || 0, false)} ج.م`
+                              : 'مبلغ إجمالي ثابت'}
+                          </td>
+                          <td className="py-3.5 px-3 sm:px-4 text-left font-bold tabular-nums text-body-md text-charcoal whitespace-nowrap">
+                            {formatCurrency(itemTotal)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -87,7 +87,7 @@ function setLocalSettings(settings: Database['public']['Tables']['company_settin
  * Robust parser for calculation metadata.
  * Unpacks custom_items and port_demurrage from JSON in additional_expenses_notes if needed.
  */
-export function parseCalculationMeta(calc: any): any {
+export function parseCalculationMeta(calc: any, truckCount?: number): any {
   if (!calc) return null;
   let customItems: any[] = Array.isArray(calc.custom_items) ? [...calc.custom_items] : [];
   let portDemurrage: number = Number(calc.port_demurrage ?? 0);
@@ -108,8 +108,13 @@ export function parseCalculationMeta(calc: any): any {
     }
   }
 
-  // Ensure grand_total always includes custom items and port demurrage
-  const customSum = customItems.reduce((acc: number, it: any) => acc + (Number(it?.amount) || 0), 0);
+  // Ensure grand_total always includes custom items (calculating per vehicle if set) and port demurrage
+  const effectiveTrucks = Number(truckCount) || Number(calc.truck_count) || 1;
+  const customSum = customItems.reduce((acc: number, it: any) => {
+    const mode = it.calculation_mode || it.calculationMode || 'FIXED_TOTAL';
+    const amt = Number(it?.amount) || 0;
+    return acc + (mode === 'PER_VEHICLE' ? amt * effectiveTrucks : amt);
+  }, 0);
   const baseSum =
     (Number(calc.total_freight) || 0) +
     (Number(calc.total_accommodation) || 0) +
@@ -251,8 +256,8 @@ export const ConvoyRepository = {
         const localList = getLocalConvoys();
         const localItem = localList.find((c) => c.id === id);
 
-        const parsedRemote = parseCalculationMeta(rawCalc);
-        const parsedLocal = parseCalculationMeta(localItem?.calculation);
+        const parsedRemote = parseCalculationMeta(rawCalc, data.truck_count);
+        const parsedLocal = parseCalculationMeta(localItem?.calculation, data.truck_count);
 
         // Never let an older remote calculation wipe out custom items from local state!
         let resolvedCalc: any = null;

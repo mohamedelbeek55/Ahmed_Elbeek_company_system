@@ -14,6 +14,17 @@ function calculateElapsedDays(startDateStr, endDateStr) {
   return Math.max(0, diffDays - 1);
 }
 
+function getCustomItemTotal(item, truckCount) {
+  if (!item) return 0;
+  const mode = item.calculation_mode || item.calculationMode || 'FIXED_TOTAL';
+  const amount = Number(item.amount) || 0;
+  if (mode === 'PER_VEHICLE') {
+    const count = Math.max(1, Math.round(Number(truckCount) || 1));
+    return amount * count;
+  }
+  return amount;
+}
+
 // Test Financial Calculations
 function calculateConvoyFinances(input) {
   const truckCount = Math.max(1, Math.round(Number(input.truckCount) || 1));
@@ -27,14 +38,19 @@ function calculateConvoyFinances(input) {
   const customItems = Array.isArray(input.customItems)
     ? input.customItems
         .filter((item) => item && (item.name?.trim() || Number(item.amount) > 0))
-        .map((item, idx) => ({
-          id: item.id || `custom-${idx + 1}`,
-          name: (item.name || '').trim(),
-          amount: Number(item.amount) || 0,
-        }))
+        .map((item, idx) => {
+          const mode = item.calculation_mode || item.calculationMode || 'FIXED_TOTAL';
+          return {
+            id: item.id || `custom-${idx + 1}`,
+            name: (item.name || '').trim(),
+            amount: Number(item.amount) || 0,
+            calculation_mode: mode,
+            calculationMode: mode,
+          };
+        })
     : [];
 
-  const customItemsTotal = customItems.reduce((acc, it) => acc + (Number(it.amount) || 0), 0);
+  const customItemsTotal = customItems.reduce((acc, it) => acc + getCustomItemTotal(it, truckCount), 0);
 
   const totalAccommodation = nights * dailyRate * truckCount;
   const totalFreight = freightRate * truckCount;
@@ -253,5 +269,131 @@ console.log('🧪 Starting Ahmed Elbeek System Automated Test Suite...\n');
   });
 }
 
-console.log('\n🎉 ALL 6 AUTOMATED TESTS PASSED SUCCESSFULLY!');
+// Test 8: Custom Invoice Item - "لكل عربية" (PER_VEHICLE mode)
+{
+  const result = calculateConvoyFinances({
+    truckCount: 5,
+    loadingDate: '2026-11-10',
+    completionDate: '2026-11-10', // 0 nights
+    dailyAccommodationRate: 0,
+    freightRatePerTruck: 0,
+    customItems: [
+      { id: 'item-1', name: 'ميزان وطبان', amount: 1000, calculation_mode: 'PER_VEHICLE' },
+    ],
+  });
+
+  // 5 trucks × 1,000 = 5,000 EGP
+  assert.strictEqual(result.customItemsTotal, 5000);
+  assert.strictEqual(getCustomItemTotal(result.customItems[0], 5), 5000);
+  console.log('✓ Test 8 Passed: Custom invoice item "لكل عربية" (PER_VEHICLE: 5 trucks × 1,000 = 5,000 EGP)');
+}
+
+// Test 9: Custom Invoice Item - "مبلغ إجمالي (مرة واحدة)" (FIXED_TOTAL mode)
+{
+  const result = calculateConvoyFinances({
+    truckCount: 5,
+    loadingDate: '2026-11-10',
+    completionDate: '2026-11-10',
+    dailyAccommodationRate: 0,
+    freightRatePerTruck: 0,
+    customItems: [
+      { id: 'item-1', name: 'إكراميات سائقين', amount: 1000, calculation_mode: 'FIXED_TOTAL' },
+    ],
+  });
+
+  // Fixed total = 1,000 EGP regardless of 5 trucks
+  assert.strictEqual(result.customItemsTotal, 1000);
+  assert.strictEqual(getCustomItemTotal(result.customItems[0], 5), 1000);
+  console.log('✓ Test 9 Passed: Custom invoice item "مبلغ إجمالي" (FIXED_TOTAL: 1,000 EGP fixed)');
+}
+
+// Test 10: Mixed Custom Items with Complete Convoy Finances
+{
+  const result = calculateConvoyFinances({
+    truckCount: 5,
+    loadingDate: '2026-11-10',
+    completionDate: '2026-11-14', // 3 nights (days 11, 12, 13)
+    dailyAccommodationRate: 500,  // 3 * 500 * 5 = 7,500
+    freightRatePerTruck: 8000,    // 5 * 8000 = 40,000
+    customsClearance: 12000,
+    portDemurrage: 6500,
+    additionalExpenses: 2500,
+    customItems: [
+      { id: 'c1', name: 'ميزان وطبان', amount: 1000, calculation_mode: 'PER_VEHICLE' }, // 5 * 1000 = 5,000
+      { id: 'c2', name: 'إكراميات', amount: 1000, calculation_mode: 'FIXED_TOTAL' },   // 1,000
+    ],
+  });
+
+  // Expected Custom Items Total = 5,000 + 1,000 = 6,000 EGP
+  assert.strictEqual(result.customItemsTotal, 6000);
+  // Expected Grand Total = 7,500 + 40,000 + 12,000 + 6,500 + 2,500 + 6,000 = 74,500 EGP
+  assert.strictEqual(result.grandTotal, 74500);
+  // Expected Average Cost per Truck = 74,500 / 5 = 14,900 EGP
+  assert.strictEqual(result.averageCostPerTruck, 14900);
+  console.log('✓ Test 10 Passed: Mixed custom items integration into Grand Total (74,500 EGP) and Avg/Truck (14,900 EGP)');
+}
+
+// Test 11: Dynamic Truck Count Changes
+{
+  const items = [
+    { id: 'c1', name: 'ميزان وطبان', amount: 1000, calculation_mode: 'PER_VEHICLE' },
+    { id: 'c2', name: 'إكراميات', amount: 1000, calculation_mode: 'FIXED_TOTAL' },
+  ];
+
+  // 5 trucks
+  const res5 = calculateConvoyFinances({
+    truckCount: 5,
+    loadingDate: '2026-11-10',
+    completionDate: '2026-11-10',
+    customItems: items,
+  });
+  assert.strictEqual(getCustomItemTotal(items[0], 5), 5000);
+  assert.strictEqual(getCustomItemTotal(items[1], 5), 1000);
+  assert.strictEqual(res5.customItemsTotal, 6000);
+
+  // Change truck count from 5 to 3
+  const res3 = calculateConvoyFinances({
+    truckCount: 3,
+    loadingDate: '2026-11-10',
+    completionDate: '2026-11-10',
+    customItems: items,
+  });
+  // Item 1 automatically recalculates to 3 × 1,000 = 3,000
+  assert.strictEqual(getCustomItemTotal(items[0], 3), 3000);
+  // Item 2 remains 1,000 fixed
+  assert.strictEqual(getCustomItemTotal(items[1], 3), 1000);
+  assert.strictEqual(res3.customItemsTotal, 4000);
+  console.log('✓ Test 11 Passed: Dynamic truck count change (5 trucks -> 6,000 EGP, 3 trucks -> 4,000 EGP)');
+}
+
+// Test 12: Backward Compatibility with Legacy Records (no calculation_mode specified)
+{
+  const legacyRecord = {
+    truckCount: 8,
+    loadingDate: '2026-11-01',
+    completionDate: '2026-11-04', // 2 nights
+    dailyAccommodationRate: 400,  // 2 * 400 * 8 = 6,400
+    freightRatePerTruck: 5000,    // 8 * 5000 = 40,000
+    customsClearance: 10000,
+    additionalExpenses: 1500,
+    customItems: [
+      // Legacy item has NO calculation_mode or calculationMode property
+      { id: 'legacy-1', name: 'بند قديم بدون نمط حساب', amount: 2500 },
+      { id: 'legacy-2', name: 'بند قديم إضافي', amount: 1200 },
+    ],
+  };
+
+  const result = calculateConvoyFinances(legacyRecord);
+
+  // Must default to FIXED_TOTAL, NOT multiplied by 8 trucks
+  assert.strictEqual(getCustomItemTotal(result.customItems[0], 8), 2500);
+  assert.strictEqual(getCustomItemTotal(result.customItems[1], 8), 1200);
+  assert.strictEqual(result.customItemsTotal, 3700);
+
+  // Grand Total = 6,400 + 40,000 + 10,000 + 1,500 + 3,700 = 61,600 EGP
+  assert.strictEqual(result.grandTotal, 61600);
+  console.log('✓ Test 12 Passed: 100% backward compatibility with legacy custom cost records (defaults to fixed amount)');
+}
+
+console.log('\n🎉 ALL 12 AUTOMATED TESTS PASSED SUCCESSFULLY!');
 
