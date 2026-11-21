@@ -69,9 +69,11 @@ export default function LoginPage() {
               <input
                 type="text"
                 required
+                enterKeyHint="next"
+                autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                className="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition min-h-[46px]"
                 placeholder="أدخل اسم المستخدم"
               />
               <span className="material-symbols-outlined absolute right-3 text-light-on-surface-variant pointer-events-none text-xl">
@@ -93,9 +95,11 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
+                enterKeyHint="done"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                className="w-full border border-outline rounded-DEFAULT px-4 py-3 pr-11 font-body text-body-md text-charcoal focus:border-primary focus:ring-1 focus:ring-primary outline-none transition min-h-[46px]"
                 placeholder="أدخل كلمة المرور"
               />
               <span className="material-symbols-outlined absolute right-3 text-light-on-surface-variant pointer-events-none text-xl">
@@ -105,14 +109,14 @@ export default function LoginPage() {
           </div>
 
           <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer min-h-[44px]">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="rounded border-outline text-primary focus:ring-primary h-4 w-4"
+                className="rounded border-outline text-primary focus:ring-primary h-4 w-4 cursor-pointer"
               />
-              <span className="font-body text-body-sm text-light-on-surface-variant">
+              <span className="font-body text-body-sm text-light-on-surface-variant select-none">
                 تذكر تسجيل الدخول
               </span>
             </label>
@@ -124,7 +128,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-lg py-3.5 px-4 rounded-DEFAULT transition duration-state-change shadow-sm flex items-center justify-center gap-2 cursor-pointer mt-6 disabled:opacity-50"
+            className="w-full bg-primary hover:bg-opacity-95 text-on-primary font-label text-label-lg py-3.5 px-4 rounded-DEFAULT transition duration-state-change shadow-sm flex items-center justify-center gap-2 cursor-pointer mt-6 disabled:opacity-50 min-h-[48px]"
           >
             <span>{loading ? 'جارٍ تسجيل الدخول...' : 'تسجيل الدخول للنظام'}</span>
             <span className="material-symbols-outlined text-lg">arrow_forward</span>

@@ -74,7 +74,7 @@ export default function ArchivePage() {
             <button
               type="button"
               onClick={() => setActiveTab('all')}
-              className={`px-3.5 py-2 rounded-DEFAULT font-label text-label-md transition shrink-0 min-h-[40px] ${
+              className={`px-3.5 py-2 rounded-DEFAULT font-label text-label-md transition shrink-0 min-h-[44px] flex items-center justify-center ${
                 activeTab === 'all'
                   ? 'bg-primary text-on-primary font-bold'
                   : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
@@ -85,7 +85,7 @@ export default function ArchivePage() {
             <button
               type="button"
               onClick={() => setActiveTab('rafah')}
-              className={`px-3.5 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition shrink-0 min-h-[40px] ${
+              className={`px-3.5 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition shrink-0 min-h-[44px] justify-center ${
                 activeTab === 'rafah'
                   ? 'bg-primary text-on-primary font-bold'
                   : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
@@ -97,7 +97,7 @@ export default function ArchivePage() {
             <button
               type="button"
               onClick={() => setActiveTab('al_awja')}
-              className={`px-3.5 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition shrink-0 min-h-[40px] ${
+              className={`px-3.5 py-2 rounded-DEFAULT font-label text-label-md flex items-center gap-1.5 transition shrink-0 min-h-[44px] justify-center ${
                 activeTab === 'al_awja'
                   ? 'bg-primary text-on-primary font-bold'
                   : 'bg-light-surface-variant text-charcoal hover:bg-outline/50'
@@ -113,8 +113,9 @@ export default function ArchivePage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              enterKeyHint="search"
               placeholder="بحث في الأرشيف باسم البضاعة..."
-              className="w-full border border-outline rounded-DEFAULT px-4 py-2.5 pr-10 font-body text-body-sm sm:text-body-md text-charcoal focus:border-primary outline-none transition min-h-[42px]"
+              className="w-full border border-outline rounded-DEFAULT px-4 py-2.5 pr-10 font-body text-body-sm sm:text-body-md text-charcoal focus:border-primary outline-none transition min-h-[44px]"
             />
             <span className="material-symbols-outlined absolute right-3 top-2.5 text-light-on-surface-variant text-xl pointer-events-none">
               search

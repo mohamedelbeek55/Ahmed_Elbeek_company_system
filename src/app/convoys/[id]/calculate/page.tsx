@@ -99,6 +99,15 @@ export default function CostCalculationPage() {
         calculation_mode: 'FIXED_TOTAL', // Default to FIXED_TOTAL to prevent unintended inflation
       },
     ]);
+
+    setTimeout(() => {
+      const el = document.getElementById(`custom-item-${newId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = el.querySelector('input');
+        if (input) input.focus();
+      }
+    }, 120);
   };
 
   const handleUpdateCustomItem = (
@@ -365,13 +374,14 @@ export default function CostCalculationPage() {
                   <input
                     type="number"
                     inputMode="decimal"
+                    enterKeyHint="next"
                     min="0"
                     step="50"
                     placeholder="0"
                     value={dailyRate}
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setDailyRate)}
-                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-20 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-20 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م / يوم
@@ -391,13 +401,14 @@ export default function CostCalculationPage() {
                   <input
                     type="number"
                     inputMode="decimal"
+                    enterKeyHint="next"
                     min="0"
                     step="100"
                     placeholder="0"
                     value={freightRate}
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setFreightRate)}
-                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-22 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border-2 border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-22 sm:pl-24 font-body text-base sm:text-body-lg font-bold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م / شاحنة
@@ -417,13 +428,14 @@ export default function CostCalculationPage() {
                   <input
                     type="number"
                     inputMode="decimal"
+                    enterKeyHint="next"
                     min="0"
                     step="100"
                     placeholder="0"
                     value={clearanceCost}
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setClearanceCost)}
-                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م
@@ -443,13 +455,14 @@ export default function CostCalculationPage() {
                   <input
                     type="number"
                     inputMode="decimal"
+                    enterKeyHint="next"
                     min="0"
                     step="100"
                     placeholder="0"
                     value={portDemurrage}
                     onFocus={(e) => e.target.select()}
                     onChange={handleNumberInput(setPortDemurrage)}
-                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition"
+                    className="w-full border border-outline rounded-DEFAULT p-3 sm:p-3.5 pr-3 sm:pr-4 pl-16 font-body text-base sm:text-body-md font-semibold tabular-nums text-charcoal focus:border-primary outline-none transition min-h-[46px]"
                   />
                   <span className="absolute left-3 sm:left-4 text-xs sm:text-body-md text-light-on-surface-variant font-bold pointer-events-none">
                     ج.م
@@ -493,6 +506,7 @@ export default function CostCalculationPage() {
                       return (
                         <div
                           key={item.id}
+                          id={`custom-item-${item.id}`}
                           className="bg-white border-2 border-outline/80 rounded-xl p-3.5 sm:p-4 shadow-xs space-y-3 transition hover:border-primary/60"
                         >
                           {/* Card Header: Item Number & Delete Action */}
@@ -525,7 +539,7 @@ export default function CostCalculationPage() {
                               <button
                                 type="button"
                                 onClick={() => handleUpdateCustomItem(item.id, 'calculation_mode', 'PER_VEHICLE')}
-                                className={`py-2 px-3 rounded-md text-xs sm:text-body-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer min-h-[40px] ${
+                                className={`py-2 px-3 rounded-md text-xs sm:text-body-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer min-h-[44px] ${
                                   isPerVehicle
                                     ? 'bg-primary text-white shadow-xs'
                                     : 'text-charcoal hover:bg-white/70'
@@ -538,7 +552,7 @@ export default function CostCalculationPage() {
                               <button
                                 type="button"
                                 onClick={() => handleUpdateCustomItem(item.id, 'calculation_mode', 'FIXED_TOTAL')}
-                                className={`py-2 px-3 rounded-md text-xs sm:text-body-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer min-h-[40px] ${
+                                className={`py-2 px-3 rounded-md text-xs sm:text-body-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer min-h-[44px] ${
                                   !isPerVehicle
                                     ? 'bg-primary text-white shadow-xs'
                                     : 'text-charcoal hover:bg-white/70'

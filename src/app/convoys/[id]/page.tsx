@@ -289,10 +289,10 @@ export default function ConvoyDetailsPage() {
         </div>
 
         {/* Convoy Trucks Table (Aligned with Official Word Corporate Spec) */}
-        <div className="bg-light-surface border border-outline rounded-xl p-6 shadow-xs mb-8">
+        <div className="bg-light-surface border border-outline rounded-xl p-4 sm:p-6 shadow-xs mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
-              <h3 className="font-headline text-headline-md font-bold text-charcoal flex items-center gap-2">
+              <h3 className="font-headline text-headline-sm sm:text-headline-md font-bold text-charcoal flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">view_list</span>
                 <span>كشف سيارات القافلة (بيان الشاحنات الرسمي)</span>
               </h3>
@@ -302,14 +302,63 @@ export default function ConvoyDetailsPage() {
             </div>
             <Link
               href={`/convoys/${convoy.id}/drivers`}
-              className="px-4 py-2 bg-light-surface-variant hover:bg-pale-red text-charcoal hover:text-primary border border-outline rounded-DEFAULT font-label text-label-md font-bold transition flex items-center gap-2"
+              className="w-full sm:w-auto px-4 py-2.5 bg-light-surface-variant hover:bg-pale-red text-charcoal hover:text-primary border border-outline rounded-DEFAULT font-label text-label-md font-bold transition flex items-center justify-center gap-2 min-h-[44px]"
             >
               <span className="material-symbols-outlined text-lg">edit</span>
               <span>تعديل كشف السائقين ({convoy.trucks?.length || convoy.truck_count} شاحنة)</span>
             </Link>
           </div>
 
-          <div className="overflow-x-auto border border-outline rounded-lg">
+          {/* Mobile Truck Cards (md:hidden) */}
+          <div className="md:hidden space-y-3">
+            {(!convoy.trucks || convoy.trucks.length === 0) ? (
+              <div className="py-8 text-center text-light-on-surface-variant bg-light-surface-variant/40 rounded-xl p-4">
+                <span className="material-symbols-outlined text-3xl block mb-2 text-outline">badge</span>
+                <p className="text-body-sm">
+                  لم يتم إدخال بيانات تفصيلية للسائقين بعد. انقر على &quot;تعديل كشف السائقين&quot; بالأعلى لإدخال أرقام اللوحات والأسماء.
+                </p>
+              </div>
+            ) : (
+              convoy.trucks.map((t) => (
+                <div
+                  key={t.id}
+                  className="bg-white border border-outline rounded-xl p-3.5 shadow-xs space-y-2.5"
+                >
+                  <div className="flex items-center justify-between border-b border-light-gray pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-charcoal text-white font-bold text-xs flex items-center justify-center tabular-nums">
+                        {t.sequence_number}
+                      </span>
+                      <span className="font-bold text-charcoal text-body-sm">
+                        {t.driver_name || 'سائق غير مسجل'}
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-light-surface-variant text-primary border border-outline">
+                      {t.political_destination?.includes('رفح') ? 'ميناء رفح' : 'ميناء العوجة'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs bg-light-surface-variant/60 p-2.5 rounded-lg">
+                    <div>
+                      <span className="text-light-on-surface-variant block mb-0.5">سيارة رقم:</span>
+                      <span className="font-bold text-charcoal tabular-nums">{t.truck_plate || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-light-on-surface-variant block mb-0.5">مقطورة رقم:</span>
+                      <span className="font-bold text-charcoal tabular-nums">{t.trailer_plate || '—'}</span>
+                    </div>
+                    <div className="col-span-2 pt-1 border-t border-outline/30">
+                      <span className="text-light-on-surface-variant block mb-0.5">الرقم القومي:</span>
+                      <span className="font-bold text-charcoal tabular-nums">{t.national_id || '—'}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Convoy Trucks Table (hidden md:block) */}
+          <div className="hidden md:block overflow-x-auto border border-outline rounded-lg">
             <table className="w-full text-right border-collapse">
               <thead>
                 <tr className="bg-charcoal text-on-primary border-b border-outline text-label-md font-label">

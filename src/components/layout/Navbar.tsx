@@ -73,8 +73,8 @@ export default function Navbar() {
         </nav>
 
         {/* Owner Profile & Mobile Hamburger */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden sm:flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-full bg-charcoal text-on-primary font-bold flex items-center justify-center font-headline text-label-lg shadow-xs">
               أ
             </div>
@@ -88,8 +88,9 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-charcoal hover:bg-light-surface-variant rounded-DEFAULT transition"
+            className="md:hidden p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center text-charcoal hover:bg-light-surface-variant rounded-DEFAULT transition cursor-pointer"
             aria-label="القائمة الرئيسية"
+            aria-expanded={mobileMenuOpen}
           >
             <span className="material-symbols-outlined text-2xl">
               {mobileMenuOpen ? 'close' : 'menu'}
@@ -99,9 +100,29 @@ export default function Navbar() {
 
       </div>
 
+      {/* Mobile Menu Backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 md:hidden animate-in fade-in duration-200"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-outline bg-light-surface px-4 py-3 space-y-1.5 shadow-md">
+        <div className="relative z-30 md:hidden border-t border-outline bg-light-surface px-4 py-3 space-y-1.5 shadow-lg animate-in slide-in-from-top-2 duration-200">
+          {/* Owner Profile inside mobile drawer */}
+          <div className="flex sm:hidden items-center gap-3 p-2.5 bg-light-surface-variant/70 rounded-lg mb-2">
+            <div className="w-10 h-10 rounded-full bg-charcoal text-on-primary font-bold flex items-center justify-center font-headline text-label-lg shadow-xs shrink-0">
+              أ
+            </div>
+            <div className="text-right">
+              <span className="block font-label text-label-md text-charcoal font-bold leading-tight">م. أحمد البيك</span>
+              <span className="font-body text-xs text-light-on-surface-variant">مالك الشركة — بوابة الإدارة</span>
+            </div>
+          </div>
+
           {navLinks.map((item) => {
             const active = isActive(item.href);
             return (
@@ -109,7 +130,7 @@ export default function Navbar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-3.5 py-3 min-h-[44px] rounded-DEFAULT text-base font-semibold transition ${
+                className={`flex items-center gap-3 px-3.5 py-3 min-h-[46px] rounded-DEFAULT text-base font-semibold transition ${
                   active
                     ? 'bg-pale-red text-primary font-bold'
                     : 'text-charcoal hover:bg-light-surface-variant'
@@ -121,8 +142,14 @@ export default function Navbar() {
             );
           })}
           <div className="pt-3 border-t border-outline/50 flex items-center justify-between text-body-sm text-light-on-surface-variant px-3 py-1.5">
-            <span>م. أحمد البيك (صاحب الشركة)</span>
-            <Link href="/login" className="text-primary font-bold min-h-[36px] flex items-center">تسجيل الخروج</Link>
+            <span className="text-xs">النظام الإداري v1.2</span>
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-primary font-bold min-h-[44px] flex items-center px-2 hover:underline"
+            >
+              تسجيل الخروج
+            </Link>
           </div>
         </div>
       )}
